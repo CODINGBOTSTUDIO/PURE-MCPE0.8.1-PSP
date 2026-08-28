@@ -133,6 +133,11 @@ public:
             return;
         }
 
+        if (!g_level.player) {
+            remove();
+            return;
+        }
+
         float time = (float)life / 3.0f;
         time = time * time;
 

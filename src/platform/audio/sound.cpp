@@ -283,7 +283,7 @@ void soundInit(void) {
     if (g_channel < 0) return;
 
     g_mixerQuit = 0;
-    g_thid = sceKernelCreateThread("sound_thread", mixerThread, 0x12, 0x10000,
+    g_thid = sceKernelCreateThread("sound_thread", mixerThread, 0x1A, 0x10000,
                                    PSP_THREAD_ATTR_USER, 0);
     if (g_thid < 0) return;
     sceKernelStartThread(g_thid, 0, 0);

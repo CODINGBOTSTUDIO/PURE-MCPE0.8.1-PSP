@@ -244,7 +244,9 @@ struct CraftScreen : Screen {
 void CraftScreen::handleInput(MenuState& s, unsigned int pressed, unsigned int ) {
     (void)s;
 
-    if (g_level.player && g_level.player->hurtTime > 0) { g_craftOpen = false; return; }
+    if (!g_level.player) { g_craftOpen = false; return; }
+
+    if (g_level.player->hurtTime > 0) { g_craftOpen = false; return; }
 
     int before = s_focus * 1000 + s_curCat * 100 + s_cursor;
 
@@ -277,6 +279,7 @@ void CraftScreen::renderBackground(MenuState& s) {
 
 void CraftScreen::renderContent(MenuState& s) {
     Font& font = s.font; bool haveFont = s.haveFont;
+    if (!g_level.player) return;
 
     sceGuDisable(GU_DEPTH_TEST);
 

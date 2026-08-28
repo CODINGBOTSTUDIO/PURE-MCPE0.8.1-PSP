@@ -929,6 +929,8 @@ static void renderSelectionOutline(float ex, float ey, float ez) {
 
     BlockHit hit = worldPick(&g_world, g_level.player->x, g_level.player->y, g_level.player->z,
                              g_level.player->yRot, g_level.player->xRot, 5.0f);
+
+    if (!hit.hit) return;
     unsigned char id = worldBlock(&g_world, hit.x, hit.y, hit.z);
     if (id == BLOCK_INVISIBLE_BEDROCK) return;
 

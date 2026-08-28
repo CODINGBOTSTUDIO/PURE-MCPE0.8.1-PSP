@@ -30,6 +30,8 @@ static Random& rng() {
 namespace NetherReactor {
 
 void setPhase(Level* level, int x, int y, int z, int phase) {
+
+    if (!level || level->getTile(x, y, z) != BLOCK_NETHER_REACTOR) return;
     if (level->getData(x, y, z) != phase)
         level->setData(x, y, z, phase);
 }

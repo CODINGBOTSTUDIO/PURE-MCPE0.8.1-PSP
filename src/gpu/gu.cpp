@@ -178,6 +178,7 @@ static inline void* guFbAddr(int idx) {
 }
 
 static int s_postedIdx     = -1;
+static int s_prevPostedIdx = -1;
 
 unsigned int g_vcSameRefresh = 0;
 unsigned int g_vcDrops       = 0;
@@ -185,6 +186,9 @@ int g_vcLast = 0, g_vcMin = 9999, g_vcMax = 0;
 static int s_vcPrev = -1;
 unsigned int g_drawLiveHits = 0;
 unsigned int g_drawLiveOurs = 0;
+
+unsigned int g_drawLiveDrv  = 0;
+static unsigned int g_edramBase = 0;
 
 void guWaitGeIdle(void) { sceGuSync(0, 0); }
 
@@ -291,6 +295,9 @@ static void guApplyPersistentState(void) {
 
     sceGuTexScale(1.0f, 1.0f);
     sceGuTexOffset(0.0f, 0.0f);
+
+    sceGuColor(0xFFFFFFFFu);
+    sceGuDepthOffset(0);
 }
 
 void guInit(void) {
@@ -304,6 +311,7 @@ void guInit(void) {
 
     g_callListUncached = (void*)((unsigned int)g_callList | 0x40000000u);
     g_listIdx = 0;
+    g_edramBase = (unsigned int)sceGeEdramGetAddr();
 
     for (int i = 0; i < GU_FB_COUNT; i++)
         g_fb[i] = guVramAlloc(GU_BUF_WIDTH, GU_SCR_HEIGHT, GU_PSM_5650);
@@ -334,6 +342,7 @@ void guInit(void) {
                           PSP_DISPLAY_PIXEL_FORMAT_565, PSP_DISPLAY_SETBUF_NEXTFRAME);
 
     s_postedIdx     = 1;
+    s_prevPostedIdx = -1;
     g_drawIdx       = 0;
 
 }
@@ -356,10 +365,25 @@ static void guApplyFrameBaseline(void) {
     sceGuEnable(GU_TEXTURE_2D);
 }
 
-static int guFreeBuffer(void) { return s_postedIdx == 0 ? 1 : 0; }
+static int guFreeBuffer(void) {
+    const int n = s_dialogUp ? 2 : GU_FB_COUNT;
+    for (int i = 0; i < n; i++)
+        if (i != s_postedIdx && (n < 3 || i != s_prevPostedIdx)) return i;
+    return 0;
+}
+
+static void guCheckLiveBuffer(void) {
+    void* shown = 0; int bw = 0, pf = 0;
+    if (sceDisplayGetFrameBuf(&shown, &bw, &pf, 0) >= 0 && shown) {
+        const unsigned int live = (unsigned int)shown & 0x0fffffffu;
+        const unsigned int mine = (g_edramBase + (unsigned int)g_fb[g_drawIdx]) & 0x0fffffffu;
+        if (live == mine) { g_drawLiveDrv++; g_drawLiveHits++; }
+    }
+}
 
 static void guSelectDrawBuffer(void) {
-    if (g_drawIdx == s_postedIdx) {
+    if (g_drawIdx == s_postedIdx ||
+        (GU_FB_COUNT >= 3 && !s_dialogUp && g_drawIdx == s_prevPostedIdx)) {
         g_drawLiveHits++;
         g_drawLiveOurs++;
         profAdd(PROFC_DRAWLIVE, 1);
@@ -371,6 +395,8 @@ static void guSelectDrawBuffer(void) {
 bool guStartFrame(unsigned int clearColor) {
 
     if (s_dialogUp) return false;
+
+    guCheckLiveBuffer();
 
     g_listIdx ^= 1;
     sceGuStart(GU_DIRECT, guListCur());
@@ -410,36 +436,6 @@ void guFinishFrame(void) {
     if (listBytes > g_listPeakBytes) g_listPeakBytes = listBytes;
     if (listBytes >= GU_LIST_BYTES) g_listOverruns++;
 
-    {
-
-        extern bool g_worldBuilt;
-        static unsigned s_listPeak = 0;
-        static unsigned s_frameNo = 0;
-        static bool     s_lastScene = false;
-
-        static unsigned s_hist[2] = { 0, 0 };
-        static unsigned s_histShown[2] = { 0, 0 };
-        static unsigned s_histDrawn[2] = { 0, 0 };
-
-        if (g_worldBuilt != s_lastScene) {
-            s_lastScene = g_worldBuilt;
-            s_listPeak = 0;
-            s_hist[0] = s_hist[1] = 0;
-        } else {
-            s_frameNo++;
-            if (listBytes > s_listPeak) s_listPeak = listBytes;
-
-            void* shown = 0; int bw = 0, pf = 0;
-            sceDisplayGetFrameBuf(&shown, &bw, &pf, 0);
-            s_hist[0] = s_hist[1];
-            s_hist[1] = listBytes;
-            s_histShown[0] = s_histShown[1];
-            s_histShown[1] = (unsigned)shown;
-            s_histDrawn[0] = s_histDrawn[1];
-            s_histDrawn[1] = (unsigned)sceGeEdramGetAddr() + (unsigned)g_fb[g_drawIdx];
-        }
-    }
-
     sceGuSync(0, 0);
     guCheckListCanary();
 
@@ -465,6 +461,7 @@ void guPresent(void) {
     const int shown = g_drawIdx;
     sceDisplaySetFrameBuf(guFbAddr(shown), GU_BUF_WIDTH,
                           PSP_DISPLAY_PIXEL_FORMAT_565, PSP_DISPLAY_SETBUF_NEXTFRAME);
+    s_prevPostedIdx = s_postedIdx;
     s_postedIdx     = shown;
 
     (void)shown;
@@ -483,6 +480,8 @@ void guSuspendForDialog(void) {
     sceGuSync(0, 0);
     guFlushDeferredFrees();
     s_dialogUp = true;
+
+    g_drawIdx = guFreeBuffer();
 }
 
 void guResumeFromDialog(void) {
@@ -504,10 +503,12 @@ void guResumeFromDialog(void) {
     }
 
     s_dialogUp = false;
+    g_drawIdx = guFreeBuffer();
 
 }
 
 void guDialogBegin(unsigned int clearColor) {
+    guCheckLiveBuffer();
     g_listIdx ^= 1;
     sceGuStart(GU_DIRECT, guListCur());
     g_frameScratch = 0;

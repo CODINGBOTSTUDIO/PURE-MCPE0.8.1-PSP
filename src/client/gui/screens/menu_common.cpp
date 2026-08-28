@@ -282,8 +282,9 @@ void startOsk(int target, const char* desc, const char* intext, int maxLen) {
     oskData.desc = oskDesc;
     oskData.intext = oskInText;
     if (maxLen > 64) maxLen = 64;
-    oskData.outtextlength = maxLen;
-    oskData.outtextlimit = maxLen;
+
+    oskData.outtextlength = (int)(sizeof(oskOutText) / sizeof(oskOutText[0]));
+    oskData.outtextlimit  = maxLen;
     oskData.outtext = oskOutText;
 
     oskParams.base.size = sizeof(oskParams);

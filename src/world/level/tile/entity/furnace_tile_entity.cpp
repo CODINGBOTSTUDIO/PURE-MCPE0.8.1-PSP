@@ -14,15 +14,18 @@ FurnaceTileEntity::FurnaceTileEntity()
 }
 
 ItemInstance* FurnaceTileEntity::getItem(int slot) {
+    if (slot < 0 || slot >= NUM_ITEMS) return 0;
     return &items[slot];
 }
 
 void FurnaceTileEntity::setItem(int slot, ItemInstance* item) {
+    if (!item || slot < 0 || slot >= NUM_ITEMS) return;
     items[slot] = *item;
     if (items[slot].count > getMaxStackSize()) items[slot].count = (short)getMaxStackSize();
 }
 
 ItemInstance FurnaceTileEntity::removeItem(int slot, int count) {
+    if (slot < 0 || slot >= NUM_ITEMS) return ItemInstance();
     if (items[slot].isNull()) return ItemInstance();
     if (items[slot].count <= count) {
         ItemInstance item = items[slot];

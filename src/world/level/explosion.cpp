@@ -130,7 +130,7 @@ void worldExplode(World* w, float x, float y, float z, float r) {
         e->xd += dx * pw; e->yd += dy * pw; e->zd += dz * pw;
     }
 
-    {
+    if (g_level.player) {
         float dx = g_level.player->x - x, dy = g_level.player->y - y, dz = g_level.player->z - z;
         float dd = sqrtf(dx * dx + dy * dy + dz * dz);
         float dist = dd / r2;

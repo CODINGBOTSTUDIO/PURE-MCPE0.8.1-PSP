@@ -124,7 +124,7 @@ struct FurnaceScreen : ContainerScreen {
 
 void FurnaceScreen::handleInput(MenuState& s, unsigned int pressed, unsigned int held) {
     (void)s;
-    if (!s_furnace) { g_furnaceOpen = false; return; }
+    if (!s_furnace || !g_level.player) { g_furnaceOpen = false; return; }
 
     if (furnaceGone()) { s_furnace = nullptr; g_furnaceOpen = false; return; }
 
@@ -206,7 +206,7 @@ static void drawFurnaceSlot(MenuState& s, int slot, float gx, float gy) {
 
 void FurnaceScreen::renderContent(MenuState& s) {
     Font& font = s.font; bool haveFont = s.haveFont;
-    if (!s_furnace || furnaceGone()) return;
+    if (!s_furnace || !g_level.player || furnaceGone()) return;
 
     sceGuDisable(GU_DEPTH_TEST);
 

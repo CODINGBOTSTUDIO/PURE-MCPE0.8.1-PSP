@@ -94,6 +94,8 @@ struct ArmorScreen : ContainerScreen {
 
 void ArmorScreen::handleInput(MenuState& s, unsigned int pressed, unsigned int ) {
     (void)s;
+
+    if (!g_level.player) { g_armorOpen = false; return; }
     const int cols = 3;
     const int n = (int)s_list.size();
     int before = s_focus * 1000 + s_cursor + s_slotSel * 100;
@@ -138,6 +140,7 @@ static void durabilityBar(MenuState& s, ItemInstance* it, float gx, float gy) {
 void ArmorScreen::renderContent(MenuState& s) {
     Font& font = s.font; bool haveFont = s.haveFont;
     LocalPlayer* p = g_level.player;
+    if (!p) return;
 
     sceGuDisable(GU_DEPTH_TEST);
 

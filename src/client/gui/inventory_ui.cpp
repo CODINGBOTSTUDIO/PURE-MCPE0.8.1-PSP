@@ -61,6 +61,7 @@ static const char* invHeaderLabel(int i) {
 
 bool invHeaderButton(MenuState& s, int i, float* x, float* w) {
     if (i < 0 || i >= INV_BTN_COUNT) return false;
+    if (!g_level.player) return false;
 
     if (i != INV_BTN_BACK && g_level.player->inventory->isCreative()) return false;
     if (!x) return true;
@@ -88,6 +89,7 @@ static void invHeaderTitleGap(MenuState& s, float* gx, float* gw) {
 }
 
 void inventoryDraw(MenuState& s) {
+    if (!g_level.player) return;
 
     const int   cols   = INV_COLS;
     const int   By = 6, ItemSize = 32, BlockBorder = 4, clipBottom = 0;

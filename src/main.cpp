@@ -134,9 +134,10 @@ static float drawFaultCounters(MenuState& s, float ty) {
         fontDrawTextShadow(&s.font, 10, ty, buf, 0xFF50FFFFu, 1.0f);
         ty += 12.0f;
     }
-    extern unsigned int g_drawLiveHits;
+    extern unsigned int g_drawLiveHits, g_drawLiveDrv;
     if (g_drawLiveHits) {
-        std::snprintf(buf, sizeof(buf), "DRAW-LIVE %u", g_drawLiveHits);
+
+        std::snprintf(buf, sizeof(buf), "DRAW-LIVE %u/%u", g_drawLiveHits, g_drawLiveDrv);
         fontDrawTextShadow(&s.font, 10, ty, buf, 0xFF50FFFFu, 1.0f);
         ty += 12.0f;
     }
@@ -355,7 +356,7 @@ int main(int argc, char* argv[]) {
         scePowerTick(0);
 
         SceCtrlData pad;
-        sceCtrlReadBufferPositive(&pad, 1);
+        sceCtrlPeekBufferPositive(&pad, 1);
 
         controlSchemeNotePad(pad.Buttons, pad.Rx, pad.Ry);
 
@@ -489,8 +490,9 @@ int main(int argc, char* argv[]) {
                         if (g_drawLiveHits) {
                             char dlBuf[64];
 
-                            std::snprintf(dlBuf, sizeof(dlBuf), "DRAW-LIVE %u/%u (corrected)",
-                                          g_drawLiveHits, g_drawLiveOurs);
+                            extern unsigned int g_drawLiveDrv;
+                            std::snprintf(dlBuf, sizeof(dlBuf), "DRAW-LIVE %u/%u drv %u",
+                                          g_drawLiveHits, g_drawLiveOurs, g_drawLiveDrv);
                             fontDrawTextShadow(&s.font, 10, ty, dlBuf, 0xFF50FFFFu, 1.0f);
                             ty += 12.0f;
                         }

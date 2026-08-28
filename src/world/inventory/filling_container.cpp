@@ -22,7 +22,8 @@ ItemInstance* FillingContainer::getItem(int slot) {
 }
 
 void FillingContainer::setItem(int slot, ItemInstance* item) {
-    if (slot < 0 || slot >= (int)items.size()) return;
+
+    if (slot < 0 || slot >= (int)items.size()) { delete item; return; }
     delete items[slot];
     items[slot] = item;
 }
