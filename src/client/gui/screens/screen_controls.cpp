@@ -193,7 +193,7 @@ const char* const kActionName[CA_COUNT] = {
     "Place", "Break", "Jump", "Sneak", "Drop",
     "Prev Item", "Next Item",
     "Look", "Look", "Look", "Look",
-    "Drop", "Inventory", "Crafting", "Third Person",
+    "Drop", "Inventory", "Crafting", "Camera Mode",
 };
 
 struct ArtAnchors {

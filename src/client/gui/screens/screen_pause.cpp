@@ -13,7 +13,7 @@
 
 bool g_paused        = false;
 int  g_pauseSel      = 0;
-bool g_thirdPerson   = false;
+int  g_thirdPerson   = 0;
 bool g_quitConfirm   = false;
 int  g_quitConfirmSel = 1;
 bool g_optionsOpen   = false;

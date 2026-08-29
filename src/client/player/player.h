@@ -25,7 +25,7 @@ extern int g_invFlashTicks;
 
 extern bool g_paused;
 extern int  g_pauseSel;
-extern bool g_thirdPerson;
+extern int  g_thirdPerson;
 extern bool g_optionsOpen;
 extern bool g_quitConfirm;
 extern int  g_quitConfirmSel;

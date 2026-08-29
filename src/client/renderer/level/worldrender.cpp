@@ -26,6 +26,9 @@ static inline void streamFreeSection(ChunkSection* s) {
     s->dirty = true;
 }
 
+static const ChunkMesh* g_visChunks[WORLD_CHUNKS_X * WORLD_CHUNKS_Z];
+static int g_nVisChunks = 0;
+
 struct OpaqueSec { float d2; const ChunkSection* s; };
 static OpaqueSec g_opaqueList[WORLD_CHUNKS_X * WORLD_CHUNKS_Z * N_SECTIONS];
 static int cmpOpaqueAsc(const void* a, const void* b) {
@@ -179,6 +182,7 @@ void worldDraw(const World* cw, float camX, float camY, float camZ, float viewDi
 
     float maxD2 = drawCull(viewDist) * drawCull(viewDist);
 
+    g_nVisChunks = 0;
     for (int i = 0; i < WORLD_CHUNKS_X * WORLD_CHUNKS_Z; i++) {
         ChunkMesh* c = &w->chunks[i];
 
@@ -195,12 +199,13 @@ void worldDraw(const World* cw, float camX, float camY, float camZ, float viewDi
             ChunkSection* s = &c->sec[si];
             s->visible = off ? false : sectionVisible(c, s);
         }
+        if (!off) g_visChunks[g_nVisChunks++] = c;
     }
     profEnd(PROF_CULL);
 
     int nOpaque = 0;
-    for (int i = 0; i < WORLD_CHUNKS_X * WORLD_CHUNKS_Z; i++) {
-        const ChunkMesh* c = &w->chunks[i];
+    for (int i = 0; i < g_nVisChunks; i++) {
+        const ChunkMesh* c = g_visChunks[i];
         float dx = c->cx - camX, dz = c->cz - camZ;
         for (int si = 0; si < N_SECTIONS; si++) {
             const ChunkSection* s = &c->sec[si];
@@ -236,8 +241,8 @@ void worldDraw(const World* cw, float camX, float camY, float camZ, float viewDi
 
     if (terrain) {
         bool any = false;
-        for (int i = 0; i < WORLD_CHUNKS_X * WORLD_CHUNKS_Z; i++) {
-            const ChunkMesh* c = &w->chunks[i];
+        for (int i = 0; i < g_nVisChunks; i++) {
+            const ChunkMesh* c = g_visChunks[i];
             float dx = c->cx - camX, dz = c->cz - camZ;
             for (int si = 0; si < N_SECTIONS; si++) {
                 const ChunkSection* s = &c->sec[si];
@@ -265,8 +270,8 @@ void worldDraw(const World* cw, float camX, float camY, float camZ, float viewDi
 
             if (distMip) sceGuTexLevelMode(GU_TEXTURE_CONST, 0.0f);
             sceGuFrontFace(GU_CW);
-            for (int i = 0; i < WORLD_CHUNKS_X * WORLD_CHUNKS_Z; i++) {
-                const ChunkMesh* c = &w->chunks[i];
+            for (int i = 0; i < g_nVisChunks; i++) {
+                const ChunkMesh* c = g_visChunks[i];
                 for (int si = 0; si < N_SECTIONS; si++) {
                     const ChunkSection* s = &c->sec[si];
                     if (s->noMipCount == 0 || !s->visible) continue;
@@ -301,8 +306,8 @@ void worldDraw(const World* cw, float camX, float camY, float camZ, float viewDi
         sceGuTexFilter(g_fancyGraphics ? GU_NEAREST_MIPMAP_NEAREST
                                        : GU_NEAREST_MIPMAP_LINEAR, GU_NEAREST);
     sceGuEnable(GU_ALPHA_TEST);
-    for (int i = 0; i < WORLD_CHUNKS_X * WORLD_CHUNKS_Z; i++) {
-        const ChunkMesh* c = &w->chunks[i];
+    for (int i = 0; i < g_nVisChunks; i++) {
+        const ChunkMesh* c = g_visChunks[i];
         float dx = c->cx - camX, dz = c->cz - camZ;
         for (int si = 0; si < N_SECTIONS; si++) {
             const ChunkSection* s = &c->sec[si];
@@ -338,8 +343,8 @@ void worldDrawWater(const World* w, float camX, float camY, float camZ, float vi
     float maxD2 = drawCull(viewDist) * drawCull(viewDist);
 
     int cnt = 0;
-    for (int i = 0; i < WORLD_CHUNKS_X * WORLD_CHUNKS_Z; i++) {
-        const ChunkMesh* c = &w->chunks[i];
+    for (int i = 0; i < g_nVisChunks; i++) {
+        const ChunkMesh* c = g_visChunks[i];
         float dx = c->cx - camX, dz = c->cz - camZ;
         if (dx * dx + dz * dz > maxD2) continue;
         for (int si = 0; si < N_SECTIONS; si++) {

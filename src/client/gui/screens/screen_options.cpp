@@ -38,7 +38,8 @@ static const OptionRowDef g_optionRows[OPT_CATEGORIES][OPT_MAX_ROWS] = {
     {
 
         { "Game", "Difficulty",   {"Peaceful", "Easy", "Normal", "Hard"}, 4, 2 },
-        { 0,      "Third Person", {"Off", "On", 0, 0}, 2, 0 },
+
+        { 0,      "Third Person", {"Off", "Behind", "In Front", 0}, 3, 0 },
 
         { 0,      "Autosave",     {"Off", "15 min", "20 min", "30 min"}, 4, 1 },
         { "Interface", "Bar On Top", {"Off", "On", 0, 0}, 2, 0 },
@@ -112,7 +113,7 @@ extern int   g_dither;
 extern int   g_barOnTop;
 extern float g_sensitivity;
 extern int   g_fineAim;
-extern bool  g_thirdPerson;
+extern int   g_thirdPerson;
 extern int   g_invertY;
 extern int   g_southpaw;
 extern int   g_beautifulSkies;
@@ -216,7 +217,8 @@ static void optionsApply() {
     g_controlScheme = g_optionValueIdx[CAT_CONTROLS][ROW_SCHEME];
 
     g_analogDeadzone = g_optionValueIdx[CAT_CONTROLS][ROW_DEADZONE] * 0.05f;
-    g_thirdPerson = g_optionValueIdx[CAT_GAME][ROW_THIRDPERSON] != 0;
+    int tp = g_optionValueIdx[CAT_GAME][ROW_THIRDPERSON];
+    g_thirdPerson = (tp < 0 || tp > 2) ? 0 : tp;
     g_beautifulSkies = g_optionValueIdx[CAT_GRAPHICS][ROW_SKIES];
     g_animateTextures= g_optionValueIdx[CAT_GRAPHICS][ROW_ANIMTEX];
     g_hideGui        = g_optionValueIdx[CAT_GRAPHICS][ROW_HIDEGUI];
@@ -251,8 +253,9 @@ void optionsInitDefaults() {
     optionsApply();
 }
 
-void optionsToggleThirdPerson() {
-    g_optionValueIdx[CAT_GAME][ROW_THIRDPERSON] = g_optionValueIdx[CAT_GAME][ROW_THIRDPERSON] ? 0 : 1;
+void optionsCycleCameraMode() {
+    int tp = g_optionValueIdx[CAT_GAME][ROW_THIRDPERSON] + 1;
+    g_optionValueIdx[CAT_GAME][ROW_THIRDPERSON] = (tp < 0 || tp > 2) ? 0 : tp;
     optionsApply();
 }
 

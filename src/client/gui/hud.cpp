@@ -1204,10 +1204,11 @@ void gameHintsDraw(MenuState& s) {
             n += hudHint(&h[n], ACT_CRAFT, "Crafting");
         n += hudHint(&h[n], ACT_INVENTORY, "Inventory");
 
-        extern bool g_thirdPerson;
+        extern int g_thirdPerson;
+        static const char* kNextView[3] = { "Third Person", "Front View", "First Person" };
         if (g_level.player->inventory->selected == HOTBAR_SLOTS)
             n += hudHint(&h[n], PSP_CTRL_UP,
-                         g_thirdPerson ? "First Person" : "Third Person");
+                         kNextView[(g_thirdPerson >= 0 && g_thirdPerson < 3) ? g_thirdPerson : 0]);
 
         if (g_level.player->inventory->selected == HOTBAR_SLOTS)
             n += hudHint(&h[n], PSP_CTRL_LTRIGGER, "Inventory");

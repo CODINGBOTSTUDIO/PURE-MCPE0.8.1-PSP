@@ -1366,13 +1366,17 @@ void gameRender(MenuState& s) {
         if (ipitch < -89.0f) ipitch = -89.0f;
     }
 
+    extern int g_thirdPerson;
+    if (g_thirdPerson == 2 && !g_level.player->isSleeping() && !g_photoPending) {
+        iyaw  += 180.0f;
+        ipitch = -ipitch;
+    }
+
     float cp = cosf(ipitch * DEG2RAD), sp = sinf(ipitch * DEG2RAD);
     float cy = cosf(iyaw * DEG2RAD),   sy = sinf(iyaw * DEG2RAD);
     float fx = -cp * sy, fy = sp, fz = cp * cy;
     float rx = cy,       rz = sy;
     float ux = fy * rz,  uy = fz * rx - fx * rz, uz = -fy * rx;
-
-    extern bool g_thirdPerson;
 
     bool thirdNow = g_thirdPerson && !g_level.player->isSleeping() && !g_photoPending;
     float camBack = 0.0f;
@@ -1652,7 +1656,7 @@ void gameRender(MenuState& s) {
 
     renderMiningCrack(px0, py0, pz0);
 
-    extern bool g_thirdPerson;
+    extern int g_thirdPerson;
 
     if ((g_photoPending && !g_photoIsIcon) ||
         (g_thirdPerson && !(g_level.player && g_level.player->isSleeping())))
@@ -1689,7 +1693,7 @@ void gameRender(MenuState& s) {
 
     loadWorldView(ex, ey, ez, ctrX, ctrY, ctrZ, roll, 0.0f, 0.0f, 0.0f);
 
-    extern bool g_thirdPerson;
+    extern int g_thirdPerson;
 
     if (!g_thirdPerson && g_level.player && g_level.player->health > 0 &&
         !g_level.player->isSleeping() && !g_photoPending && !g_hideGui) {

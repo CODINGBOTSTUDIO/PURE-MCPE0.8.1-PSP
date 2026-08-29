@@ -163,7 +163,7 @@ void optionsSetInvertLook(int on);
 void optionsSetSouthpaw(int on);
 void optionsSetFineAim(int on);
 
-void optionsToggleThirdPerson();
+void optionsCycleCameraMode();
 
 static const unsigned int GUI_DISABLED = 0xFF707070u;
 void guiTButton(MenuState& s, float x, float y, float w, float h, bool pressed,

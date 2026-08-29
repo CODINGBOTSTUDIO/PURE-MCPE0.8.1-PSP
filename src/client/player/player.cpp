@@ -362,7 +362,7 @@ void gameUpdate(MenuState& s, unsigned int pressed, const SceCtrlData& padIn) {
 
     if (((pressed & PSP_CTRL_UP) && g_level.player->inventory->selected == HOTBAR_SLOTS)
         || (pressed & ACT_THIRDPERSON)) {
-        optionsToggleThirdPerson();
+        optionsCycleCameraMode();
         soundPlay("random.click", 1.0f, 1.0f);
     }
 
