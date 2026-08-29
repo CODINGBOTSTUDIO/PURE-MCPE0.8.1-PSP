@@ -5,22 +5,33 @@
 #include "world/level/tile/tile_behavior.h"
 #include <stdlib.h>
 
+static bool grassWalk(World* w, int& x, int& y, int& z, int steps) {
+    for (int i = 0; i < steps / 16; i++) {
+        x += rand() % 3 - 1;
+
+        y += (rand() % 3) * (rand() % 3 - 1) / 2;
+        z += rand() % 3 - 1;
+        if (worldBlock(w, x, y - 1, z) != BLOCK_GRASS || isOpaque(worldBlock(w, x, y, z)))
+            return false;
+    }
+    return steps > 15;
+}
+
 static void bonemealGrass(World* w, int x, int y, int z) {
-    for (int j = 0; j < 32; j++) {
+    for (int i = 16; i != 64; ++i) {
         int xx = x, yy = y + 1, zz = z;
-        bool blocked = false;
-        for (int i = 0; i < j / 16; i++) {
-            xx += rand() % 3 - 1;
-            yy += (rand() % 3 - 1) * (rand() % 3) / 2;
-            zz += rand() % 3 - 1;
-            if (worldBlock(w, xx, yy - 1, zz) != BLOCK_GRASS || isOpaque(worldBlock(w, xx, yy, zz))) {
-                blocked = true;
-                break;
-            }
-        }
-        if (blocked) continue;
-        if (worldBlock(w, xx, yy, zz) == BLOCK_AIR)
-            worldSetTileUpdate(w, xx, yy, zz, (rand() % 3 != 0) ? BLOCK_FLOWER : BLOCK_ROSE, 0);
+        if (!grassWalk(w, xx, yy, zz, i)) continue;
+        if (worldBlock(w, xx, yy, zz) != BLOCK_AIR) continue;
+
+        const int roll = rand() & 0xF;
+        unsigned char id, data;
+        if (roll == 0)      { id = BLOCK_FLOWER;    data = 0; }
+        else if (roll == 1) { id = BLOCK_ROSE;      data = 0; }
+        else if (roll == 2) { id = BLOCK_TALLGRASS; data = TG_FERN; }
+        else                { id = BLOCK_TALLGRASS; data = TG_TALL_GRASS; }
+
+        if (bushCanSurviveWith(w, id, data, xx, yy, zz))
+            worldSetTileUpdate(w, xx, yy, zz, id, data);
     }
 }
 

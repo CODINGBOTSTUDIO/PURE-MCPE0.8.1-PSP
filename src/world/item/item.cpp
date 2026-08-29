@@ -13,11 +13,12 @@
 #include "world/item/bonemeal_item.h"
 #include "world/item/bow_item.h"
 #include "world/item/spawn_egg_item.h"
+#include "world/item/shears_item.h"
 #include "world/entity/entity_types.h"
 
 Item* Item::items[4096];
 
-Item::Item(short id) : id(id), maxStackSize(64), maxDamage(0), category(-1) {
+Item::Item(short id) : id(id), maxStackSize(64), maxDamage(0), category(-1), creativeTab(0) {
     items[id] = this;
 }
 
@@ -125,7 +126,7 @@ void Item::initItems() {
     new SimpleItem(ITEM_NETHER_QUARTZ,  ic(5, 10));
 
     new FlintAndSteelItem(ITEM_FLINT_AND_STEEL, ic(5, 0));
-    new SimpleItem(ITEM_SHEARS,          ic(13, 5), 1, 238);
+    new ShearsItem(ITEM_SHEARS,          ic(13, 5));
     new SimpleItem(ITEM_EGG,             ic(12, 0), 16);
     new SimpleItem(ITEM_SNOWBALL,        ic(14, 0), 16);
     new DoorItem(ITEM_DOOR_WOOD_ITEM, BLOCK_DOOR_WOOD, ic(11, 2));
@@ -195,5 +196,66 @@ void Item::initItems() {
         };
         for (unsigned int i = 0; i < sizeof(kCat) / sizeof(kCat[0]); i++)
             if (items[kCat[i].id]) items[kCat[i].id]->category = kCat[i].cat;
+    }
+
+    {
+        static const struct { short id; unsigned char tab; } kTab[] = {
+            { BLOCK_STONE, 1 }, { BLOCK_GRASS, 1 }, { BLOCK_DIRT, 1 }, { BLOCK_COBBLESTONE, 1 },
+            { BLOCK_PLANKS, 1 }, { BLOCK_SAPLING, 2 }, { BLOCK_BEDROCK, 1 }, { BLOCK_WATER, 1 },
+            { BLOCK_CALM_WATER, 1 }, { BLOCK_LAVA, 1 }, { BLOCK_CALM_LAVA, 1 }, { BLOCK_SAND, 1 },
+            { BLOCK_GRAVEL, 1 }, { BLOCK_ORE_GOLD, 1 }, { BLOCK_ORE_IRON, 1 }, { BLOCK_ORE_COAL, 1 },
+            { BLOCK_LOG, 1 }, { BLOCK_LEAVES, 2 }, { BLOCK_GLASS, 2 }, { BLOCK_ORE_LAPIS, 1 },
+            { BLOCK_LAPIS_BLOCK, 2 }, { BLOCK_SANDSTONE, 1 }, { BLOCK_BED, 2 }, { BLOCK_COBWEB, 2 },
+            { BLOCK_TALLGRASS, 2 }, { BLOCK_WOOL, 2 }, { BLOCK_FLOWER, 2 }, { BLOCK_ROSE, 2 },
+            { BLOCK_MUSHROOM_BROWN, 2 }, { BLOCK_MUSHROOM_RED, 2 }, { BLOCK_GOLD_BLOCK, 2 },
+            { BLOCK_IRON_BLOCK, 2 }, { BLOCK_DOUBLE_SLAB, 1 }, { BLOCK_SLAB, 1 }, { BLOCK_BRICKS, 1 },
+            { BLOCK_TNT, 3 }, { BLOCK_BOOKSHELF, 2 }, { BLOCK_MOSSY_COBBLE, 1 }, { BLOCK_OBSIDIAN, 1 },
+            { BLOCK_TORCH, 3 }, { BLOCK_FIRE, 1 }, { BLOCK_STAIRS_PLANKS, 1 }, { BLOCK_CHEST, 2 },
+            { BLOCK_ORE_EMERALD, 1 }, { BLOCK_DIAMOND_BLOCK, 2 }, { BLOCK_CRAFTING_TABLE, 2 },
+            { BLOCK_WHEAT, 4 }, { BLOCK_FARMLAND, 1 }, { BLOCK_FURNACE, 2 }, { BLOCK_FURNACE_LIT, 2 },
+            { BLOCK_SIGN, 2 }, { BLOCK_DOOR_WOOD, 2 }, { BLOCK_LADDER, 2 },
+            { BLOCK_STAIRS_COBBLESTONE, 1 }, { BLOCK_WALL_SIGN, 2 }, { BLOCK_DOOR_IRON, 2 },
+            { BLOCK_ORE_REDSTONE, 1 }, { BLOCK_ORE_REDSTONE_LIT, 2 }, { BLOCK_TOPSNOW, 2 },
+            { BLOCK_ICE, 1 }, { BLOCK_SNOW_BLOCK, 1 }, { BLOCK_CACTUS, 2 }, { BLOCK_CLAY, 1 },
+            { BLOCK_REEDS, 2 }, { BLOCK_FENCE, 2 }, { BLOCK_NETHERRACK, 1 }, { BLOCK_GLOWSTONE, 2 },
+            { BLOCK_CAKE, 2 }, { BLOCK_TRAPDOOR, 2 }, { BLOCK_STONE_BRICKS, 1 },
+            { BLOCK_GLASS_PANE, 2 }, { BLOCK_MELON, 2 }, { BLOCK_MELON_STEM, 2 },
+            { BLOCK_FENCE_GATE, 2 }, { BLOCK_STAIRS_BRICK, 1 }, { BLOCK_STAIRS_STONE_BRICK, 1 },
+            { BLOCK_NETHER_BRICK, 1 }, { BLOCK_STAIRS_NETHER_BRICK, 1 }, { BLOCK_STAIRS_SANDSTONE, 1 },
+            { BLOCK_QUARTZ_BLOCK, 1 }, { BLOCK_STAIRS_QUARTZ, 1 }, { BLOCK_WOOD_SLAB_DOUBLE, 1 },
+            { BLOCK_WOOD_SLAB, 1 }, { BLOCK_STONECUTTER, 2 }, { BLOCK_GLOWING_OBSIDIAN, 2 },
+            { BLOCK_NETHER_REACTOR, 2 }, { BLOCK_UPDATE1, 1 }, { BLOCK_UPDATE2, 1 },
+            { ITEM_SHOVEL_IRON, 3 }, { ITEM_PICKAXE_IRON, 3 }, { ITEM_HATCHET_IRON, 3 },
+            { ITEM_FLINT_AND_STEEL, 3 }, { ITEM_APPLE, 4 }, { ITEM_BOW, 3 }, { ITEM_ARROW, 4 },
+            { ITEM_COAL, 4 }, { ITEM_DIAMOND, 4 }, { ITEM_IRON_INGOT, 4 }, { ITEM_GOLD_INGOT, 4 },
+            { ITEM_SWORD_IRON, 3 }, { ITEM_SWORD_WOOD, 3 }, { ITEM_SHOVEL_WOOD, 3 },
+            { ITEM_PICKAXE_WOOD, 3 }, { ITEM_HATCHET_WOOD, 3 }, { ITEM_SWORD_STONE, 3 },
+            { ITEM_SHOVEL_STONE, 3 }, { ITEM_PICKAXE_STONE, 3 }, { ITEM_HATCHET_STONE, 3 },
+            { ITEM_SWORD_DIAMOND, 3 }, { ITEM_SHOVEL_DIAMOND, 3 }, { ITEM_PICKAXE_DIAMOND, 3 },
+            { ITEM_HATCHET_DIAMOND, 3 }, { ITEM_STICK, 4 }, { ITEM_BOWL, 4 },
+            { ITEM_MUSHROOM_STEW, 4 }, { ITEM_SHOVEL_GOLD, 3 }, { ITEM_PICKAXE_GOLD, 3 },
+            { ITEM_HATCHET_GOLD, 3 }, { ITEM_STRING, 4 }, { ITEM_FEATHER, 4 }, { ITEM_GUNPOWDER, 4 },
+            { ITEM_HOE_WOOD, 3 }, { ITEM_HOE_STONE, 3 }, { ITEM_HOE_IRON, 3 }, { ITEM_HOE_DIAMOND, 3 },
+            { ITEM_HOE_GOLD, 3 }, { ITEM_SEEDS_WHEAT, 4 }, { ITEM_WHEAT, 4 }, { ITEM_BREAD, 4 },
+            { ITEM_HELMET_CLOTH, 3 }, { ITEM_CHESTPLATE_CLOTH, 3 }, { ITEM_LEGGINGS_CLOTH, 3 },
+            { ITEM_BOOTS_CLOTH, 3 }, { ITEM_HELMET_CHAIN, 3 }, { ITEM_CHESTPLATE_CHAIN, 3 },
+            { ITEM_LEGGINGS_CHAIN, 3 }, { ITEM_BOOTS_CHAIN, 3 }, { ITEM_HELMET_IRON, 3 },
+            { ITEM_CHESTPLATE_IRON, 3 }, { ITEM_LEGGINGS_IRON, 3 }, { ITEM_BOOTS_IRON, 3 },
+            { ITEM_HELMET_DIAMOND, 3 }, { ITEM_CHESTPLATE_DIAMOND, 3 }, { ITEM_LEGGINGS_DIAMOND, 3 },
+            { ITEM_BOOTS_DIAMOND, 3 }, { ITEM_HELMET_GOLD, 3 }, { ITEM_CHESTPLATE_GOLD, 3 },
+            { ITEM_LEGGINGS_GOLD, 3 }, { ITEM_BOOTS_GOLD, 3 }, { ITEM_FLINT, 3 },
+            { ITEM_PORKCHOP_RAW, 4 }, { ITEM_PORKCHOP_COOKED, 4 }, { ITEM_PAINTING, 2 },
+            { ITEM_SIGN, 2 }, { ITEM_DOOR_WOOD_ITEM, 2 }, { ITEM_BUCKET, 3 },
+            { ITEM_DOOR_IRON_ITEM, 2 }, { ITEM_SNOWBALL, 3 }, { ITEM_LEATHER, 4 }, { ITEM_BRICK, 4 },
+            { ITEM_CLAY, 4 }, { ITEM_REEDS, 4 }, { ITEM_PAPER, 4 }, { ITEM_BOOK, 4 },
+            { ITEM_SLIMEBALL, 4 }, { ITEM_EGG, 4 }, { ITEM_COMPASS, 3 }, { ITEM_CLOCK, 3 },
+            { ITEM_GLOWSTONE_DUST, 4 }, { ITEM_BONEMEAL, 4 }, { ITEM_BONE, 4 }, { ITEM_SUGAR, 4 },
+            { ITEM_CAKE, 2 }, { ITEM_BED_ITEM, 2 }, { ITEM_SHEARS, 3 }, { ITEM_MELON, 2 },
+            { ITEM_SEEDS_MELON, 4 }, { ITEM_BEEF_RAW, 4 }, { ITEM_BEEF_COOKED, 4 },
+            { ITEM_CHICKEN_RAW, 4 }, { ITEM_CHICKEN_COOKED, 4 }, { ITEM_SPAWN_EGG, 3 },
+            { ITEM_NETHER_BRICK, 4 }, { ITEM_NETHER_QUARTZ, 4 }, { ITEM_CAMERA, 3 },
+        };
+        for (unsigned int i = 0; i < sizeof(kTab) / sizeof(kTab[0]); i++)
+            if (items[kTab[i].id]) items[kTab[i].id]->creativeTab = kTab[i].tab;
     }
 }

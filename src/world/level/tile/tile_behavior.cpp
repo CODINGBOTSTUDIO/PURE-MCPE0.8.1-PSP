@@ -33,8 +33,10 @@ bool tileUnobstructedAt(World* w, unsigned char id, int x, int y, int z) {
     return true;
 }
 
-bool tileMayPlace(World* w, unsigned char id, int x, int y, int z, int face) {
+bool tileMayPlace(World* w, unsigned char id, int x, int y, int z, int face, int data) {
     if (!tileUnobstructedAt(w, id, x, y, z)) return false;
+
+    if (id == BLOCK_TALLGRASS && !bushMayPlaceOn(w, id, data, x, y, z)) return false;
     return Tile::tiles[id]->mayPlace(w, x, y, z, face);
 }
 

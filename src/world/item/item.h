@@ -130,6 +130,8 @@ public:
     short maxDamage;
     int   category;
 
+    int   creativeTab;
+
     Item(short id);
     virtual ~Item() {}
 

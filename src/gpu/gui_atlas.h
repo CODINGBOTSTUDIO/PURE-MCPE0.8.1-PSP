@@ -2,6 +2,7 @@
 #ifndef MCPSP_GPU_GUI_ATLAS_H
 #define MCPSP_GPU_GUI_ATLAS_H
 
+#define GA_DOTS              84.0f,  44.0f,   4.0f,   4.0f
 #define GA_HDR_BODY           0.0f, 100.0f,   8.0f,  25.0f
 #define GA_HDR_LEFT          26.0f, 100.0f,   2.0f,  25.0f
 #define GA_HDR_RIGHT         30.0f, 100.0f,   2.0f,  25.0f

@@ -77,7 +77,7 @@ OBJS = \
 	src/world/level/tile/entity/sign_tile_entity.o \
 	src/world/level/tile/entity/chest_tile_entity.o \
 	src/world/level/tile/entity/tile_entity_factory.o \
-	src/world/item/item.o \
+	src/world/item/item.o src/world/item/creative_items.o \
 	src/world/item/item_instance.o \
 	src/world/item/tile_item.o src/world/item/bucket_item.o \
 	src/world/item/hoe_item.o \

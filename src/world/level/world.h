@@ -569,7 +569,7 @@ void worldPrimeTnt(World* w, int x, int y, int z, int fuseTicks, bool playFuse =
 
 void tntSpawnPrimed(World* w, int x, int y, int z, int fuseTicks, bool playFuse = true);
 
-bool tileMayPlace(World* w, unsigned char id, int x, int y, int z, int face);
+bool tileMayPlace(World* w, unsigned char id, int x, int y, int z, int face, int data = -1);
 
 bool tileUnobstructedAt(World* w, unsigned char id, int x, int y, int z);
 void tileNeighborChanged(World* w, int x, int y, int z);

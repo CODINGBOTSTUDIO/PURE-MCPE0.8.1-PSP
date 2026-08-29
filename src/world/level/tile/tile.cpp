@@ -117,7 +117,9 @@ Drop Tile::getResource(int data) {
         case BLOCK_CLAY:                return { ITEM_CLAY, 4, 0 };
         case BLOCK_BOOKSHELF:           return { ITEM_BOOK, 3, 0 };
 
-        case BLOCK_TALLGRASS:           return { ITEM_SEEDS_WHEAT, 1, 0 };
+        case BLOCK_TALLGRASS:
+            return (data == TG_DEAD_SHRUB) ? Drop{ ITEM_STICK, 1, 0 }
+                                           : Drop{ ITEM_SEEDS_WHEAT, 1, 0 };
         case BLOCK_SIGN: case BLOCK_WALL_SIGN: return { ITEM_SIGN, 1, 0 };
         case BLOCK_REEDS:               return { ITEM_REEDS, 1, 0 };
         case BLOCK_WOOL:                return { BLOCK_WOOL, 1, (short)data };
@@ -147,9 +149,16 @@ Drop Tile::getResource(int data) {
     }
 }
 
+bool Tile::playerDestroy(World*, int, int, int, int, const ItemInstance*) {
+    return true;
+}
+bool Tile::isShearable(const ItemInstance*) const { return false; }
+
 int Tile::getResourceCount(int data, Random& rng) {
     if (id == BLOCK_LEAVES) return (rng.nextInt(20) == 0) ? 1 : 0;
-    if (id == BLOCK_TALLGRASS) return (rng.nextInt(8) == 0) ? 1 : 0;
+
+    if (id == BLOCK_TALLGRASS)
+        return (data == TG_DEAD_SHRUB) ? rng.nextInt(3) : ((rng.nextInt(8) == 0) ? 1 : 0);
     if (id == BLOCK_CLAY) return 4;
     if (id == BLOCK_BOOKSHELF) return 3;
     if (id == BLOCK_MELON) return 3 + rng.nextInt(5);
@@ -187,8 +196,9 @@ void Tile::spawnResources(World* , int x, int y, int z, int data, Random& rng) {
 void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned int* tint) {
     *tint = 0xFFFFFFFFu;
     switch (id) {
+
         case BLOCK_GRASS:
-            if (f == F_TOP)       { *col = 0; *row = 0; *tint = 0xFF6BCB5Au; }
+            if (f == F_TOP)       { *col = 0; *row = 0; *tint = 0xFF6BBD7Cu; }
             else if (f == F_DOWN) { *col = 2; *row = 0; }
             else                  { *col = 3; *row = 0; }
             break;
@@ -281,9 +291,10 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
                 default:         *col = 4; *row = 1; break;
             }
             break;
+
         case BLOCK_LEAVES:
             switch (data & LEAF_TYPE_MASK) {
-                case LEAF_SPRUCE: *col = 4; *row = 8; *tint = 0xFF2BAE3Du; break;
+                case LEAF_SPRUCE: *col = 4; *row = 8; *tint = 0xFF619961u; break;
                 case LEAF_BIRCH:  *col = 4; *row = 3; *tint = 0xFF55A780u; break;
                 default:          *col = 4; *row = 3; *tint = 0xFF18B548u; break;
             }
@@ -292,9 +303,10 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
 
         case BLOCK_TALLGRASS:
             switch (data) {
-                case TG_FERN:       *col = 8; *row = 3; *tint = 0xFF339933u; break;
-                case TG_TALL_GRASS: *col = 7; *row = 2; *tint = 0xFF339933u; break;
-                default:            *col = 7; *row = 3; break;
+
+                case TG_DEAD_SHRUB: *col = 7; *row = 3; break;
+                case TG_TALL_GRASS: *col = 7; *row = 2; *tint = 0xFF6BBD7Cu; break;
+                default:            *col = 8; *row = 3; *tint = 0xFF6BBD7Cu; break;
             }
             break;
         case BLOCK_FIRE:           *col = 15; *row = 1; break;
@@ -768,6 +780,8 @@ struct FireTile : Tile { FireTile(unsigned char i) : Tile(i) {}
     Drop getResource(int) { Drop d = { 0, 0, 0 }; return d; } };
 
 struct WebTile : Tile { WebTile(unsigned char i) : Tile(i) {}
+
+    Drop getResource(int) { return Drop{ ITEM_STRING, 1, 0 }; }
     void entityInside(World*, int, int, int, Entity* e) { if (e) e->makeStuckInWeb(); } };
 
 struct SupportTile : Tile { SupportTile(unsigned char i) : Tile(i) {}
@@ -811,7 +825,22 @@ struct GrassTile : Tile { GrassTile(unsigned char i) : Tile(i) { randomTicks = t
             }
         } } };
 
+static bool shearsHeld(const ItemInstance* held) {
+    return held && !held->isNull() && held->id == ITEM_SHEARS;
+}
+static bool shearPopSelf(World* w, int x, int y, int z, unsigned char id, short aux,
+                         const ItemInstance* held) {
+    if (!shearsHeld(held)) return true;
+    Tile::popResource(x, y, z, ItemInstance(id, 1, aux));
+    return false;
+}
+
 struct LeafTile : Tile { LeafTile(unsigned char i) : Tile(i) { randomTicks = true; }
+
+    bool isShearable(const ItemInstance* held) const { return shearsHeld(held); }
+    bool playerDestroy(World* w, int x, int y, int z, int data, const ItemInstance* held) {
+        return shearPopSelf(w, x, y, z, id, (short)(data & LEAF_TYPE_MASK), held);
+    }
 
     void setPlacedBy(World* w, int x, int y, int z, Player* p) {
         if (p) worldSetData(w, x, y, z, (unsigned char)(worldData(w, x, y, z) | LEAF_PERSISTENT_BIT));
@@ -831,12 +860,21 @@ struct GrowerTile : Tile { GrowerTile(unsigned char i) : Tile(i) { randomTicks =
         grow(w, x, y, z); } };
 
 struct BushTile : GrowerTile { BushTile(unsigned char i) : GrowerTile(i) {}
+
+    bool isShearable(const ItemInstance* held) const {
+        return id == BLOCK_TALLGRASS && shearsHeld(held);
+    }
+    bool playerDestroy(World* w, int x, int y, int z, int data, const ItemInstance* held) {
+        if (id != BLOCK_TALLGRASS) return true;
+        return shearPopSelf(w, x, y, z, id, (short)data, held);
+    }
     bool canSurvive(World* w, int x, int y, int z) { return bushFamilyCanSurvive(w, id, x, y, z); }
 
     bool mayPlace(World* w, int x, int y, int z) {
         if (!Tile::mayPlace(w, x, y, z)) return false;
         if (id == BLOCK_MUSHROOM_BROWN || id == BLOCK_MUSHROOM_RED) return canSurvive(w, x, y, z);
-        return bushMayPlaceOn(w, id, x, y, z);
+
+        return bushMayPlaceOn(w, id, -1, x, y, z);
     }
     void grow(World* w, int x, int y, int z) {
         if (id == BLOCK_WHEAT)              cropTick(w, x, y, z);
@@ -1029,6 +1067,22 @@ static int rawSoundType(unsigned char id) {
     }
 }
 
+static int rawRotFaceMask(int id) {
+    switch (id) {
+
+        case BLOCK_GRASS: case BLOCK_SANDSTONE: case BLOCK_TNT: case BLOCK_LEAVES:
+            return 3;
+
+        case BLOCK_DIRT: case BLOCK_OBSIDIAN: case BLOCK_CLAY:
+        case BLOCK_SNOW_BLOCK: case BLOCK_TOPSNOW: case BLOCK_GLOWSTONE:
+        case BLOCK_SAND: case BLOCK_NETHERRACK:
+            return 255;
+
+        default:
+            return 0;
+    }
+}
+
 static float rawSlipperiness(int id) {
     switch (id) {
         case BLOCK_ICE: return 0.98f;
@@ -1189,6 +1243,7 @@ void Tile::initTiles() {
         t->lightBlock    = (unsigned char)rawLightOpacity((unsigned char)id);
         t->lightEmission = (unsigned char)rawLightEmit((unsigned char)id);
         t->soundType     = (unsigned char)rawSoundType((unsigned char)id);
+        t->rotFaceMask   = (unsigned char)rawRotFaceMask((unsigned char)id);
         t->destroySpeed  = rawDestroySpeed((unsigned char)id);
         t->slipperiness  = rawSlipperiness((unsigned char)id);
         t->material      = &materialOf((unsigned char)id);

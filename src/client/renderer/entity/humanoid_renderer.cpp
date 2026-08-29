@@ -9,7 +9,7 @@
 static const float DEG2RAD = 3.14159265f / 180.0f;
 static const float PIF     = 3.14159265f;
 
-enum { P_HEAD, P_BODY, P_ARM0, P_ARM1, P_LEG0, P_LEG1, P_COUNT };
+enum { P_HEAD, P_BODY, P_ARM0, P_ARM1, P_LEG0, P_LEG1, P_HAT, P_COUNT };
 static MobPart partsN[P_COUNT];
 static MobPart partsT[P_COUNT];
 static bool    g_built = false;
@@ -37,6 +37,11 @@ static void buildInto(MobPart* p, bool thin) {
     p[P_LEG0].px = -2; p[P_LEG0].py = 12; p[P_LEG0].pz = 0;
     p[P_LEG1].px = 2;  p[P_LEG1].py = 12; p[P_LEG1].pz = 0;
     p[P_HEAD].head = true;
+
+    mobBuildBox(p[P_HAT].base, -4,-8,-4,  4, 0, 4, 32,  0, 8,8,8, false, 0.5f);
+    p[P_HAT].px = 0;  p[P_HAT].py = 0;  p[P_HAT].pz = 0;
+
+    p[P_HAT].head = true;
 }
 
 static void build() {
@@ -127,6 +132,13 @@ void HumanoidRenderer::render(Entity* e, float x, float y, float z, float rot, f
     float xBob = sinf(bob * 0.067f) * 0.05f;
     parts[P_ARM0].zRot += zBob; parts[P_ARM1].zRot -= zBob;
     parts[P_ARM0].xRot += xBob; parts[P_ARM1].xRot -= xBob;
+
+    parts[P_HAT].px   = parts[P_HEAD].px;
+    parts[P_HAT].py   = parts[P_HEAD].py;
+    parts[P_HAT].pz   = parts[P_HEAD].pz;
+    parts[P_HAT].xRot = parts[P_HEAD].xRot;
+    parts[P_HAT].yRot = parts[P_HEAD].yRot;
+    parts[P_HAT].zRot = parts[P_HEAD].zRot;
 
     int heldPart = (bow || holdItem) ? P_ARM0 : -1;
     mobRenderParts(mob, parts, P_COUNT, &tex, x, y, z, ibody, a,

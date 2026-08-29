@@ -4,8 +4,18 @@
 #include "world/level/levelgen/Random.h"
 #include <stdlib.h>
 
-bool bushMayPlaceOn(World* w, unsigned char id, int x, int y, int z) {
+bool bushMayPlaceOn(World* w, unsigned char id, int data, int x, int y, int z) {
     unsigned char below = worldBlock(w, x, y - 1, z);
+
+    if (id == BLOCK_TALLGRASS) {
+        const bool shrub = (data == TG_DEAD_SHRUB);
+        const bool plant = (data != TG_DEAD_SHRUB);
+        if (data < 0) return below == BLOCK_SAND || below == BLOCK_GRASS ||
+                             below == BLOCK_DIRT || below == BLOCK_FARMLAND;
+        if (shrub) return below == BLOCK_SAND;
+        (void)plant;
+        return below == BLOCK_GRASS || below == BLOCK_DIRT || below == BLOCK_FARMLAND;
+    }
     switch (id) {
         case BLOCK_FLOWER: case BLOCK_ROSE: case BLOCK_SAPLING:
 
@@ -21,8 +31,16 @@ bool bushMayPlaceOn(World* w, unsigned char id, int x, int y, int z) {
     }
 }
 
+bool bushCanSurviveWith(World* w, unsigned char id, int data, int x, int y, int z) {
+    if (!bushMayPlaceOn(w, id, data, x, y, z)) return false;
+    if (id == BLOCK_MUSHROOM_BROWN || id == BLOCK_MUSHROOM_RED)
+        return lightRawAt(w, x, y, z) < 13;
+    return lightRawAt(w, x, y, z) >= 8 || worldCanSeeSky(w, x, y, z);
+}
+
 bool bushFamilyCanSurvive(World* w, unsigned char id, int x, int y, int z) {
-    if (!bushMayPlaceOn(w, id, x, y, z)) return false;
+
+    if (!bushMayPlaceOn(w, id, (int)worldData(w, x, y, z), x, y, z)) return false;
 
     if (id == BLOCK_MUSHROOM_BROWN || id == BLOCK_MUSHROOM_RED)
         return lightRawAt(w, x, y, z) < 13;

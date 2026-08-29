@@ -78,7 +78,11 @@ void itemHandTick(void) {
     static int s_equippedSlot = -999;
     int slot = g_level.player->inventory->selected;
 
-    bool matches = (id == s_equippedId) && (slot == s_equippedSlot || id == 0);
+    Item* itemCls = (id > 0 && id < 4096) ? Item::items[id] : 0;
+    const bool dataIsDurability = itemCls && itemCls->maxDamage > 0;
+    const bool sameData = dataIsDurability || (data == s_equippedData);
+
+    bool matches = (id == s_equippedId) && sameData && (slot == s_equippedSlot || id == 0);
     float tHeight = matches ? 1.0f : 0.0f;
     float dd = tHeight - s_equipHeight;
     float max_dd = 0.4f;
@@ -102,19 +106,9 @@ static float getAttackAnim(float a) {
 }
 
 static bool isFlat2DItem(short id) {
-    return id == BLOCK_FLOWER
-        || id == BLOCK_ROSE
-        || id == BLOCK_MUSHROOM_BROWN
-        || id == BLOCK_MUSHROOM_RED
-        || id == BLOCK_REEDS
-        || id == BLOCK_SAPLING
-        || id == BLOCK_GLASS_PANE
-        || id == BLOCK_LADDER
-        || id == BLOCK_COBWEB
-        || id == BLOCK_TORCH
-        || isDoor(id)
-        || id == BLOCK_BED
-        || id >= 256;
+    if (id >= 256) return true;
+    if (id <= 0)   return true;
+    return !tileCanRenderAsBlock(Tile::tiles[id]->shape);
 }
 
 static Texture g_charTex;
@@ -132,7 +126,7 @@ void loadCharIfNeeded(void) {
 int itemBuildBlockMesh(short id, unsigned char data, ChunkVertex* out) {
     if (id == BLOCK_AIR) return 0;
     if (isCrossShaped(id))
-        return emitCross(out, 0, 0, 150, 0, id, data, 0xFFFFFFFFu);
+        return emitCross(out, 0, 0, 150, 0, id, data, 0xFFFFFFFFu, false);
     if (isSlab(id))
         return emitSlab(&g_world, 0, 150, 0, id, data, out, 0);
     if (isStairs(id))
@@ -217,6 +211,7 @@ int itemBuildFlatMesh(short id, unsigned char data, ChunkVertex* out, int bowSta
 
     float tex_w;
     float sx, sy;
+    unsigned int tileTint = 0xFFFFFFFFu;
     if (id >= 256) {
 
         int icon = itemFlatIcon(id, data);
@@ -233,20 +228,22 @@ int itemBuildFlatMesh(short id, unsigned char data, ChunkVertex* out, int bowSta
             sy = (27 + (iconIdx >> 5)) * 16.0f;
             tex_w = 512.0f;
         } else {
-            int col, row; unsigned int tint;
-            tileForBlock(id, data, 0, &col, &row, &tint);
+            int col, row; unsigned int t;
+            tileForBlock(id, data, 0, &col, &row, &t);
             sx = col * 16.0f;
             sy = row * 16.0f;
             tex_w = 256.0f;
+
+            tileTint = t;
         }
     }
 
     const float z0 = 0.0f, z1 = -1.0f/16.0f;
     const float T  = 1.0f/16.0f;
 
-    const unsigned int colFB = 0xFFFFFFFFu;
-    const unsigned int colLR = 0xFFCCCCCCu;
-    const unsigned int colTB = 0xFF999999u;
+    const unsigned int colFB = eggMul(0xFFFFFFFFu, tileTint);
+    const unsigned int colLR = eggMul(0xFFCCCCCCu, tileTint);
+    const unsigned int colTB = eggMul(0xFF999999u, tileTint);
 
     const Texture* texPtr = itemFlatTexture(id, data);
     const int basex = (int)sx, basey = (int)sy;
@@ -317,7 +314,9 @@ const Texture* itemFlatTexture(short id, unsigned char data) {
 }
 
 const Texture* itemFlatIconUV(short id, unsigned char data,
-                            float* u0, float* v0, float* u1, float* v1) {
+                            float* u0, float* v0, float* u1, float* v1,
+                            unsigned int* tint) {
+    if (tint) *tint = 0xFFFFFFFFu;
     if (id >= 256) {
         if (!g_haveGuiBlocks) return 0;
         int icon = itemFlatIcon(id, data);
@@ -338,8 +337,10 @@ const Texture* itemFlatIconUV(short id, unsigned char data,
         return &g_guiBlocks;
     }
     if (!g_haveTerrain) return 0;
-    int col, row; unsigned int tint;
-    tileForBlock(id, data, 0, &col, &row, &tint);
+
+    int col, row; unsigned int t;
+    tileForBlock(id, data, 0, &col, &row, &t);
+    if (tint) *tint = t;
     *u0 = col * TILE_UV; *v0 = row * TILE_UV;
     *u1 = (col * 16.0f + 15.5f) / 256.0f; *v1 = (row * 16.0f + 15.5f) / 256.0f;
     return &g_terrain;

@@ -39,6 +39,8 @@ public:
     bool          linkSlot(int selectionSlot, int inventorySlot);
     ItemInstance* getLinked(int selectionSlot);
 
+    int           getLinkedSlot(int selectionSlot) const;
+
     bool linkEmptySlot(int inventorySlot);
     void compressLinkedSlotList(int slot);
 

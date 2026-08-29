@@ -3,6 +3,7 @@
 #include "world/level/level.h"
 #include "world/entity/local_player.h"
 #include "client/renderer/item_hand.h"
+#include "gpu/spawn_egg_colors.h"
 #include "client/renderer/item_model.h"
 #include "world/entity/item_entity.h"
 #include "world/item/item.h"
@@ -85,10 +86,11 @@ void ItemRenderer::render(Entity* entity, float x, float y, float z, float , flo
     } else {
 
         float u0, v0, u1, v1;
-        const Texture* tex = itemFlatIconUV(id, data, &u0, &v0, &u1, &v1);
+        unsigned int tileTint = 0xFFFFFFFFu;
+        const Texture* tex = itemFlatIconUV(id, data, &u0, &v0, &u1, &v1, &tileTint);
         if (!tex) { sceGuEnable(GU_CULL_FACE); return; }
 
-        const unsigned int c = dropLight(x, y, z);
+        const unsigned int c = eggMul(dropLight(x, y, z), tileTint);
         const float xo = 0.5f, yo = 0.25f, r = 1.0f;
         ChunkVertex q[6] = {
             { u0, v1, c, 0 - xo, 0 - yo, 0.0f },

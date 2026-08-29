@@ -255,17 +255,18 @@ static void breakTargetedBlock(const BlockHit& hit) {
     {
 
         ItemInstance* sel = g_level.player->inventory->getSelected();
-        bool shearedLeaf = (brokenId == BLOCK_LEAVES && sel && sel->id == ITEM_SHEARS &&
-                            !g_gameMode->isCreative());
-        if (shearedLeaf)
-            Tile::popResource(hit.x, hit.y, hit.z,
-                              ItemInstance(BLOCK_LEAVES, 1, (short)(brokenData & 3)));
+
         bool couldDestroy = true;
         if (!g_gameMode->isCreative() && tileNeedsTool(brokenId, brokenData)) {
             Item* it = (sel && sel->id > 0 && sel->id < 4096) ? Item::items[sel->id] : nullptr;
             couldDestroy = it && it->canDestroySpecial(brokenId);
         }
-        if (couldDestroy && !shearedLeaf)
+
+        bool normalDrops = true;
+        if (couldDestroy && !g_gameMode->isCreative())
+            normalDrops = Tile::tiles[brokenId]->playerDestroy(
+                              &g_world, hit.x, hit.y, hit.z, brokenData, sel);
+        if (couldDestroy && normalDrops)
             worldSpawnResources(&g_world, hit.x, hit.y, hit.z, brokenId, brokenData);
 
         if (couldDestroy && brokenId == BLOCK_TOPSNOW && !g_gameMode->isCreative())
@@ -702,7 +703,8 @@ static bool placementWouldWork(const ItemInstance* sel, const BlockHit& hit) {
         ny += kFaceNeighbor[hit.face][1];
         nz += kFaceNeighbor[hit.face][2];
     }
-    return tileMayPlace(&g_world, (unsigned char)tile, nx, ny, nz, hit.face);
+
+    return tileMayPlace(&g_world, (unsigned char)tile, nx, ny, nz, hit.face, sel->data);
 }
 
 CrosshairTarget gameModeCrosshairTarget() {
@@ -774,7 +776,7 @@ CrosshairTarget gameModeCrosshairTarget() {
 
     if (id == BLOCK_INVISIBLE_BEDROCK) return t;
 
-    t.breakLabel = (id == BLOCK_LEAVES && sel && sel->id == ITEM_SHEARS) ? "Shear" : "Mine";
+    t.breakLabel = Tile::tiles[id]->isShearable(sel) ? "Shear" : "Mine";
 
     if (!t.useLabel) {
 

@@ -245,9 +245,32 @@ int emitPane(const World* w, int gx, int y, int gz, unsigned char id, unsigned c
         else if (north && !south)  { az0 = 0.0f; az1 = 0.5f; bMask |= (1 << F_BACK); }
         else if (!north && south)  { az0 = 0.5f; az1 = 1.0f; bMask |= (1 << F_FORWARD); }
         else                       { az0 = 0.0f; az1 = 1.0f; bMask |= (1 << F_BACK) | (1 << F_FORWARD); }
-        n = emitPartialBox(w, gx, y, gz, id, data,
-                           7.0f/16.0f, 0.0f, az0, 9.0f/16.0f, 1.0f, az1,
-                           bMask, 0, out, n, false, false, edgeZ);
+
+        const float cut0 = 7.0f/16.0f, cut1 = 9.0f/16.0f;
+        if (hasX) {
+
+            if (az0 < cut0 - 1e-4f) {
+                float e = (az1 < cut0) ? az1 : cut0;
+                int m = bMask & ~(1 << F_FORWARD);
+                int hidden = (e >= cut0 - 1e-4f) ? (1 << F_FORWARD) : 0;
+                n = emitPartialBox(w, gx, y, gz, id, data,
+                                   7.0f/16.0f, 0.0f, az0, 9.0f/16.0f, 1.0f, e,
+                                   m, hidden, out, n, false, false, edgeZ);
+            }
+
+            if (az1 > cut1 + 1e-4f) {
+                float b = (az0 > cut1) ? az0 : cut1;
+                int m = bMask & ~(1 << F_BACK);
+                int hidden = (b <= cut1 + 1e-4f) ? (1 << F_BACK) : 0;
+                n = emitPartialBox(w, gx, y, gz, id, data,
+                                   7.0f/16.0f, 0.0f, b, 9.0f/16.0f, 1.0f, az1,
+                                   m, hidden, out, n, false, false, edgeZ);
+            }
+        } else {
+            n = emitPartialBox(w, gx, y, gz, id, data,
+                               7.0f/16.0f, 0.0f, az0, 9.0f/16.0f, 1.0f, az1,
+                               bMask, 0, out, n, false, false, edgeZ);
+        }
     }
 
     return n;

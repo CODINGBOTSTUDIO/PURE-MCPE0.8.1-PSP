@@ -20,6 +20,24 @@ enum TileShape {
     SHAPE_SIGN, SHAPE_CHEST, SHAPE_FIRE, SHAPE_CAKE
 };
 
+static inline bool tileCanRenderAsBlock(int shape) {
+    switch (shape) {
+        case SHAPE_CUBE:
+        case SHAPE_SLAB: case SHAPE_TOPSNOW:
+        case SHAPE_TRAPDOOR:
+        case SHAPE_CAKE:
+        case SHAPE_CACTUS:
+        case SHAPE_STAIRS:
+        case SHAPE_FENCE:
+        case SHAPE_FENCEGATE:
+
+        case SHAPE_CHEST:
+            return true;
+        default:
+            return false;
+    }
+}
+
 enum TileSound {
     SOUND_SILENT = 0, SOUND_STONE, SOUND_WOOD, SOUND_GRAVEL, SOUND_GRASS,
     SOUND_METAL, SOUND_GLASS, SOUND_CLOTH, SOUND_SAND,
@@ -51,6 +69,8 @@ public:
     unsigned char lightEmission;
     unsigned char soundType;
 
+    unsigned char rotFaceMask;
+
     float destroySpeed;
 
     float slipperiness;
@@ -60,7 +80,7 @@ public:
     explicit Tile(unsigned char id_)
         : id(id_), shape(SHAPE_CUBE), solidPhys(true), cube(true),
           opaque(true), replaceable(false), blocksLight(true), randomTicks(false),
-          lightBlock(15), lightEmission(0), soundType(SOUND_STONE),
+          lightBlock(15), lightEmission(0), soundType(SOUND_STONE), rotFaceMask(0),
           destroySpeed(0.0f), slipperiness(0.6f), material(0) {}
     virtual ~Tile() {}
 
@@ -94,6 +114,10 @@ public:
     virtual Drop getResource(int data);
     virtual int  getResourceCount(int data, Random& rng);
     virtual void spawnResources(World* w, int x, int y, int z, int data, Random& rng);
+
+    virtual bool playerDestroy(World* w, int x, int y, int z, int data, const ItemInstance* held);
+
+    virtual bool isShearable(const ItemInstance* held) const;
 
     static void popResource(int x, int y, int z, const ItemInstance& item);
 

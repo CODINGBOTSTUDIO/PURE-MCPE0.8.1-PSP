@@ -168,6 +168,10 @@ bool FillingContainer::linkSlot(int selectionSlot, int inventorySlot) {
     return true;
 }
 
+int FillingContainer::getLinkedSlot(int selectionSlot) const {
+    if (selectionSlot < 0 || selectionSlot >= numLinkedSlots) return -1;
+    return linkedSlots[selectionSlot].inventorySlot;
+}
 ItemInstance* FillingContainer::getLinked(int selectionSlot) {
     if (selectionSlot < 0 || selectionSlot >= numLinkedSlots) return nullptr;
     return getItem(linkedSlots[selectionSlot].inventorySlot);

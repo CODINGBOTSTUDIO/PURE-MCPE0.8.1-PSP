@@ -15,14 +15,6 @@ Recipes::~Recipes() {
     for (unsigned int i = 0; i < recipes.size(); ++i) delete recipes[i];
 }
 
-enum {
-    DYE_BLACK = 0, DYE_RED = 1, DYE_GREEN = 2, DYE_BROWN = 3, DYE_BLUE = 4,
-    DYE_PURPLE = 5, DYE_CYAN = 6, DYE_SILVER = 7, DYE_GRAY = 8, DYE_PINK = 9,
-    DYE_LIME = 10, DYE_YELLOW = 11, DYE_LIGHT_BLUE = 12, DYE_MAGENTA = 13,
-    DYE_ORANGE = 14
-};
-static inline short clothData(int dyeAux) { return (short)(~dyeAux & 0xf); }
-
 enum { SLAB_STONE = 0, SLAB_SAND = 1, SLAB_WOOD = 2, SLAB_COBBLE = 3,
        SLAB_BRICK = 4, SLAB_SMOOTHBRICK = 5, SLAB_QUARTZ = 6 };
 enum { SANDSTONE_PLAIN = 0, SANDSTONE_HEIROGLYPHS = 1, SANDSTONE_SMOOTHSIDE = 2 };
@@ -229,13 +221,14 @@ Recipes::Recipes() {
     }
 
     for (int i = 0; i < 16; ++i) {
-        if (i == DYE_BLACK || i == DYE_BROWN || i == DYE_SILVER || i == DYE_GRAY || i == DYE_WHITE)
-            continue;
+        if (i == DYE_WHITE) continue;
         addShapelessRecipe(ItemInstance(BLOCK_WOOL, 1, clothData(i)),
             { ItemInstance(ITEM_BONEMEAL, 1, (short)i), ItemInstance(BLOCK_WOOL, 1, 0) });
     }
+
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_YELLOW),
         { ItemInstance(BLOCK_FLOWER, 1, 0) });
+
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 3, DYE_WHITE),
         { ItemInstance(ITEM_BONE, 1, 0) });
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_PINK),
@@ -244,12 +237,30 @@ Recipes::Recipes() {
         { ItemInstance(ITEM_BONEMEAL, 1, DYE_RED), ItemInstance(ITEM_BONEMEAL, 1, DYE_YELLOW) });
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_LIME),
         { ItemInstance(ITEM_BONEMEAL, 1, DYE_GREEN), ItemInstance(ITEM_BONEMEAL, 1, DYE_WHITE) });
+    addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_GRAY),
+        { ItemInstance(ITEM_BONEMEAL, 1, DYE_BLACK), ItemInstance(ITEM_BONEMEAL, 1, DYE_WHITE) });
+    addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_SILVER),
+        { ItemInstance(ITEM_BONEMEAL, 1, DYE_GRAY), ItemInstance(ITEM_BONEMEAL, 1, DYE_WHITE) });
+
+    addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 3, DYE_SILVER),
+        { ItemInstance(ITEM_BONEMEAL, 1, DYE_BLACK), ItemInstance(ITEM_BONEMEAL, 1, DYE_WHITE),
+          ItemInstance(ITEM_BONEMEAL, 1, DYE_WHITE) });
+    addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_BROWN),
+        { ItemInstance(ITEM_BONEMEAL, 1, DYE_BLACK), ItemInstance(ITEM_BONEMEAL, 1, DYE_ORANGE) });
+    addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 3, DYE_BROWN),
+        { ItemInstance(ITEM_BONEMEAL, 1, DYE_BLACK), ItemInstance(ITEM_BONEMEAL, 1, DYE_RED),
+          ItemInstance(ITEM_BONEMEAL, 1, DYE_YELLOW) });
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_LIGHT_BLUE),
         { ItemInstance(ITEM_BONEMEAL, 1, DYE_BLUE), ItemInstance(ITEM_BONEMEAL, 1, DYE_WHITE) });
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_CYAN),
         { ItemInstance(ITEM_BONEMEAL, 1, DYE_BLUE), ItemInstance(ITEM_BONEMEAL, 1, DYE_GREEN) });
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_PURPLE),
         { ItemInstance(ITEM_BONEMEAL, 1, DYE_BLUE), ItemInstance(ITEM_BONEMEAL, 1, DYE_RED) });
+    addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_MAGENTA),
+        { ItemInstance(ITEM_BONEMEAL, 1, DYE_PURPLE), ItemInstance(ITEM_BONEMEAL, 1, DYE_PINK) });
+    addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 3, DYE_MAGENTA),
+        { ItemInstance(ITEM_BONEMEAL, 1, DYE_BLUE), ItemInstance(ITEM_BONEMEAL, 1, DYE_RED),
+          ItemInstance(ITEM_BONEMEAL, 1, DYE_PINK) });
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 4, DYE_MAGENTA),
         { ItemInstance(ITEM_BONEMEAL, 1, DYE_BLUE), ItemInstance(ITEM_BONEMEAL, 1, DYE_RED),
           ItemInstance(ITEM_BONEMEAL, 1, DYE_RED),  ItemInstance(ITEM_BONEMEAL, 1, DYE_WHITE) });

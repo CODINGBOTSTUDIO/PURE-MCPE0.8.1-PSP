@@ -309,6 +309,8 @@ static void loadLevelDat(World* w, const char* absDir, long* outSeed, int* outGa
                             if (si < 0 || si >= Inventory::HOTBAR) continue;
                             g_loadedHotbar[si].id     = slot->getShort("id");
                             g_loadedHotbar[si].damage = slot->getShort("Damage");
+
+                            g_loadedHotbar[si].count  = (unsigned char)slot->getByte("Count");
                             g_loadedHotbar[si].used   = true;
                         }
                     }
@@ -497,10 +499,16 @@ void applyLoadedHotbar() {
             if (g_loadedLinks[i] >= 0) g_level.player->inventory->linkSlot(i, g_loadedLinks[i] + g_level.player->inventory->firstGridSlot());
         return;
     }
+
     for (int i = 0; i < Inventory::HOTBAR; i++) {
         if (!g_loadedHotbar[i].used) continue;
-
-        g_level.player->inventory->linkHotbarTo(i, g_loadedHotbar[i].id, (unsigned char)g_loadedHotbar[i].damage);
+        if (g_loadedHotbar[i].id == 0) continue;
+        int slot = i + g_level.player->inventory->firstGridSlot();
+        int n = g_loadedHotbar[i].count;
+        if (n <= 0) n = 1;
+        g_level.player->inventory->setItem(slot,
+            new ItemInstance(g_loadedHotbar[i].id, (short)n, g_loadedHotbar[i].damage));
+        g_level.player->inventory->linkSlot(i, slot);
     }
 }
 

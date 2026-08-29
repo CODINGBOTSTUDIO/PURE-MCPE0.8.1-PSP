@@ -18,4 +18,5 @@ int  bowStageIcon(float ticks);
 bool itemIsFlat2D(short id);
 const Texture* itemFlatTexture(short id, unsigned char data);
 const Texture* itemFlatIconUV(short id, unsigned char data,
-                            float* u0, float* v0, float* u1, float* v1);
+                            float* u0, float* v0, float* u1, float* v1,
+                              unsigned int* tint = 0);

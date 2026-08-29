@@ -7,7 +7,6 @@ class Inventory : public FillingContainer {
 public:
     static const int HOTBAR   = 8;
 
-    static const int MAX_SLOTS = 256;
     static const int SURVIVAL_SLOTS = 36;
 
     explicit Inventory(bool creative);
@@ -28,17 +27,20 @@ public:
     void          selectSlot(int slot) { selected = slot; }
     ItemInstance* getSelected() { return getLinked(selected); }
 
-    void pickToHotbar(int gridIndex);
+    int  getLinkedSlotForItem(int invSlot) const;
 
-    bool linkHotbarTo(int slot, short id, unsigned char data);
+    int  survivalAddItem(int gridIndex);
 
-    int gridSize() const { return _isCreative ? mainCount : SURVIVAL_SLOTS; }
+    int  getLinkedSlotForItemAndAux(short id, short aux) const;
+
+    int  creativeAddItem(short id, short count, short aux);
+
+    int gridSize() const { return SURVIVAL_SLOTS; }
 
     int           firstGridSlot() const { return numLinkedSlots; }
     ItemInstance* gridItem(int gridIndex) { return getItem(gridIndex + numLinkedSlots); }
 
     int selected;
-    int mainCount;
 };
 
 #endif

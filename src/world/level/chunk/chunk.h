@@ -86,7 +86,7 @@ enum { DSLAB_STONE = 0, DSLAB_SAND = 1, DSLAB_WOOD = 2, DSLAB_COBBLE = 3,
 enum { LOG_OAK = 0, LOG_SPRUCE = 1, LOG_BIRCH = 2, LOG_TYPE_MASK = 3 };
 enum { SS_DEFAULT = 0, SS_CHISELED = 1, SS_SMOOTH = 2 };
 
-enum { TG_DEAD_SHRUB = 0, TG_TALL_GRASS = 1, TG_FERN = 3 };
+enum { TG_DEAD_SHRUB = 0, TG_TALL_GRASS = 1, TG_FERN = 2 };
 enum { QZ_DEFAULT = 0, QZ_CHISELED = 1, QZ_PILLAR = 2 };
 enum { SB_NORMAL = 0, SB_MOSSY = 1, SB_CRACKED = 2 };
 
@@ -169,6 +169,8 @@ static inline bool isTrapdoorAttachable(unsigned char id) {
 
 static inline int lightOpacity(unsigned char id) { return Tile::tiles[id]->lightBlock; }
 static inline int lightEmit(unsigned char id)     { return Tile::tiles[id]->lightEmission; }
+
+static inline unsigned char rotFaceMask(unsigned char id) { return Tile::tiles[id]->rotFaceMask; }
 
 extern unsigned int g_brightColor[16];
 extern float g_brightRamp[16];
@@ -258,7 +260,8 @@ int emitCake(const World* w, int gx, int y, int gz, unsigned char id, unsigned c
 int emitTorch(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
 int emitBed(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
 int emitMelonStem(const World* w, ChunkVertex* out, int n, int gx, int y, int gz, unsigned char data, unsigned int bright);
-int emitCross(ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id, unsigned char data, unsigned int bright);
+
+int emitCross(ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id, unsigned char data, unsigned int bright, bool jitter = true);
 int emitCropRows(ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id, unsigned char data, unsigned int bright);
 
 #define POS_ENC 256

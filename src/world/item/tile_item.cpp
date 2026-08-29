@@ -43,7 +43,8 @@ bool TileItem::useOn(ItemInstance* item, Player* player, World* world, int x, in
     Tile* tile = Tile::tiles[tileId & 0xFF];
 
     int data = tile->getPlacedOnFaceDataValue(world, nx, ny, nz, face, clickX, clickY, clickZ, item->data);
-    if (!tileMayPlace(world, (unsigned char)tileId, nx, ny, nz, face)) return false;
+
+    if (!tileMayPlace(world, (unsigned char)tileId, nx, ny, nz, face, data)) return false;
     if (!placeTileResolved(world, nx, ny, nz, tileId, data, player)) return false;
 
     if (player) player->inventory->consumeSelected();

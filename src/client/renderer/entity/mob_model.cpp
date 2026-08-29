@@ -121,6 +121,9 @@ void mobRenderParts(Mob* mob, MobPart* parts, int count, Texture* tex,
     sceGuDisable(GU_BLEND);
     sceGuTexFunc(GU_TFX_MODULATE, GU_TCC_RGBA);
 
+    sceGuEnable(GU_ALPHA_TEST);
+    sceGuAlphaFunc(GU_GREATER, 0, 0xff);
+
     const float MOB_DEPTH_BIAS_BLOCKS = 0.10f;
     {
         float ddx = x - g_camX, ddy = feet - g_camY, ddz = z - g_camZ;

@@ -34,7 +34,8 @@ static const float DEG2RAD = 3.14159265f / 180.0f;
 static const float PIF     = 3.14159265f;
 
 struct Part { MobVertex base[36]; float px, py, pz; float xRot, yRot, zRot; };
-enum { P_HEAD, P_BODY, P_ARM0, P_ARM1, P_LEG0, P_LEG1, P_COUNT };
+
+enum { P_HEAD, P_BODY, P_ARM0, P_ARM1, P_LEG0, P_LEG1, P_HAT, P_COUNT };
 static Part parts[P_COUNT];
 static bool g_built = false;
 
@@ -106,12 +107,15 @@ static void buildParts(void) {
 
     buildBox(parts[P_LEG1].base, -2, 0,-2,  2,12, 2,  0, 16, 4,12,4, true);
     parts[P_LEG1].px = 2;  parts[P_LEG1].py = 12; parts[P_LEG1].pz = 0;
+
+    buildBox(parts[P_HAT].base, -4.5f,-8.5f,-4.5f,  4.5f, 0.5f, 4.5f, 32, 0, 8,8,8, false);
+    parts[P_HAT].px = 0;   parts[P_HAT].py = 0;  parts[P_HAT].pz = 0;
     dcacheFlush(parts, sizeof(parts));
     g_built = true;
 }
 
-static MobVertex g_armor1[P_COUNT][36];
-static MobVertex g_armor05[P_COUNT][36];
+static MobVertex g_armor1[P_HAT][36];
+static MobVertex g_armor05[P_HAT][36];
 static bool      g_armorBuilt = false;
 
 static void buildArmorSet(MobVertex set[][36], float inf) {
@@ -323,6 +327,16 @@ void playerModelRender(float a) {
     float gndY = -24.0f + (p->sneaking ? 3.0f : 0.0f);
     ScePspFVector3 gnd = { 0.0f, gndY, 0.0f };       sceGumTranslate(&gnd);
 
+    parts[P_HAT].px   = parts[P_HEAD].px;
+    parts[P_HAT].py   = parts[P_HEAD].py;
+    parts[P_HAT].pz   = parts[P_HEAD].pz;
+    parts[P_HAT].xRot = parts[P_HEAD].xRot;
+    parts[P_HAT].yRot = parts[P_HEAD].yRot;
+    parts[P_HAT].zRot = parts[P_HEAD].zRot;
+
+    sceGuEnable(GU_ALPHA_TEST);
+    sceGuAlphaFunc(GU_GREATER, 0, 0xff);
+
     sceGuColor(brCol);
     for (int i = 0; i < P_COUNT; i++) {
         sceGumPushMatrix();
@@ -457,6 +471,14 @@ void playerModelRenderPreview(float sx, float sy, float scale) {
 
     textureBind(&g_localSkinTex);
     sceGuDisable(GU_CULL_FACE);
+
+    parts[P_HAT].px   = parts[P_HEAD].px;
+    parts[P_HAT].py   = parts[P_HEAD].py;
+    parts[P_HAT].pz   = parts[P_HEAD].pz;
+    parts[P_HAT].xRot = parts[P_HEAD].xRot;
+    parts[P_HAT].yRot = parts[P_HEAD].yRot;
+    parts[P_HAT].zRot = parts[P_HEAD].zRot;
+
     sceGuColor(0xFFFFFFFFu);
     for (int i = 0; i < P_COUNT; i++) {
         sceGumPushMatrix();

@@ -144,6 +144,8 @@ static short guiBlockIcon(short id) {
         case BLOCK_SNOW_BLOCK: return 51;
         case BLOCK_TOPSNOW: return 52;
         case BLOCK_NETHERRACK: return 20;
+
+        case BLOCK_BEDROCK: return 71;
         case BLOCK_GLOWSTONE: return 54;
         case BLOCK_NETHER_BRICK: return 19;
         case BLOCK_TNT: return 65;
@@ -156,11 +158,11 @@ static short guiBlockIcon(short id) {
         case BLOCK_CHEST: return 63;
         case BLOCK_NETHER_REACTOR: return 55;
         case BLOCK_CACTUS: return 66;
-        case BLOCK_REEDS: return 138;
-        case BLOCK_FLOWER: return 134;
-        case BLOCK_ROSE: return 135;
-        case BLOCK_MUSHROOM_BROWN: return 136;
-        case BLOCK_MUSHROOM_RED: return 137;
+        case BLOCK_REEDS: return 128 + II_TILE_REEDS;
+        case BLOCK_FLOWER: return 128 + II_TILE_FLOWER;
+        case BLOCK_ROSE: return 128 + II_TILE_ROSE;
+        case BLOCK_MUSHROOM_BROWN: return 128 + II_TILE_MUSHROOM_BROWN;
+        case BLOCK_MUSHROOM_RED: return 128 + II_TILE_MUSHROOM_RED;
         case BLOCK_FARMLAND: return 8;
 
         case BLOCK_STAIRS_COBBLESTONE: return 21;
@@ -171,12 +173,12 @@ static short guiBlockIcon(short id) {
         case BLOCK_STAIRS_NETHER_BRICK: return 26;
         case BLOCK_STAIRS_QUARTZ: return 27;
 
-        case BLOCK_GLASS_PANE: return 130;
+        case BLOCK_GLASS_PANE: return 128 + II_TILE_GLASS_PANE;
         case BLOCK_FENCE: return 58;
-        case BLOCK_DOOR_WOOD: return 131;
+        case BLOCK_DOOR_WOOD: return 128 + II_TILE_DOOR_WOOD;
         case BLOCK_TRAPDOOR: return 57;
         case BLOCK_FENCE_GATE: return 59;
-        case BLOCK_BED: return 132;
+        case BLOCK_BED: return 128 + II_TILE_BED;
         case BLOCK_WOOD_SLAB_DOUBLE: return 30;
         default: return -1;
     }
@@ -234,9 +236,17 @@ static inline int leafGuiIcon(unsigned char data) {
 
 static inline int saplingGuiIcon(unsigned char data) {
     switch (data & LEAF_TYPE_MASK) {
-        case LEAF_SPRUCE: return 140;
-        case LEAF_BIRCH:  return 141;
-        default:          return 139;
+        case LEAF_SPRUCE: return 128 + II_TILE_SAPLING_SPRUCE;
+        case LEAF_BIRCH:  return 128 + II_TILE_SAPLING_BIRCH;
+        default:          return 128 + II_TILE_SAPLING_OAK;
+    }
+}
+
+static inline int tallGrassGuiIcon(unsigned char data) {
+    switch (data) {
+        case TG_DEAD_SHRUB: return 128 + II_TILE_DEAD_SHRUB;
+        case TG_TALL_GRASS: return 128 + II_TILE_TALL_GRASS;
+        default:            return 128 + II_TILE_FERN;
     }
 }
 
@@ -264,6 +274,7 @@ int getGuiBlockIcon(short id, unsigned char data) {
     if (id >= 256) return -2;
     return isLeaf(id) ? leafGuiIcon(data)
          : (id == BLOCK_SAPLING) ? saplingGuiIcon(data)
+         : (id == BLOCK_TALLGRASS) ? tallGrassGuiIcon(data)
          : isWool(id) ? WOOL_GUI_ICON
          : isLog(id) ? logGuiIcon(data)
          : (id == BLOCK_SANDSTONE) ? sandstoneGuiIcon(data)
@@ -548,9 +559,9 @@ const char* getBlockName(short id, unsigned char data) {
         case BLOCK_GLOWING_OBSIDIAN: return "Glowing Obsidian";
         case BLOCK_TALLGRASS:
             switch (data) {
+                case TG_DEAD_SHRUB: return "Dead Bush";
                 case TG_TALL_GRASS: return "Tall Grass";
-                case TG_FERN:       return "Fern";
-                default:            return "Dead Bush";
+                default:            return "Fern";
             }
 
         case BLOCK_ICE: return "Ice";
@@ -839,13 +850,14 @@ void hotbarDraw(MenuState& s) {
     spriteDraw(&s.guiAtlas, barX + (20.0f * g_level.player->inventory->selected - 1.0f) * HB_S, barY - 1.0f * HB_S,
                24.0f * HB_S, 24.0f * HB_S, GA_SEL_FRAME, selTint);
 
-    if (g_haveGuiBlocks) {
-        const float dotsW = 14.0f * HB_S, dotsH = 4.0f * HB_S;
+    {
+        const float dot = 4.0f * HB_S, gap = 1.0f * HB_S;
+        const float run = 3.0f * dot + 2.0f * gap;
         const float slotX = barX + (3.0f + 20.0f * HOTBAR_SLOTS) * HB_S;
-        textureBind(&g_guiBlocks);
-        spriteDraw(&g_guiBlocks, slotX + (16.0f * HB_S - dotsW) * 0.5f,
-                   barY + 3.0f * HB_S + (16.0f * HB_S - dotsH) * 0.5f, dotsW, dotsH,
-                   484, 504, 28, 8, HUD_WHITE);
+        const float x0 = slotX + (16.0f * HB_S - run) * 0.5f;
+        const float y0 = barY + 3.0f * HB_S + (16.0f * HB_S - dot) * 0.5f;
+        for (int i = 0; i < 3; i++)
+            spriteDraw(&s.guiAtlas, x0 + i * (dot + gap), y0, dot, dot, GA_DOTS, HUD_WHITE);
     }
 
     extern float g_dropCharge;
@@ -864,7 +876,7 @@ void hotbarDraw(MenuState& s) {
         float slotX = barX + (3.0f + 20.0f * i) * HB_S;
         float slotY = barY + 3.0f * HB_S;
 
-        if (i == 0 && g_flashSlotStartTime >= 0.0f) {
+        if (i == g_flashSlotIndex && g_flashSlotStartTime >= 0.0f) {
             float now = gameSeconds();
             float since = now - g_flashSlotStartTime;
             if (since > 0.2f) {
@@ -1191,10 +1203,18 @@ void gameHintsDraw(MenuState& s) {
     } else if (g_invOpen) {
         h[n++] = menuFaceHint(true, g_invHeaderSel >= 0 ? "Press" : "Take");
         h[n++] = menuFaceHint(false, "Exit");
+        if (g_level.player->inventory->isCreative()) {
 
-        if (!g_level.player->inventory->isCreative()) {
+            h[n++] = (ButtonHint){ BTN_ICON_SQUARE,   PSP_CTRL_SQUARE,   "" };
+            h[n++] = (ButtonHint){ BTN_ICON_TRIANGLE, PSP_CTRL_TRIANGLE, "Change Tab" };
+            h[n++] = (ButtonHint){ menuShoulderIcon(false), PSP_CTRL_LTRIGGER, "" };
+            h[n++] = (ButtonHint){ menuShoulderIcon(true),  PSP_CTRL_RTRIGGER, "Change Slot" };
+        } else {
+
             h[n++] = (ButtonHint){ BTN_ICON_SQUARE,   PSP_CTRL_SQUARE,   "Crafting" };
             h[n++] = (ButtonHint){ BTN_ICON_TRIANGLE, PSP_CTRL_TRIANGLE, "Armour" };
+            h[n++] = (ButtonHint){ menuShoulderIcon(false), PSP_CTRL_LTRIGGER, "" };
+            h[n++] = (ButtonHint){ menuShoulderIcon(true),  PSP_CTRL_RTRIGGER, "Change Slot" };
         }
     } else {
 

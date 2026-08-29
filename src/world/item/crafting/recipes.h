@@ -5,6 +5,14 @@
 #include "world/item/crafting/recipe.h"
 #include <initializer_list>
 
+enum {
+    DYE_BLACK = 0, DYE_RED = 1, DYE_GREEN = 2, DYE_BROWN = 3, DYE_BLUE = 4,
+    DYE_PURPLE = 5, DYE_CYAN = 6, DYE_SILVER = 7, DYE_GRAY = 8, DYE_PINK = 9,
+    DYE_LIME = 10, DYE_YELLOW = 11, DYE_LIGHT_BLUE = 12, DYE_MAGENTA = 13,
+    DYE_ORANGE = 14
+};
+static inline short clothData(int dyeAux) { return (short)(~dyeAux & 0xf); }
+
 class Recipes {
 public:
     static Recipes* getInstance();

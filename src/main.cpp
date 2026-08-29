@@ -360,9 +360,19 @@ int main(int argc, char* argv[]) {
 
         controlSchemeNotePad(pad.Buttons, pad.Rx, pad.Ry);
 
-        unsigned int currentBtn = pad.Buttons & ~(PSP_CTRL_HOME | PSP_CTRL_HOLD |
-                                                  PSP_CTRL_NOTE | PSP_CTRL_SCREEN |
-                                                  PSP_CTRL_VOLUP | PSP_CTRL_VOLDOWN);
+        const bool systemFrame = (pad.Buttons & (PSP_CTRL_HOME | PSP_CTRL_HOLD)) != 0;
+        if (systemFrame) {
+            pad.Buttons = 0;
+            pad.Lx = pad.Ly = 128;
+            pad.Rx = pad.Ry = 128;
+        }
+
+        pad.Buttons &= ~(PSP_CTRL_HOME | PSP_CTRL_HOLD |
+                         PSP_CTRL_NOTE | PSP_CTRL_SCREEN |
+                         PSP_CTRL_VOLUP | PSP_CTRL_VOLDOWN |
+                         PSP_CTRL_WLAN_UP | PSP_CTRL_REMOTE |
+                         PSP_CTRL_DISC | PSP_CTRL_MS);
+        unsigned int currentBtn = pad.Buttons;
 
         extern bool g_invOpen, g_chestOpen, g_furnaceOpen, g_craftOpen, g_armorOpen;
         extern bool g_paused, g_optionsOpen;

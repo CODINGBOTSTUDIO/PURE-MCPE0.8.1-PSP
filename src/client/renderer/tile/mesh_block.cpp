@@ -127,7 +127,7 @@ int emitFire(ChunkVertex* out, int n, const World* w, int gx, int y, int gz, uns
 }
 
 int emitCross(ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id,
-                     unsigned char data, unsigned int bright) {
+                     unsigned char data, unsigned int bright, bool jitter) {
     int col, row; unsigned int tint;
     tileForBlock(id, data, 0, &col, &row, &tint);
 
@@ -137,9 +137,12 @@ int emitCross(ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id,
 
     unsigned int color = mulColor(bright, tint);
 
-    float x0 = gx + 0.05f, x1 = gx + 0.95f;
-    float z0 = gz + 0.05f, z1 = gz + 0.95f;
-    float yb = (float)y, yt = (float)y + 1.0f;
+    float dx = 0.0f, dy = 0.0f, dz = 0.0f;
+    if (jitter) crossJitter81(id, gx, y, gz, &dx, &dy, &dz);
+
+    float x0 = gx + dx + 0.05f, x1 = gx + dx + 0.95f;
+    float z0 = gz + dz + 0.05f, z1 = gz + dz + 0.95f;
+    float yb = (float)y + dy, yt = (float)y + dy + 1.0f;
     const float UV[4][2] = { {u0, v0}, {u0, v1}, {u1, v1}, {u1, v0} };
 
     float A[4][3] = { {x0, yt, z0}, {x0, yb, z0}, {x1, yb, z1}, {x1, yt, z1} };
@@ -381,7 +384,8 @@ int meshPass(const World* w, int ox, int oz, int y0, int y1, ChunkVertex* out, i
         }
 
         if (layer == 3 && isPane(id)) {
-            if (out && n + 72 > cap) return -1;
+
+            if (out && n + 108 > cap) return -1;
             n = emitPane(w, gx, y, gz, id, worldData(w, gx, y, gz), out, n);
             continue;
         }
@@ -419,7 +423,7 @@ int meshPass(const World* w, int ox, int oz, int y0, int y1, ChunkVertex* out, i
         if (layer == 3 && id == BLOCK_GRASS && LCB(gx, y + 1, gz) != BLOCK_TOPSNOW) {
             if (out && n + 24 > cap) return -1;
             static const int gtri[6] = { 0, 1, 2, 2, 3, 0 };
-            const unsigned int GRASS_TINT = 0xFF6BCB5Au;
+            const unsigned int GRASS_TINT = 0xFF6BBD7Cu;
             const float ou0 = 6 * TILE_UV, ov0 = 2 * TILE_UV;
 
             const float TE = TILE_UV / 128.0f, TILE_INNER = TILE_UV - 2.0f * TE;
@@ -507,21 +511,26 @@ int meshPass(const World* w, int ox, int oz, int y0, int y1, ChunkVertex* out, i
                 }
 
                 static const int tri[6] = { 0, 1, 2, 2, 3, 0 };
+
+                const int fr = faceRotation(rotFaceMask(id), f, gx, y, gz);
                 for (int t = 0; t < 6; t++) {
                     int k = tri[t];
                     const signed char* c = kFaceCorner[f][k];
+                    float uv_u = kFaceUV[f][k][0];
                     float uv_v = kFaceUV[f][k][1];
 
                     if (id == BLOCK_TOPSNOW && f != F_TOP && f != F_DOWN) {
                         if (uv_v == 0) uv_v = 1.0f - th;
                     }
 
+                    if (fr) applyFaceRot(fr, f, &uv_u, &uv_v);
+
                     float bx = (float)(gx + c[0]) + ix + seamOff(c[0]);
                     float by = ((c[1] == 1) ? ((float)y + th) : (float)(y + c[1])) + seamOff(c[1]);
                     float bz = (float)(gz + c[2]) + iz + seamOff(c[2]);
 
                     const float TE = TILE_UV / 128.0f;
-                    out[n + t].u = u0 + (TE + kFaceUV[f][k][0] * (TILE_UV - 2.0f * TE));
+                    out[n + t].u = u0 + (TE + uv_u * (TILE_UV - 2.0f * TE));
                     out[n + t].v = v0 + (TE + uv_v * (TILE_UV - 2.0f * TE));
                     out[n + t].color = cc[c[ca1]][c[ca2]];
 
@@ -651,7 +660,7 @@ int meshSectionSink(const World* w, int ox, int oz, int y0, int y1,
         }
 
         if (isPane(id)) {
-            if (!sinkReserve(&sk, 3, 72)) return -1;
+            if (!sinkReserve(&sk, 3, 108)) return -1;
             nn = emitPane(w, gx, y, gz, id, worldData(w, gx, y, gz), sk.buf[3], nn);
             continue;
         }
@@ -747,17 +756,21 @@ int meshSectionSink(const World* w, int ox, int oz, int y0, int y1,
             static const int tri[6] = { 0, 1, 2, 2, 3, 0 };
 
             float cTE = TE, cInner = TILE_INNER;
+
+            const int fr = faceRotation(rotFaceMask(id), f, gx, y, gz);
             for (int t = 0; t < 6; t++) {
                 int k = tri[t];
                 const signed char* c = kFaceCorner[f][k];
+                float uv_u = kFaceUV[f][k][0];
                 float uv_v = kFaceUV[f][k][1];
                 if (id == BLOCK_TOPSNOW && f != F_TOP && f != F_DOWN) {
                     if (uv_v == 0) uv_v = 1.0f - th;
                 }
+                if (fr) applyFaceRot(fr, f, &uv_u, &uv_v);
                 float bx = (float)(gx + c[0]) + ix + seamOff(c[0]);
                 float by = ((c[1] == 1) ? ((float)y + th) : (float)(y + c[1])) + seamOff(c[1]);
                 float bz = (float)(gz + c[2]) + iz + seamOff(c[2]);
-                dst[nd + t].u = u0 + (cTE + kFaceUV[f][k][0] * cInner);
+                dst[nd + t].u = u0 + (cTE + uv_u * cInner);
                 dst[nd + t].v = v0 + (cTE + uv_v * cInner);
                 dst[nd + t].color = cc[c[ca1]][c[ca2]];
                 dst[nd + t].x = bx;
@@ -766,7 +779,7 @@ int meshSectionSink(const World* w, int ox, int oz, int y0, int y1,
             }
 
             if (grassSide && f != F_TOP && f != F_DOWN) {
-                const unsigned int GRASS_TINT = 0xFF6BCB5Au;
+                const unsigned int GRASS_TINT = 0xFF6BBD7Cu;
                 float ou0 = 6 * TILE_UV, ov0 = 2 * TILE_UV;
                 for (int t = 0; t < 6; t++) {
                     int k = tri[t];

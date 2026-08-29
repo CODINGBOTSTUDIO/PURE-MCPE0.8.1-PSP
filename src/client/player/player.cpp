@@ -48,6 +48,8 @@ float g_dropCharge = -1.0f;
 int   g_invCursor = 0;
 int   g_invHeaderSel = -1;
 float g_flashSlotStartTime = -1.0f;
+
+int   g_flashSlotIndex = 0;
 int   g_invFlashCursor = -1;
 int   g_invFlashTicks = 0;
 
@@ -260,6 +262,23 @@ void gameUpdate(MenuState& s, unsigned int pressed, const SceCtrlData& padIn) {
 
         Inventory* inv = g_level.player->inventory;
 
+        if (inv->selected >= Inventory::HOTBAR) inv->selectSlot(0);
+
+        {
+            int slotStep = 0;
+            if (uiPressed & PSP_CTRL_LTRIGGER) slotStep = -1;
+            if (uiPressed & PSP_CTRL_RTRIGGER) slotStep =  1;
+            if (slotStep) {
+                int sel = inv->selected + slotStep;
+                if (sel < 0) sel = 0;
+                if (sel > Inventory::HOTBAR - 1) sel = Inventory::HOTBAR - 1;
+                if (sel != inv->selected) {
+                    inv->selectSlot(sel);
+                    soundPlay("random.click", 1.0f, 1.0f);
+                }
+            }
+        }
+
         int mvx = 0, mvy = 0;
         if (uiPressed & PSP_CTRL_LEFT)  mvx = -1;
         if (uiPressed & PSP_CTRL_RIGHT) mvx =  1;
@@ -284,6 +303,52 @@ void gameUpdate(MenuState& s, unsigned int pressed, const SceCtrlData& padIn) {
             } else lastMove = 0.0f;
         }
 
+        if (inv->isCreative()) {
+            creativeRebuild();
+            const int n = creativeCount();
+
+            int tabStep = 0;
+            if (uiPressed & PSP_CTRL_SQUARE)   tabStep = -1;
+            if (uiPressed & PSP_CTRL_TRIANGLE) tabStep =  1;
+            if (tabStep) {
+                g_creativeTab = (g_creativeTab + tabStep + CREATIVE_TABS) % CREATIVE_TABS;
+                g_invCursor = 0;
+                soundPlay("random.click", 1.0f, 1.0f);
+            }
+
+            {
+                if (mvx < 0 && g_invCursor > 0) g_invCursor--;
+                if (mvx > 0 && g_invCursor < n - 1) g_invCursor++;
+
+                if (mvy < 0 && g_invCursor >= CREATIVE_COLS) g_invCursor -= CREATIVE_COLS;
+                if (mvy > 0 && g_invCursor + CREATIVE_COLS < n) g_invCursor += CREATIVE_COLS;
+
+                if (uiPressed & PSP_CTRL_CROSS) {
+                    const CreativeEntry* e = creativeEntry(g_invCursor);
+                    if (e) {
+
+                        int slot = inv->creativeAddItem(e->id, e->count, e->aux);
+                        soundPlay("random.pop2", 1.0f, 0.3f, SND_CAT_UI);
+
+                        g_flashSlotStartTime = gameSeconds();
+                        g_flashSlotIndex     = slot;
+
+                        g_invFlashCursor = g_invCursor;
+                        g_invFlashTicks  = 7;
+                    }
+                }
+            }
+
+            if (uiPressed & PSP_CTRL_CIRCLE) {
+                g_invOpen = false;
+                soundPlay("random.click", 1.0f, 1.0f);
+                runTicks(s, 0, 128, 128);
+                return;
+            }
+            runTicks(s, 0, 128, 128);
+            return;
+        }
+
         int act = -1;
         if (g_invHeaderSel >= 0) {
 
@@ -302,9 +367,10 @@ void gameUpdate(MenuState& s, unsigned int pressed, const SceCtrlData& padIn) {
             if (mvy > 0 && g_invCursor + INV_COLS < inv->gridSize()) g_invCursor += INV_COLS;
             if (uiPressed & PSP_CTRL_CROSS) {
 
-                inv->pickToHotbar(g_invCursor);
+                int slot = inv->survivalAddItem(g_invCursor);
                 soundPlay("random.pop2", 1.0f, 0.3f, SND_CAT_UI);
                 g_flashSlotStartTime = gameSeconds();
+                g_flashSlotIndex     = slot;
                 g_invFlashCursor = g_invCursor;
                 g_invFlashTicks = 7;
             }
