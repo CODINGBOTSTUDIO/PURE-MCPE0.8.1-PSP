@@ -362,6 +362,8 @@ TileEntity* Level::getTileEntity(int x, int y, int z) {
 }
 
 void Level::setTileEntity(int x, int y, int z, TileEntity* te) {
+
+    if (!te) return;
     removeTileEntity(x, y, z);
     te->setLevelAndPos(this, x, y, z);
     tileEntities.push_back(te);

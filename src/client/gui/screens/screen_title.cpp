@@ -11,9 +11,28 @@
 #include <ctime>
 #include <pspkernel.h>
 
-#include "client/gui/screens/splashes.h"
+#include <cstdio>
+#include <cstring>
+#include "platform/path.h"
 
-static int s_splash = -1;
+static char s_splash[128];
+static bool s_splashPicked = false;
+
+static void pickSplash(unsigned seed) {
+    s_splashPicked = true;
+    FILE* f = fopen(assetPath("data/splashes.txt"), "r");
+    if (!f) return;
+    char line[128];
+    unsigned n = 0;
+    while (fgets(line, sizeof(line), f)) {
+        char* e = line + strlen(line);
+        while (e > line && (e[-1] == '\n' || e[-1] == '\r' || e[-1] == ' ')) *--e = '\0';
+        if (line[0] == '\0' || line[0] == '#') continue;
+        seed = seed * 1664525u + 1013904223u;
+        if (seed % ++n == 0) strcpy(s_splash, line);
+    }
+    fclose(f);
+}
 
 static const float btnSizeV = 75.0f;
 static const float BTN_PX   = btnSizeV * UI_SCALE;
@@ -98,11 +117,9 @@ void TitleScreen::renderContent(MenuState& s) {
 
     if (haveFont) {
 
-        if (s_splash < 0) {
-            unsigned seed = (unsigned)time(0) * 2654435761u + sceKernelGetSystemTimeLow();
-            s_splash = (int)(seed % (unsigned)kSplashCount);
-        }
-        const char* splash = kSplashes[s_splash];
+        if (!s_splashPicked)
+            pickSplash((unsigned)time(0) * 2654435761u + sceKernelGetSystemTimeLow());
+        const char* splash = s_splash;
 
         float t = (float)sceKernelGetSystemTimeLow() * 1e-6f;
         float scale = powf(sinf(t * 3.14f * 2.3f), 4.0f) * 0.06f + 1.3f;
