@@ -35,9 +35,13 @@ void mobBuildBox(MobVertex* out, float x0, float y0, float z0,
         out[n++] = {u0, v1, dx, dy, dz};
         out[n++] = {u0, v0, ax, ay, az};
     };
+
+    float lu0 = (tx+d)/W,       lu1 = (tx)/W;
+    float ru0 = (tx+2*d+w)/W,   ru1 = (tx+d+w)/W;
+    if (mirror) { float t0 = lu0, t1 = lu1; lu0 = ru0; lu1 = ru1; ru0 = t0; ru1 = t1; }
     addPoly(x1,y0,z1, x0,y0,z1, x0,y0,z0, x1,y0,z0, (tx+d+w)/W,(ty)/H,     (tx+d)/W,(ty+d)/H);
-    addPoly(x0,y0,z0, x0,y0,z1, x0,y1,z1, x0,y1,z0, (tx+d)/W,(ty+d)/H,     (tx)/W,(ty+d+h)/H);
-    addPoly(x1,y0,z1, x1,y0,z0, x1,y1,z0, x1,y1,z1, (tx+2*d+w)/W,(ty+d)/H, (tx+d+w)/W,(ty+d+h)/H);
+    addPoly(x0,y0,z0, x0,y0,z1, x0,y1,z1, x0,y1,z0, lu0,(ty+d)/H,          lu1,(ty+d+h)/H);
+    addPoly(x1,y0,z1, x1,y0,z0, x1,y1,z0, x1,y1,z1, ru0,(ty+d)/H,          ru1,(ty+d+h)/H);
     addPoly(x1,y1,z0, x0,y1,z0, x0,y1,z1, x1,y1,z1, (tx+d+w)/W,(ty+d)/H,   (tx+d+2*w)/W,(ty)/H);
     addPoly(x1,y0,z0, x0,y0,z0, x0,y1,z0, x1,y1,z0, (tx+d+w)/W,(ty+d)/H,   (tx+d)/W,(ty+d+h)/H);
     addPoly(x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y1,z1, (tx+2*d+2*w)/W,(ty+d)/H, (tx+2*d+w)/W,(ty+d+h)/H);

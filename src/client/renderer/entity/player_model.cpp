@@ -56,35 +56,10 @@ static void loadLocalPlayerSkinIfNeeded(void) {
     }
 }
 
-static void buildBox(MobVertex* out,
+static inline void buildBox(MobVertex* out,
                      float x0, float y0, float z0, float x1, float y1, float z1,
                      int tx, int ty, int w, int h, int d, bool mirror) {
-    const float W = 64.0f, H = 32.0f;
-    int n = 0;
-    auto addPoly = [&](float ax, float ay, float az, float bx, float by, float bz,
-                       float cx, float cy, float cz, float dx, float dy, float dz,
-                       float u0, float v0, float u1, float v1) {
-        if (mirror) { float t = u0; u0 = u1; u1 = t; }
-        out[n++] = {u0, v0, ax, ay, az};
-        out[n++] = {u1, v0, bx, by, bz};
-        out[n++] = {u1, v1, cx, cy, cz};
-        out[n++] = {u1, v1, cx, cy, cz};
-        out[n++] = {u0, v1, dx, dy, dz};
-        out[n++] = {u0, v0, ax, ay, az};
-    };
-
-    addPoly(x1,y0,z1, x0,y0,z1, x0,y0,z0, x1,y0,z0,
-            (tx+d+w)/W,(ty)/H,     (tx+d)/W,(ty+d)/H);
-    addPoly(x0,y0,z0, x0,y0,z1, x0,y1,z1, x0,y1,z0,
-            (tx+d)/W,(ty+d)/H,     (tx)/W,(ty+d+h)/H);
-    addPoly(x1,y0,z1, x1,y0,z0, x1,y1,z0, x1,y1,z1,
-            (tx+2*d+w)/W,(ty+d)/H, (tx+d+w)/W,(ty+d+h)/H);
-    addPoly(x1,y1,z0, x0,y1,z0, x0,y1,z1, x1,y1,z1,
-            (tx+d+w)/W,(ty+d)/H,   (tx+d+2*w)/W,(ty)/H);
-    addPoly(x1,y0,z0, x0,y0,z0, x0,y1,z0, x1,y1,z0,
-            (tx+d+w)/W,(ty+d)/H,   (tx+d)/W,(ty+d+h)/H);
-    addPoly(x0,y0,z1, x1,y0,z1, x1,y1,z1, x0,y1,z1,
-            (tx+2*d+2*w)/W,(ty+d)/H, (tx+2*d+w)/W,(ty+d+h)/H);
+    mobBuildBox(out, x0,y0,z0, x1,y1,z1, tx,ty, w,h,d, mirror, 0.0f);
 }
 
 static void buildParts(void) {
