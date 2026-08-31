@@ -110,9 +110,11 @@ static float drawFaultCounters(MenuState& s, float ty) {
         ty += 12.0f;
     }
 
-    extern unsigned int g_musGaps, g_musWakes;
+    extern unsigned int g_musGaps, g_musWakes, g_musStarts;
+    const char* mtrack = soundMusicCurrentTrack();
     if (g_musGaps) {
-        std::snprintf(buf, sizeof(buf), "MUSIC GAPS %u  WAKE %u", g_musGaps, g_musWakes);
+        std::snprintf(buf, sizeof(buf), "MUSIC %s  STARTS %u  GAPS %u  WAKE %u",
+                      mtrack ? mtrack : "(gap)", g_musStarts, g_musGaps, g_musWakes);
         fontDrawTextShadow(&s.font, 10, ty, buf, 0xFF50FFFFu, 1.0f);
         ty += 12.0f;
     }

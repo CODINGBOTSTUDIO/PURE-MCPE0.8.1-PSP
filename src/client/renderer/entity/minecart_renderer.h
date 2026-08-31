@@ -6,7 +6,8 @@
 
 class MinecartRenderer : public EntityRenderer {
 public:
-    MinecartRenderer() { shadowRadius = 0.0f; }
+
+    MinecartRenderer() { shadowRadius = 0.4f; }
     virtual void render(Entity* entity, float x, float y, float z, float rot, float a);
 };
 

@@ -80,6 +80,7 @@ static volatile int       g_musEnded;
 static int                g_musHalf;
 static unsigned int       g_musPos;
 static unsigned int       g_musFilled;
+
 static FILE*              g_musFile;
 static unsigned int       g_musNextAt;
 static int                g_musHandle = -1;
@@ -469,6 +470,12 @@ static bool loadMusicIndex(const char* path) {
 }
 
 static int g_musLast = -1;
+unsigned int g_musStarts = 0;
+
+const char* soundMusicCurrentTrack(void) {
+    if (!g_musPlaying || !g_musIndex || g_musLast < 0 || g_musLast >= g_musCount) return 0;
+    return g_musIndex[g_musLast].name;
+}
 
 static int musicPickTrack(void) {
     int unheard = 0;
@@ -489,13 +496,32 @@ static int musicPickTrack(void) {
     return 0;
 }
 
+static unsigned int g_musFeedLo, g_musFeedHi;
+
+static unsigned int g_musSamplesLeft = 0xFFFFFFFFu;
+
+static unsigned int musicSampleCap(unsigned int bytes) {
+    unsigned long long n = (unsigned long long)bytes * SAMPLE_RATE / 16000ULL;
+    n += n / 20;
+    return (unsigned int)(n > 0xFFFFFFFFULL ? 0xFFFFFFFFULL : n);
+}
+
 static void musicFeed(void) {
     while (sceMp3CheckStreamDataNeeded(g_musHandle) > 0) {
         unsigned char* dst = 0;
         SceInt32 towrite = 0, srcpos = 0;
         if (sceMp3GetInfoToAddStreamData(g_musHandle, &dst, &towrite, &srcpos) < 0) return;
         if (towrite <= 0) return;
-        if (fseek(g_musFile, srcpos, SEEK_SET) != 0) return;
+
+        unsigned int pos = (unsigned int)srcpos;
+        if (pos < g_musFeedLo || pos >= g_musFeedHi) {
+            sceMp3NotifyAddStreamData(g_musHandle, 0);
+            return;
+        }
+        unsigned int left = g_musFeedHi - pos;
+        if ((unsigned int)towrite > left) towrite = (SceInt32)left;
+
+        if (fseek(g_musFile, (long)pos, SEEK_SET) != 0) return;
         int got = (int)fread(dst, 1, towrite, g_musFile);
 
         sceMp3NotifyAddStreamData(g_musHandle, got > 0 ? got : 0);
@@ -515,6 +541,7 @@ static bool musicFillStep(int half, int chunkBudget) {
 
     while (g_musFillPos < MUSIC_HALF_SAMPLES) {
         if (g_musPcmLeft <= 0) {
+            if (g_musEnded) break;
             if (chunkBudget && chunks >= chunkBudget) return false;
             musicFeed();
             SceShort16* pcm = 0;
@@ -526,6 +553,15 @@ static bool musicFillStep(int half, int chunkBudget) {
             g_musPcmPtr  = (short*)pcm;
 
             g_musPcmLeft = bytes / 4;
+
+            if ((unsigned int)g_musPcmLeft >= g_musSamplesLeft) {
+                g_musPcmLeft = (int)g_musSamplesLeft;
+                g_musSamplesLeft = 0;
+                g_musEnded = 1;
+                if (g_musPcmLeft <= 0) break;
+            } else {
+                g_musSamplesLeft -= (unsigned int)g_musPcmLeft;
+            }
             chunks++;
         }
         unsigned int take = MUSIC_HALF_SAMPLES - g_musFillPos;
@@ -581,6 +617,11 @@ static void musicReleaseResource(void) {
     g_musResource = false;
 }
 
+static void musicArmRetry(void) {
+    g_musNextAt = sceKernelGetSystemTimeLow() + 2 * 1000 * 1000;
+    if (!g_musNextAt) g_musNextAt = 1;
+}
+
 static void musicStart(void) {
     if (!g_musCount || g_channel < 0) return;
     if (!musicInitResource()) { g_musCount = 0; return; }
@@ -602,7 +643,7 @@ static void musicStart(void) {
 
     const Entry* e = &g_musIndex[musicPickTrack()];
     g_musFile = fopen(g_musPath, "rb");
-    if (!g_musFile) return;
+    if (!g_musFile) { musicArmRetry(); return; }
 
     memset(g_musInBuf,  0, MUSIC_IN_BUF);
     memset(g_musPcmBuf, 0, MUSIC_PCM_BUF);
@@ -616,10 +657,14 @@ static void musicStart(void) {
     args.pcmBuf         = g_musPcmBuf;
     args.pcmBufSize     = MUSIC_PCM_BUF;
 
+    g_musFeedLo = (unsigned int)args.mp3StreamStart;
+    g_musFeedHi = (unsigned int)args.mp3StreamEnd;
+    g_musSamplesLeft = musicSampleCap(e->frames);
+
     g_musHandle = sceMp3ReserveMp3Handle(&args);
-    if (g_musHandle < 0) { musicRelease(); return; }
+    if (g_musHandle < 0) { musicRelease(); musicArmRetry(); return; }
     musicFeed();
-    if (sceMp3Init(g_musHandle) < 0) { musicRelease(); return; }
+    if (sceMp3Init(g_musHandle) < 0) { musicRelease(); musicArmRetry(); return; }
 
     g_musEnded = 0;
     g_musHalf = 0; g_musPos = 0;
@@ -629,7 +674,8 @@ static void musicStart(void) {
 
     while (!musicFillStep(0, 0)) {}
     while (!musicFillStep(1, 0)) {}
-    if (g_musEnded && !g_musFilled) { musicRelease(); return; }
+    if (g_musEnded && !g_musFilled) { musicRelease(); musicArmRetry(); return; }
+    g_musStarts++;
     g_musPlaying = 1;
 }
 
