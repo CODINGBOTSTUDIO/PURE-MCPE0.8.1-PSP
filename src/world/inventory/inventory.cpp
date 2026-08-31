@@ -107,6 +107,44 @@ int Inventory::survivalAddItem(int gridIndex) {
     return selected;
 }
 
+int g_classicPick = 0;
+
+int Inventory::ownableGridSlot(int h) {
+    int mine = getLinkedSlot(h);
+    if (mine >= firstGridSlot()) return mine;
+
+    const int upstream = h + firstGridSlot();
+    if (getLinkedSlotForItem(upstream) < 0) return upstream;
+
+    for (int s = firstGridSlot(); s < firstGridSlot() + SURVIVAL_SLOTS; s++)
+        if (getLinkedSlotForItem(s) < 0) return s;
+    return upstream;
+}
+
+int Inventory::classicSurvivalAddItem(int gridIndex) {
+    int invSlot = gridIndex + firstGridSlot();
+    if (!getItem(invSlot)) return selected;
+    linkSlot(0, invSlot, true);
+    selected = 0;
+    return 0;
+}
+
+int Inventory::classicCreativeAddItem(short id, short count, short aux) {
+    int hot = getLinkedSlotForItemAndAux(id, aux);
+    int invSlot = (hot >= 0 && hot < HOTBAR) ? getLinkedSlot(hot) : -1;
+
+    if (invSlot < 0) {
+
+        invSlot = ownableGridSlot(HOTBAR - 1);
+        ItemInstance stack(id, count, aux);
+        setItem(invSlot, &stack);
+    }
+
+    linkSlot(0, invSlot, true);
+    selected = 0;
+    return 0;
+}
+
 int Inventory::getLinkedSlotForItemAndAux(short id, short aux) const {
     for (int i = 0; i < numLinkedSlots; i++) {
         const ItemInstance* linked = const_cast<Inventory*>(this)->getLinked(i);
@@ -121,7 +159,7 @@ int Inventory::creativeAddItem(short id, short count, short aux) {
         selected = slot;
         return selected;
     }
-    int inv = selected + firstGridSlot();
+    int inv = ownableGridSlot(selected);
     ItemInstance stack(id, count, aux);
     setItem(inv, &stack);
     linkSlot(selected, inv);

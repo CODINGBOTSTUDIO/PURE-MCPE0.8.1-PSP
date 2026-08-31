@@ -161,8 +161,16 @@ int FillingContainer::removeResource(const ItemInstance& item, bool requireExact
     return 0;
 }
 
-bool FillingContainer::linkSlot(int selectionSlot, int inventorySlot) {
+bool FillingContainer::linkSlot(int selectionSlot, int inventorySlot, bool propagate) {
     if (selectionSlot < 0 || selectionSlot >= numLinkedSlots) return false;
+
+    if (propagate) {
+        int i = 0;
+        for (; i < numLinkedSlots - 1; ++i)
+            if (linkedSlots[i].inventorySlot == inventorySlot) break;
+        for (; i > selectionSlot; --i)
+            linkedSlots[i].inventorySlot = linkedSlots[i - 1].inventorySlot;
+    }
     linkedSlots[selectionSlot].inventorySlot = inventorySlot;
     return true;
 }

@@ -1251,6 +1251,8 @@ static int hudHint(ButtonHint* out, unsigned int logical, const char* label) {
 #include "world/level/tile/entity/furnace_tile_entity.h"
 #include "gpu/gui_atlas.h"
 
+extern int g_classicPick;
+
 struct HintDepthOff {
     HintDepthOff()  { sceGuDisable(GU_DEPTH_TEST); }
     ~HintDepthOff() { sceGuEnable(GU_DEPTH_TEST); }
@@ -1326,18 +1328,26 @@ void gameHintsDraw(MenuState& s) {
     } else if (g_invOpen) {
         h[n++] = menuFaceHint(true, g_invHeaderSel >= 0 ? "Press" : "Take");
         h[n++] = menuFaceHint(false, "Exit");
-        if (g_level.player->inventory->isCreative()) {
 
-            h[n++] = (ButtonHint){ BTN_ICON_SQUARE,   PSP_CTRL_SQUARE,   "" };
-            h[n++] = (ButtonHint){ BTN_ICON_TRIANGLE, PSP_CTRL_TRIANGLE, "Change Tab" };
-            h[n++] = (ButtonHint){ menuShoulderIcon(false), PSP_CTRL_LTRIGGER, "" };
-            h[n++] = (ButtonHint){ menuShoulderIcon(true),  PSP_CTRL_RTRIGGER, "Change Slot" };
+        if (g_level.player->inventory->isCreative()) {
+            if (g_classicPick) {
+                h[n++] = (ButtonHint){ menuShoulderIcon(false), PSP_CTRL_LTRIGGER, "" };
+                h[n++] = (ButtonHint){ menuShoulderIcon(true),  PSP_CTRL_RTRIGGER, "Change Tab" };
+            } else {
+
+                h[n++] = (ButtonHint){ BTN_ICON_SQUARE,   PSP_CTRL_SQUARE,   "" };
+                h[n++] = (ButtonHint){ BTN_ICON_TRIANGLE, PSP_CTRL_TRIANGLE, "Change Tab" };
+                h[n++] = (ButtonHint){ menuShoulderIcon(false), PSP_CTRL_LTRIGGER, "" };
+                h[n++] = (ButtonHint){ menuShoulderIcon(true),  PSP_CTRL_RTRIGGER, "Change Slot" };
+            }
         } else {
 
             h[n++] = (ButtonHint){ BTN_ICON_SQUARE,   PSP_CTRL_SQUARE,   "Crafting" };
             h[n++] = (ButtonHint){ BTN_ICON_TRIANGLE, PSP_CTRL_TRIANGLE, "Armour" };
-            h[n++] = (ButtonHint){ menuShoulderIcon(false), PSP_CTRL_LTRIGGER, "" };
-            h[n++] = (ButtonHint){ menuShoulderIcon(true),  PSP_CTRL_RTRIGGER, "Change Slot" };
+            if (!g_classicPick) {
+                h[n++] = (ButtonHint){ menuShoulderIcon(false), PSP_CTRL_LTRIGGER, "" };
+                h[n++] = (ButtonHint){ menuShoulderIcon(true),  PSP_CTRL_RTRIGGER, "Change Slot" };
+            }
         }
     } else {
 

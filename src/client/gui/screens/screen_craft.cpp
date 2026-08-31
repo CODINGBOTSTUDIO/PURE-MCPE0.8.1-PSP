@@ -103,6 +103,20 @@ static const char* stonecutterGroup(const ItemInstance& r) {
     }
 }
 
+static const char* workbenchGroup(const ItemInstance& r) {
+    if (r.id == ITEM_BONEMEAL) return "ZDye ";
+
+    if (r.id >= 256) return "";
+    const unsigned char id = (unsigned char)r.id;
+
+    if (isCarpet(id))       return "Carpet ";
+    if (id == BLOCK_WOOL)   return "Wool ";
+    if (isStairs(id))       return "Stairs ";
+    if (isSlab(id))         return "Slab ";
+    if (id == BLOCK_PLANKS) return "Planks ";
+    return "";
+}
+
 static CraftItem* currentItem() {
     if (s_cursor < 0 || s_cursor >= (int)s_cat[s_curCat].size()) return nullptr;
     return &s_items[s_cat[s_curCat][s_cursor]];
@@ -224,10 +238,8 @@ void craftOpen(int craftingSize, int filterMode) {
         ci.canCraft = false;
 
         const char* name = getBlockName(res.id, (unsigned char)res.data);
-        if (s_filterMode == CRAFT_STONECUTTER) ci.sortText = std::string(stonecutterGroup(res)) + name;
-        else if (res.id == BLOCK_WOOL)         ci.sortText = std::string("Wool ") + name;
-        else if (res.id == ITEM_BONEMEAL)      ci.sortText = std::string("ZDye ") + name;
-        else                                   ci.sortText = name;
+        ci.sortText = std::string(s_filterMode == CRAFT_STONECUTTER
+                                  ? stonecutterGroup(res) : workbenchGroup(res)) + name;
 
         s_items.push_back(ci);
         int idx = (int)s_items.size() - 1;

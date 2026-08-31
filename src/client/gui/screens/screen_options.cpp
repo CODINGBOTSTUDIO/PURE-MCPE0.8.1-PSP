@@ -47,6 +47,10 @@ static const OptionRowDef g_optionRows[OPT_CATEGORIES][OPT_MAX_ROWS] = {
 
         { 0,           "Show Coordinates", {"Off", "On", 0, 0}, 2, 0 },
         { 0,           "Block Outline",    {"Off", "On", 0, 0}, 2, 1 },
+
+        { 0,           "Hide GUI",         {"Off", "On", 0, 0}, 2, 0 },
+
+        { 0,           "Interface Opacity", {0, 0, 0, 0}, 11, 8, true, 0, 10 },
     },
     {
 
@@ -56,6 +60,8 @@ static const OptionRowDef g_optionRows[OPT_CATEGORIES][OPT_MAX_ROWS] = {
         { 0,       "Auto Jump",     {"Off", "On", 0, 0}, 2, 1 },
 
         { 0,       "Japanese Layout", {"Off", "On", 0, 0}, 2, 0 },
+
+        { 0,       "Classic Item Pick", {"Off", "On", 0, 0}, 2, 0 },
 
         { 0,       "Control Scheme", {"Layout 1", "Layout 2", "Layout 3", "Layout 4"}, 4, 0,
           false, 0, 0, true },
@@ -77,9 +83,6 @@ static const OptionRowDef g_optionRows[OPT_CATEGORIES][OPT_MAX_ROWS] = {
         { "Experimental", "Mipmapping",  {"Off", "On", 0, 0}, 2, 1 },
 
         { 0,              "Dithering",   {"Off", "On", 0, 0}, 2, 0 },
-        { 0,              "Hide GUI",    {"Off", "On", 0, 0}, 2, 0 },
-
-        { 0,              "Interface Opacity", {0, 0, 0, 0}, 11, 8, true, 0, 10 },
 
     },
     {
@@ -95,7 +98,7 @@ static const OptionRowDef g_optionRows[OPT_CATEGORIES][OPT_MAX_ROWS] = {
     },
 };
 
-static const int g_optionRowCount[OPT_CATEGORIES] = { 7, 5, 12, 8 };
+static const int g_optionRowCount[OPT_CATEGORIES] = { 9, 6, 10, 8 };
 static const char* g_optionCategoryNames[OPT_CATEGORIES] = { "Game", "Controls", "Graphics", "Audio" };
 static int g_optionValueIdx[OPT_CATEGORIES][OPT_MAX_ROWS];
 
@@ -111,6 +114,7 @@ extern int   g_difficulty;
 extern int   g_autosave;
 extern int   g_blockOutline;
 extern int   g_autoJump;
+extern int   g_classicPick;
 extern int   g_dither;
 extern int   g_barOnTop;
 extern float g_sensitivity;
@@ -140,8 +144,6 @@ extern World g_world;
 #define ROW_SMOOTHLIGHT 7
 #define ROW_MIPMAP      8
 #define ROW_DITHER      9
-#define ROW_HIDEGUI     10
-#define ROW_HUDOPACITY  11
 
 static const float kRenderDist[4] = { 16.0f, 32.0f, 48.0f, 64.0f };
 extern int g_lowMemPsp;
@@ -153,7 +155,8 @@ static int renderDistChoices() { return g_lowMemPsp ? 2 : 4; }
 #define ROW_DEADZONE     1
 #define ROW_AUTOJUMP     2
 #define ROW_JPLAYOUT     3
-#define ROW_SCHEME       4
+#define ROW_CLASSICPICK  4
+#define ROW_SCHEME       5
 
 #define CAT_GAME        0
 #define ROW_DIFFICULTY  0
@@ -163,6 +166,8 @@ static int renderDistChoices() { return g_lowMemPsp ? 2 : 4; }
 #define ROW_SHOWFPS     4
 #define ROW_SHOWCOORDS  5
 #define ROW_BLOCKOUTLINE 6
+#define ROW_HIDEGUI      7
+#define ROW_HUDOPACITY   8
 
 #define CAT_AUDIO       3
 #define ROW_SOUNDVOL    0
@@ -211,6 +216,7 @@ static void optionsApply() {
     g_blockOutline = g_optionValueIdx[CAT_GAME][ROW_BLOCKOUTLINE];
     g_autoJump     = g_optionValueIdx[CAT_CONTROLS][ROW_AUTOJUMP];
     g_japaneseLayout = g_optionValueIdx[CAT_CONTROLS][ROW_JPLAYOUT];
+    g_classicPick    = g_optionValueIdx[CAT_CONTROLS][ROW_CLASSICPICK];
     g_dither       = g_optionValueIdx[CAT_GRAPHICS][ROW_DITHER];
     g_difficulty  = g_optionValueIdx[CAT_GAME][ROW_DIFFICULTY];
     soundSetVolume(g_optionValueIdx[CAT_AUDIO][ROW_SOUNDVOL] / 10.0f);
@@ -225,9 +231,9 @@ static void optionsApply() {
     g_thirdPerson = (tp < 0 || tp > 2) ? 0 : tp;
     g_beautifulSkies = g_optionValueIdx[CAT_GRAPHICS][ROW_SKIES];
     g_animateTextures= g_optionValueIdx[CAT_GRAPHICS][ROW_ANIMTEX];
-    g_hideGui        = g_optionValueIdx[CAT_GRAPHICS][ROW_HIDEGUI];
+    g_hideGui        = g_optionValueIdx[CAT_GAME][ROW_HIDEGUI];
 
-    g_hudOpacity     = g_optionValueIdx[CAT_GRAPHICS][ROW_HUDOPACITY] / 10.0f;
+    g_hudOpacity     = g_optionValueIdx[CAT_GAME][ROW_HUDOPACITY] / 10.0f;
 
     int wantParticles = g_optionValueIdx[CAT_GRAPHICS][ROW_PARTICLES];
     if (!wantParticles && g_particles) particlesReset();
