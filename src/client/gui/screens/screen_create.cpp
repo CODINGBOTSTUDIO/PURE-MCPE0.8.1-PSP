@@ -87,7 +87,7 @@ int toggleStep(const MenuState& s, int from, int dir) {
     return -1;
 }
 
-const float TOG_S   = 2.0f;
+const float TOG_S   = 1.0f;
 const float TOG_W   = TOGGLE_CELL_W * TOG_S / UI_SCALE;
 const float TOG_H   = TOGGLE_CELL_H * TOG_S / UI_SCALE;
 const float TOG_ROW = ROW_BOX_H + 5.0f * PX;
@@ -339,15 +339,21 @@ void CreateScreen::renderContent(MenuState& s) {
         {
             const bool genUsable = genFeaturesUsable(s);
             float togRowY = L.formY + ROW_LABEL_H + ROW_BOX_H + 6.0f * PX;
+
+            const float togRight = L.panelX + L.panelW - 5.0f * PX;
+            float widestLabel = 0.0f;
+            for (int i = FIELD_COUNT; i < ROW_COUNT; i++) {
+                float w = (float)fontTextWidth(&font, rowLabel(i)) * TEXT_S / UI_SCALE;
+                if (w > widestLabel) widestLabel = w;
+            }
+            float togX = L.descX + widestLabel + 6.0f * PX;
+            if (togX + TOG_W > togRight) togX = togRight - TOG_W;
             for (int i = FIELD_COUNT; i < ROW_COUNT; i++, togRowY += TOG_ROW) {
                 const bool on = genUsable && genFeatureEnabled(s.newWorldGenMask, rowFeature(i));
 
-                const float togRight = L.panelX + L.panelW - 5.0f * PX;
-                float labelW = (float)fontTextWidth(&font, rowLabel(i)) * TEXT_S / UI_SCALE;
-                float togX   = L.descX + labelW + 6.0f * PX;
-                if (togX + TOG_W > togRight) togX = togRight - TOG_W;
-                fontDrawTextClipped(&font, L.descX * UI_SCALE,
-                                    (togRowY + (ROW_BOX_H - 8.0f * TEXT_S) / 2.0f) * UI_SCALE,
+                const float labelY = (float)(int)(togRowY * UI_SCALE
+                                     + (ROW_BOX_H * UI_SCALE - 8.0f * TEXT_S) / 2.0f);
+                fontDrawTextClipped(&font, L.descX * UI_SCALE, labelY,
                                     rowLabel(i),
                                     !genUsable ? GUI_DISABLED
                                                : (sel == i ? 0xFFFFFFFFu : 0xFFE0E0E0u), TEXT_S,

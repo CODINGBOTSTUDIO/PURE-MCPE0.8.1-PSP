@@ -35,6 +35,11 @@ public:
 
     int  creativeAddItem(short id, short count, short aux);
 
+    int  classicSurvivalAddItem(int gridIndex);
+    int  classicCreativeAddItem(short id, short count, short aux);
+
+    int  ownableGridSlot(int h);
+
     int gridSize() const { return SURVIVAL_SLOTS; }
 
     int           firstGridSlot() const { return numLinkedSlots; }

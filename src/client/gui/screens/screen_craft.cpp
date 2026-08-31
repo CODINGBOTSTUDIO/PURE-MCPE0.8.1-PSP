@@ -22,6 +22,7 @@
 extern Level g_level;
 
 bool g_craftOpen = false;
+bool g_uiParentIsInventory = false;
 
 static const unsigned int rgbActive         = 0xFFF0F0F0u;
 static const unsigned int rgbInactive       = 0xC0635558u;
@@ -100,6 +101,20 @@ static const char* stonecutterGroup(const ItemInstance& r) {
         case DSLAB_BRICK:                         return "5 ";
         default:                                  return "9 ";
     }
+}
+
+static const char* workbenchGroup(const ItemInstance& r) {
+    if (r.id == ITEM_BONEMEAL) return "ZDye ";
+
+    if (r.id >= 256) return "";
+    const unsigned char id = (unsigned char)r.id;
+
+    if (isCarpet(id))       return "Carpet ";
+    if (id == BLOCK_WOOL)   return "Wool ";
+    if (isStairs(id))       return "Stairs ";
+    if (isSlab(id))         return "Slab ";
+    if (id == BLOCK_PLANKS) return "Planks ";
+    return "";
 }
 
 static CraftItem* currentItem() {
@@ -223,10 +238,8 @@ void craftOpen(int craftingSize, int filterMode) {
         ci.canCraft = false;
 
         const char* name = getBlockName(res.id, (unsigned char)res.data);
-        if (s_filterMode == CRAFT_STONECUTTER) ci.sortText = std::string(stonecutterGroup(res)) + name;
-        else if (res.id == BLOCK_WOOL)         ci.sortText = std::string("Wool ") + name;
-        else if (res.id == ITEM_BONEMEAL)      ci.sortText = std::string("ZDye ") + name;
-        else                                   ci.sortText = name;
+        ci.sortText = std::string(s_filterMode == CRAFT_STONECUTTER
+                                  ? stonecutterGroup(res) : workbenchGroup(res)) + name;
 
         s_items.push_back(ci);
         int idx = (int)s_items.size() - 1;
@@ -249,9 +262,9 @@ struct CraftScreen : Screen {
 void CraftScreen::handleInput(MenuState& s, unsigned int pressed, unsigned int ) {
     (void)s;
 
-    if (!g_level.player) { g_craftOpen = false; return; }
+    if (!g_level.player) { g_craftOpen = false; g_uiParentIsInventory = false; return; }
 
-    if (g_level.player->hurtTime > 0) { g_craftOpen = false; return; }
+    if (g_level.player->hurtTime > 0) { g_craftOpen = false; g_uiParentIsInventory = false; return; }
 
     const int beforeSel   = selectedRecipe();
     const int beforeFocus = s_focus;
@@ -275,6 +288,8 @@ void CraftScreen::handleInput(MenuState& s, unsigned int pressed, unsigned int )
 
     if (pressed & PSP_CTRL_CIRCLE) {
         g_craftOpen = false;
+
+        if (g_uiParentIsInventory) { g_uiParentIsInventory = false; g_invOpen = true; }
         soundPlay("random.click", 1.0f, 1.0f);
     }
 }

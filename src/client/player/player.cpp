@@ -35,6 +35,8 @@ extern bool  g_worldBuilt;
 #include "client/gamemode/gamemode.h"
 #include "world/entity/local_player.h"
 
+extern int g_classicPick;
+
 int g_viewBobbing = 1;
 int g_fancyGraphics = 0;
 int g_fancyLeaves = 0;
@@ -101,6 +103,7 @@ void quitToMenuNoSave(MenuState& s) {
     g_invOpen = false;
     g_craftOpen = false;
     g_armorOpen = false;
+    g_uiParentIsInventory = false;
     g_furnaceOpen = false;
     chestClose();
     signStopEdit();
@@ -264,7 +267,7 @@ void gameUpdate(MenuState& s, unsigned int pressed, const SceCtrlData& padIn) {
 
         if (inv->selected >= Inventory::HOTBAR) inv->selectSlot(0);
 
-        {
+        if (!g_classicPick) {
             int slotStep = 0;
             if (uiPressed & PSP_CTRL_LTRIGGER) slotStep = -1;
             if (uiPressed & PSP_CTRL_RTRIGGER) slotStep =  1;
@@ -308,8 +311,13 @@ void gameUpdate(MenuState& s, unsigned int pressed, const SceCtrlData& padIn) {
             const int n = creativeCount();
 
             int tabStep = 0;
-            if (uiPressed & PSP_CTRL_SQUARE)   tabStep = -1;
-            if (uiPressed & PSP_CTRL_TRIANGLE) tabStep =  1;
+            if (g_classicPick) {
+                if (uiPressed & PSP_CTRL_LTRIGGER)  tabStep = -1;
+                if (uiPressed & PSP_CTRL_RTRIGGER)  tabStep =  1;
+            } else {
+                if (uiPressed & PSP_CTRL_SQUARE)   tabStep = -1;
+                if (uiPressed & PSP_CTRL_TRIANGLE) tabStep =  1;
+            }
             if (tabStep) {
                 g_creativeTab = (g_creativeTab + tabStep + CREATIVE_TABS) % CREATIVE_TABS;
                 g_invCursor = 0;
@@ -327,7 +335,9 @@ void gameUpdate(MenuState& s, unsigned int pressed, const SceCtrlData& padIn) {
                     const CreativeEntry* e = creativeEntry(g_invCursor);
                     if (e) {
 
-                        int slot = inv->creativeAddItem(e->id, e->count, e->aux);
+                        int slot = g_classicPick
+                                 ? inv->classicCreativeAddItem(e->id, e->count, e->aux)
+                                 : inv->creativeAddItem(e->id, e->count, e->aux);
                         soundPlay("random.pop2", 1.0f, 0.3f, SND_CAT_UI);
 
                         g_flashSlotStartTime = gameSeconds();
@@ -367,7 +377,8 @@ void gameUpdate(MenuState& s, unsigned int pressed, const SceCtrlData& padIn) {
             if (mvy > 0 && g_invCursor + INV_COLS < inv->gridSize()) g_invCursor += INV_COLS;
             if (uiPressed & PSP_CTRL_CROSS) {
 
-                int slot = inv->survivalAddItem(g_invCursor);
+                int slot = g_classicPick ? inv->classicSurvivalAddItem(g_invCursor)
+                                         : inv->survivalAddItem(g_invCursor);
                 soundPlay("random.pop2", 1.0f, 0.3f, SND_CAT_UI);
                 g_flashSlotStartTime = gameSeconds();
                 g_flashSlotIndex     = slot;
@@ -382,6 +393,7 @@ void gameUpdate(MenuState& s, unsigned int pressed, const SceCtrlData& padIn) {
         if (act >= 0 && invHeaderButton(s, act)) {
             g_invOpen = false;
 
+            g_uiParentIsInventory = (act == INV_BTN_CRAFT || act == INV_BTN_ARMOR);
             if (act == INV_BTN_CRAFT)      craftOpen(Recipe::SIZE_2X2, CRAFT_WORKBENCH);
             else if (act == INV_BTN_ARMOR) armorOpen();
             else soundPlay("random.click", 1.0f, 1.0f);

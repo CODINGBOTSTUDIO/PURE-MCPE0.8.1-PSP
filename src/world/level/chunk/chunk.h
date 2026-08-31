@@ -20,6 +20,8 @@ enum { BLOCK_AIR = 0,
        BLOCK_ORE_GOLD = 14, BLOCK_ORE_IRON = 15, BLOCK_ORE_COAL = 16,
 
        BLOCK_LOG = 17, BLOCK_LEAVES = 18,
+
+       BLOCK_SPONGE = 19,
        BLOCK_GLASS = 20, BLOCK_ORE_LAPIS = 21, BLOCK_LAPIS_BLOCK = 22,
        BLOCK_SANDSTONE = 24,
        BLOCK_BED = 26,
@@ -68,6 +70,10 @@ enum { BLOCK_AIR = 0,
        BLOCK_NETHER_BRICK = 112, BLOCK_STAIRS_NETHER_BRICK = 114,
        BLOCK_STAIRS_SANDSTONE = 128,
 
+       BLOCK_HAY_BLOCK = 170,
+
+       BLOCK_CARPET = 171,
+
        BLOCK_COAL_BLOCK = 173,
 
        BLOCK_STAIRS_SPRUCE = 134, BLOCK_STAIRS_BIRCH = 135, BLOCK_STAIRS_JUNGLE = 136,
@@ -114,6 +120,10 @@ static inline bool isStairs(unsigned char id) {
 }
 static inline bool isSlab(unsigned char id)   { return id == BLOCK_SLAB || id == BLOCK_WOOD_SLAB; }
 static inline bool isPane(unsigned char id)   { return id == BLOCK_GLASS_PANE; }
+
+static inline bool isCarpet(unsigned char id) { return id == BLOCK_CARPET; }
+
+static inline bool isHayBlock(unsigned char id) { return id == BLOCK_HAY_BLOCK; }
 
 #define PANE_EDGE_COL 4
 #define PANE_EDGE_ROW 9
@@ -177,6 +187,7 @@ static inline bool autoJumpable(unsigned char id, unsigned char data) {
     if (isFence(id) || isFenceGate(id)) return false;
     if (isTrapdoor(id) || isSign(id))   return false;
     if (id == BLOCK_COBWEB)             return false;
+    if (isCarpet(id))                   return false;
     return true;
 }
 
@@ -270,6 +281,7 @@ int emitPartialBox(const World* w, int gx, int y, int gz, unsigned char id, unsi
                    int boundaryMask, int hiddenFaces, ChunkVertex* out, int n, bool fixUV = false,
                    bool fullTileUV = false, int edgeFaceMask = 0);
 int emitSlab(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
+int emitCarpet(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
 int emitStairs(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
 
 int emitPane(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);

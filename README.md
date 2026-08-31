@@ -195,7 +195,17 @@ that is worth more than a warning nobody reads.
   clearing the queue: entries key on the resident *slot*, so one outliving its
   chunk blocked the next chunk's edits from the fast lane.
   not rendering with the 4444 texture format.
-- [**Stann**](https://github.com/ThatStann) — for drawing the delete-world **X** button
+- [**SzyZET777**](https://github.com/SzyZET777) — pointed out that the
+  player-edit fast lane in `dirty.cpp` was open-coding the same shift loop at
+  four call sites, each keeping the membership array in sync by hand. The queue
+  stayed a fixed array (it is pushed to from the light cascade, which can run
+  while the worldgen worker is inside the allocator — under `-fno-exceptions` a
+  container that has to grow there corrupts the heap silently), but the index
+  arithmetic moved into `editQueueRemoveAt` / `editQueuePushFront` /
+  `editQueueFind`. Reading it properly is also what turned up `evict()` not
+  clearing the queue: entries key on the resident *slot*, so one outliving its
+  chunk blocked the next chunk's edits from the fast lane.
+- [**Stann**](https://github.com/ThatStann) — drew the delete-world **X** button
   (both states, in `touchgui.png`), the controller drawings the Controls page
   labels (`data/images/gui/controls/psp.png`, `go.png`), and the button-icon
   sheet the in-game hint row is built from (`data/images/gui/tooltips.png`) —

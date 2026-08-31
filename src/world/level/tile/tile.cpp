@@ -104,6 +104,8 @@ Drop Tile::getResource(int data) {
         case BLOCK_WOOD_SLAB_DOUBLE:    return { BLOCK_WOOD_SLAB, 2, (short)(data & DSLAB_MAT_MASK) };
         case BLOCK_WOOD_SLAB:           return { BLOCK_WOOD_SLAB, 1, (short)(data & DSLAB_MAT_MASK) };
         case BLOCK_LOG:                 return { BLOCK_LOG, 1, (short)(data & LOG_TYPE_MASK) };
+
+        case BLOCK_HAY_BLOCK:           return { BLOCK_HAY_BLOCK, 1, 0 };
         case BLOCK_PLANKS:              return { BLOCK_PLANKS, 1, (short)(data & PLANK_TYPE_MASK) };
         case BLOCK_SANDSTONE:           return { BLOCK_SANDSTONE, 1, (short)data };
         case BLOCK_QUARTZ_BLOCK:        return { BLOCK_QUARTZ_BLOCK, 1, (short)data };
@@ -128,6 +130,8 @@ Drop Tile::getResource(int data) {
         case BLOCK_SIGN: case BLOCK_WALL_SIGN: return { ITEM_SIGN, 1, 0 };
         case BLOCK_REEDS:               return { ITEM_REEDS, 1, 0 };
         case BLOCK_WOOL:                return { BLOCK_WOOL, 1, (short)data };
+
+        case BLOCK_CARPET:              return { BLOCK_CARPET, 1, (short)(data & 0xF) };
 
         case BLOCK_WHEAT:               return (data == 7) ? Drop{ ITEM_WHEAT, 1, 0 } : Drop{ 0, 0, 0 };
 
@@ -309,6 +313,18 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
             break;
         }
 
+        case BLOCK_HAY_BLOCK: {
+            bool ends;
+            switch (data & LOG_AXIS_MASK) {
+                case LOG_AXIS_X: ends = (f == F_LEFT || f == F_RIGHT);    break;
+                case LOG_AXIS_Z: ends = (f == F_BACK || f == F_FORWARD);  break;
+                default:         ends = (f == F_TOP  || f == F_DOWN);     break;
+            }
+            if (ends) { *col = 13; *row = 15; }
+            else      { *col = 10; *row = 15; }
+            break;
+        }
+
         case BLOCK_LEAVES:
             switch (data & LEAF_TYPE_MASK) {
                 case LEAF_SPRUCE: *col = 4; *row = 8; *tint = 0xFF619961u; break;
@@ -414,9 +430,12 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
         case BLOCK_SNOW_BLOCK:   *col = 2; *row = 4;  break;
         case BLOCK_NETHERRACK:   *col = 7; *row = 6;  break;
         case BLOCK_GLOWSTONE:    *col = 9; *row = 6;  break;
+
+        case BLOCK_SPONGE:       *col = 0; *row = 3;  break;
         case BLOCK_STAIRS_NETHER_BRICK:
         case BLOCK_NETHER_BRICK: *col = 0; *row = 14; break;
-        case BLOCK_WOOL: tileWool(data, f, col, row); break;
+
+        case BLOCK_WOOL: case BLOCK_CARPET: tileWool(data, f, col, row); break;
         case BLOCK_TNT:
             if (f == F_TOP)       { *col = 9;  *row = 0; }
             else if (f == F_DOWN) { *col = 10; *row = 0; }
@@ -558,6 +577,16 @@ struct TreeTile : Tile { TreeTile(unsigned char i) : Tile(i) {}
             default:                     axis = LOG_AXIS_Y; break;
         }
         return (itemValue & LOG_TYPE_MASK) | axis;
+    } };
+
+struct HayBlockTile : Tile { HayBlockTile(unsigned char i) : Tile(i) {}
+    int getPlacedOnFaceDataValue(World*, int, int, int, int face,
+                                 float, float, float, int) {
+        switch (face) {
+            case F_BACK: case F_FORWARD: return LOG_AXIS_Z;
+            case F_LEFT: case F_RIGHT:   return LOG_AXIS_X;
+            default:                     return LOG_AXIS_Y;
+        }
     } };
 
 struct SlabTile : Tile { SlabTile(unsigned char i) : Tile(i) {}
@@ -1059,6 +1088,7 @@ static bool rawSolidPhys(unsigned char id) {
     if (isSign(id)) return false;
     if (id == BLOCK_LADDER) return false;
     if (isRail(id)) return false;
+
     return true;
 }
 static bool rawCube(unsigned char id) {
@@ -1073,6 +1103,7 @@ static bool rawCube(unsigned char id) {
     if (id == BLOCK_CHEST) return false;
     if (id == BLOCK_CAKE) return false;
     if (isRail(id)) return false;
+    if (isCarpet(id)) return false;
     return true;
 }
 static bool rawOpaque(unsigned char id) {
@@ -1082,7 +1113,7 @@ static bool rawOpaque(unsigned char id) {
            !isSlab(id) && !isStairs(id) && id != BLOCK_FENCE && id != BLOCK_LADDER && id != BLOCK_TORCH &&
            !isDoor(id) && !isTrapdoor(id) && !isFenceGate(id) && !isBed(id) && id != BLOCK_FARMLAND &&
            id != BLOCK_CHEST && !isSign(id) && id != BLOCK_FIRE && id != BLOCK_CAKE &&
-           !isRail(id);
+           !isRail(id) && !isCarpet(id);
 }
 static bool rawReplaceable(unsigned char id) {
 
@@ -1101,7 +1132,8 @@ static int rawLightOpacity(unsigned char id) {
         isFence(id) || isStairs(id) || isSlab(id) || isDoor(id) ||
         isTrapdoor(id) || isFenceGate(id) || id == BLOCK_LADDER || id == BLOCK_TORCH || isBed(id) ||
         id == BLOCK_FARMLAND || isSign(id) || id == BLOCK_FIRE ||
-        id == BLOCK_CHEST || id == BLOCK_CAKE || isRail(id)) return 0;
+        id == BLOCK_CHEST || id == BLOCK_CAKE || isRail(id) ||
+        isCarpet(id)) return 0;
     return 15;
 }
 static int rawLightEmit(unsigned char id) {
@@ -1124,6 +1156,8 @@ static int rawSoundType(unsigned char id) {
         case BLOCK_GRASS: case BLOCK_LEAVES: case BLOCK_FLOWER: case BLOCK_ROSE:
         case BLOCK_MUSHROOM_BROWN: case BLOCK_MUSHROOM_RED: case BLOCK_SAPLING:
         case BLOCK_REEDS: case BLOCK_WHEAT: case BLOCK_TNT: case BLOCK_TALLGRASS:
+        case BLOCK_SPONGE:
+        case BLOCK_HAY_BLOCK:
             return SOUND_GRASS;
 
         case BLOCK_DIRT: case BLOCK_GRAVEL: case BLOCK_CLAY: case BLOCK_FARMLAND:
@@ -1132,7 +1166,8 @@ static int rawSoundType(unsigned char id) {
         case BLOCK_SAND:
             return SOUND_SAND;
 
-        case BLOCK_WOOL: case BLOCK_TOPSNOW: case BLOCK_SNOW_BLOCK: case BLOCK_CACTUS:
+        case BLOCK_WOOL: case BLOCK_CARPET:
+        case BLOCK_TOPSNOW: case BLOCK_SNOW_BLOCK: case BLOCK_CACTUS:
         case BLOCK_CAKE:
             return SOUND_CLOTH;
 
@@ -1173,6 +1208,8 @@ static int rawRotFaceMask(int id) {
         case BLOCK_SNOW_BLOCK: case BLOCK_TOPSNOW: case BLOCK_GLOWSTONE:
         case BLOCK_SAND: case BLOCK_NETHERRACK:
 
+        case BLOCK_SPONGE:
+
         case BLOCK_COAL_BLOCK:
             return 255;
 
@@ -1194,8 +1231,10 @@ static float rawDestroySpeed(int id) {
         case BLOCK_STAIRS_STONE_BRICK:
             return 1.5f;
         case BLOCK_DIRT: case BLOCK_SAND:
+        case BLOCK_HAY_BLOCK:
             return 0.5f;
         case BLOCK_GRASS: case BLOCK_GRAVEL: case BLOCK_CLAY: case BLOCK_FARMLAND:
+        case BLOCK_SPONGE:
             return 0.6f;
         case BLOCK_PLANKS: case BLOCK_LOG: case BLOCK_FENCE: case BLOCK_FENCE_GATE:
         case BLOCK_DOUBLE_SLAB: case BLOCK_SLAB: case BLOCK_COBBLESTONE:
@@ -1228,6 +1267,7 @@ static float rawDestroySpeed(int id) {
         case BLOCK_ICE:
             return 0.5f;
         case BLOCK_TOPSNOW:
+        case BLOCK_CARPET:
             return 0.1f;
         case BLOCK_SNOW_BLOCK: case BLOCK_BED:
             return 0.2f;
@@ -1275,6 +1315,7 @@ static int shapeOf(unsigned char id) {
     if (id == BLOCK_FIRE)       return SHAPE_FIRE;
     if (id == BLOCK_CACTUS)     return SHAPE_CACTUS;
     if (id == BLOCK_TOPSNOW)    return SHAPE_TOPSNOW;
+    if (isCarpet(id))           return SHAPE_CARPET;
     if (id == BLOCK_REEDS)      return SHAPE_REEDS;
     if (id == BLOCK_WHEAT)      return SHAPE_WHEAT;
     if (id == BLOCK_MELON_STEM) return SHAPE_MELON_STEM;
@@ -1294,6 +1335,7 @@ static Tile* makeTile(unsigned char id) {
         case BLOCK_GRASS:    return new GrassTile(id);
         case BLOCK_LEAVES:   return new LeafTile(id);
         case BLOCK_LOG:      return new TreeTile(id);
+        case BLOCK_HAY_BLOCK: return new HayBlockTile(id);
         case BLOCK_CACTUS:   return new CactusTile(id);
         case BLOCK_REEDS:    return new ReedTile(id);
         case BLOCK_FLOWER: case BLOCK_ROSE: case BLOCK_SAPLING:
@@ -1302,6 +1344,9 @@ static Tile* makeTile(unsigned char id) {
             return new BushTile(id);
         case BLOCK_TOPSNOW:
             return new SnowLayerTile(id);
+        case BLOCK_CARPET:
+
+            return new SupportTile(id);
         case BLOCK_SNOW_BLOCK:
             return new SnowBlockTile(id);
         case BLOCK_ICE:

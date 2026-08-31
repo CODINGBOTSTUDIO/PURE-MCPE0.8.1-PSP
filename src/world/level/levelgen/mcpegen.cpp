@@ -249,6 +249,8 @@ void McpeGen::buildSurfacesChunk(World* w, int chunkX, int chunkZ) {
     }
 }
 
+static int      g_genMask = 0;
+
 bool McpeGen::postProcessPhase(World* w, int chunkX, int chunkZ, int phase) {
     int xo = chunkX * 16, zo = chunkZ * 16;
     switch (phase) {
@@ -321,6 +323,11 @@ bool McpeGen::postProcessPhase(World* w, int chunkX, int chunkZ, int phase) {
 
     for (int i = 0; i < 2; i++) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; flowerFeature(w, random, x, y, z, BLOCK_FLOWER); }
     if (random.nextInt(2) == 0) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; flowerFeature(w, random, x, y, z, BLOCK_ROSE); }
+
+    int grasses = genFeatureEnabled(g_genMask, GEN_FEATURE_TALL_GRASS)
+                ? ((biome == B_PLAINS) ? 10 : (biome == B_FOREST) ? 2 : 1) : 0;
+    for (int i = 0; i < grasses; i++) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; tallGrassFeature(w, random, x, y, z, TG_TALL_GRASS); }
+
     if (random.nextInt(4) == 0) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; mushroomFeature(w, random, x, y, z, BLOCK_MUSHROOM_BROWN); }
     if (random.nextInt(8) == 0) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; mushroomFeature(w, random, x, y, z, BLOCK_MUSHROOM_RED); }
 
@@ -355,7 +362,6 @@ bool McpeGen::postProcessPhase(World* w, int chunkX, int chunkZ, int phase) {
 
 static McpeGen* g_gen = 0;
 static long     g_genSeed = 0;
-static int      g_genMask = 0;
 
 void worldGenInit(long seed, int genMask) {
     if (g_gen && g_genSeed == seed) { g_genMask = genMask; return; }

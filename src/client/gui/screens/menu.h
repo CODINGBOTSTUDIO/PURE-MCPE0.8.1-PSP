@@ -189,6 +189,8 @@ extern bool g_craftOpen;
 
 enum { CRAFT_WORKBENCH = 0, CRAFT_STONECUTTER = 1 };
 void craftOpen(int craftingSize, int filterMode);
+
+extern bool g_uiParentIsInventory;
 bool craftHasCategories();
 bool armorFocusIsWornSlot();
 bool chestCursorOnChest();

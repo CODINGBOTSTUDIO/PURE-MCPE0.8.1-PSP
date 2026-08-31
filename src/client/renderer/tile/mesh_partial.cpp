@@ -182,6 +182,11 @@ int emitSlab(const World* w, int gx, int y, int gz, unsigned char id, unsigned c
     return emitPartialBox(w, gx, y, gz, id, data, 0.0f, y0, 0.0f, 1.0f, y1, 1.0f, mask, 0, out, n, true);
 }
 
+int emitCarpet(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n) {
+    int mask = (1 << F_LEFT) | (1 << F_RIGHT) | (1 << F_BACK) | (1 << F_FORWARD) | (1 << F_DOWN);
+    return emitPartialBox(w, gx, y, gz, id, data, 0.0f, 0.0f, 0.0f, 1.0f, 0.0625f, 1.0f, mask, 0, out, n, true);
+}
+
 int emitStairs(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n) {
 
     float b[3][6];

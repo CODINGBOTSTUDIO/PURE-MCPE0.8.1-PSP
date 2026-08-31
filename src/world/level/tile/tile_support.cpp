@@ -6,6 +6,9 @@ bool supportCanSurvive(World* w, unsigned char id, int x, int y, int z, int data
     switch (id) {
         case BLOCK_TOPSNOW:
             return isSolidPhys(worldBlock(w, x, y - 1, z));
+        case BLOCK_CARPET:
+
+            return worldBlock(w, x, y - 1, z) != BLOCK_AIR;
 
         case BLOCK_CAKE:
             return materialOf(worldBlock(w, x, y - 1, z)).isSolid();

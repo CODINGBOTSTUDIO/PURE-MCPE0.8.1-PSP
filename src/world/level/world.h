@@ -322,6 +322,8 @@ int worldEditQueueDepth();
 
 int worldEditQueueFront(int field);
 
+void worldEditQueueDropSlot(int slotIdx);
+
 void worldRebuildAroundNow(World* w, int x, int y, int z);
 
 void lightOnBlockChanged(World* w, int x, int y, int z);

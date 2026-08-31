@@ -34,6 +34,7 @@ void fireInitFlammables() {
     setFlammable(BLOCK_BOOKSHELF,30,  20);
     setFlammable(BLOCK_TNT,     15, 100);
     setFlammable(BLOCK_WOOL,    30,  60);
+    setFlammable(BLOCK_CARPET,  30,  60);
 }
 
 bool fireCanBurn(const World* w, int x, int y, int z) {

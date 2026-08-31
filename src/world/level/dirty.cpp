@@ -4,10 +4,37 @@
 #include <pspkernel.h>
 
 #define PLAYER_EDIT_QUEUE_CAP 128
-static int g_editQueue[PLAYER_EDIT_QUEUE_CAP][2];
+
+struct EditSection { short ci, si; };
+static EditSection g_editQueue[PLAYER_EDIT_QUEUE_CAP];
 static int g_editQueueN = 0;
 
 static bool g_inEditQueue[WORLD_CHUNKS_X * WORLD_CHUNKS_Z][N_SECTIONS];
+
+static void editQueueRemoveAt(int i) {
+    g_inEditQueue[g_editQueue[i].ci][g_editQueue[i].si] = false;
+    for (int j = i + 1; j < g_editQueueN; j++) g_editQueue[j - 1] = g_editQueue[j];
+    g_editQueueN--;
+}
+
+static void editQueuePushFront(int ci, int si) {
+    for (int j = g_editQueueN; j > 0; j--) g_editQueue[j] = g_editQueue[j - 1];
+    g_editQueue[0].ci = (short)ci; g_editQueue[0].si = (short)si;
+    g_editQueueN++;
+    g_inEditQueue[ci][si] = true;
+}
+
+static int editQueueFind(int ci, int si) {
+    if (!g_inEditQueue[ci][si]) return -1;
+    for (int i = 0; i < g_editQueueN; i++)
+        if (g_editQueue[i].ci == ci && g_editQueue[i].si == si) return i;
+    return -1;
+}
+
+void worldEditQueueDropSlot(int slotIdx) {
+    for (int i = g_editQueueN - 1; i >= 0; i--)
+        if (g_editQueue[i].ci == slotIdx) editQueueRemoveAt(i);
+}
 
 static inline void markSecDirty(World* w, int cx, int cz, int y) {
 
@@ -28,7 +55,8 @@ static inline void markSecDirty(World* w, int cx, int cz, int y) {
     int ci = worldSlotIndex(w, cx, cz);
     if (g_inEditQueue[ci][si]) return;
     if (g_editQueueN >= PLAYER_EDIT_QUEUE_CAP) return;
-    g_editQueue[g_editQueueN][0] = ci; g_editQueue[g_editQueueN][1] = si; g_editQueueN++;
+    g_editQueue[g_editQueueN].ci = (short)ci; g_editQueue[g_editQueueN].si = (short)si;
+    g_editQueueN++;
     g_inEditQueue[ci][si] = true;
 }
 
@@ -83,34 +111,20 @@ bool worldSetBlockAndData(World* w, int x, int y, int z, unsigned char id, unsig
 static int g_editBurst = 0;
 
 static bool editQueuePromote(int ci, int si) {
-    if (!g_inEditQueue[ci][si]) return false;
-    for (int i = 0; i < g_editQueueN; i++) {
-        if (g_editQueue[i][0] != ci || g_editQueue[i][1] != si) continue;
-        for (int j = i; j > 0; j--) {
-            g_editQueue[j][0] = g_editQueue[j-1][0];
-            g_editQueue[j][1] = g_editQueue[j-1][1];
-        }
-        g_editQueue[0][0] = ci; g_editQueue[0][1] = si;
-        return true;
-    }
-    return false;
+    int i = editQueueFind(ci, si);
+    if (i < 0) return false;
+    editQueueRemoveAt(i);
+    editQueuePushFront(ci, si);
+    return true;
 }
 
 static void editQueueForceHead(int ci, int si) {
     if (editQueuePromote(ci, si)) return;
     if (g_editQueueN >= PLAYER_EDIT_QUEUE_CAP) {
 
-        int* tail = g_editQueue[g_editQueueN - 1];
-        g_inEditQueue[tail[0]][tail[1]] = false;
-        g_editQueueN--;
+        editQueueRemoveAt(g_editQueueN - 1);
     }
-    for (int j = g_editQueueN; j > 0; j--) {
-        g_editQueue[j][0] = g_editQueue[j-1][0];
-        g_editQueue[j][1] = g_editQueue[j-1][1];
-    }
-    g_editQueue[0][0] = ci; g_editQueue[0][1] = si;
-    g_editQueueN++;
-    g_inEditQueue[ci][si] = true;
+    editQueuePushFront(ci, si);
 }
 
 void worldRebuildAroundNow(World* w, int x, int y, int z) {
@@ -139,7 +153,10 @@ void worldRebuildAroundNow(World* w, int x, int y, int z) {
 }
 
 int worldEditQueueDepth() { return g_editQueueN; }
-int worldEditQueueFront(int field) { return g_editQueueN ? g_editQueue[0][field] : -1; }
+int worldEditQueueFront(int field) {
+    if (!g_editQueueN) return -1;
+    return field ? g_editQueue[0].si : g_editQueue[0].ci;
+}
 
 void worldDrainPlayerEdits(World* w, int maxSections) {
 
@@ -150,10 +167,8 @@ void worldDrainPlayerEdits(World* w, int maxSections) {
     int n = g_editQueueN < maxSections ? g_editQueueN : maxSections;
     if (n < burst) n = g_editQueueN < burst ? g_editQueueN : burst;
     for (int i = 0; i < n; i++) {
-        int ci = g_editQueue[0][0], si = g_editQueue[0][1];
-        for (int j = 1; j < g_editQueueN; j++) { g_editQueue[j-1][0] = g_editQueue[j][0]; g_editQueue[j-1][1] = g_editQueue[j][1]; }
-        g_editQueueN--;
-        g_inEditQueue[ci][si] = false;
+        int ci = g_editQueue[0].ci, si = g_editQueue[0].si;
+        editQueueRemoveAt(0);
         ChunkMesh* c = &w->chunks[ci];
         if (c->sec[si].dirty) chunkBuildSection(c, w, si);
         if (i + 1 >= burst && sceKernelGetSystemTimeLow() - tStart >= TIME_BUDGET_US)

@@ -82,7 +82,7 @@ const CreativeEntry kItems[] = {
     { BLOCK_GLOWSTONE,          1, 0 },
     { BLOCK_NETHER_REACTOR,     1, 0 },
     { BLOCK_LADDER,             1, 0 },
-
+    { BLOCK_SPONGE,             1, 0 },
     { BLOCK_TORCH,              1, 0 },
     { BLOCK_GLASS_PANE,         1, 0 },
 
@@ -110,7 +110,7 @@ const CreativeEntry kItems[] = {
     { BLOCK_MELON,              1, 0 },
 
     { BLOCK_COBWEB,             1, 0 },
-
+    { BLOCK_HAY_BLOCK,          1, 0 },
     { ITEM_REEDS,               1, 0 },
     { ITEM_WHEAT,               1, 0 },
 
@@ -153,6 +153,10 @@ const CreativeEntry kItems[] = {
     { BLOCK_WOOL, 1, 0xC }, { BLOCK_WOOL, 1, 0xE }, { BLOCK_WOOL, 1, 0x1 }, { BLOCK_WOOL, 1, 0x4 },
     { BLOCK_WOOL, 1, 0x5 }, { BLOCK_WOOL, 1, 0xD }, { BLOCK_WOOL, 1, 0x9 }, { BLOCK_WOOL, 1, 0x3 },
     { BLOCK_WOOL, 1, 0xB }, { BLOCK_WOOL, 1, 0xA }, { BLOCK_WOOL, 1, 0x2 }, { BLOCK_WOOL, 1, 0x6 },
+    { BLOCK_CARPET, 1, 0x0 }, { BLOCK_CARPET, 1, 0x8 }, { BLOCK_CARPET, 1, 0x7 }, { BLOCK_CARPET, 1, 0xF },
+    { BLOCK_CARPET, 1, 0xC }, { BLOCK_CARPET, 1, 0xE }, { BLOCK_CARPET, 1, 0x1 }, { BLOCK_CARPET, 1, 0x4 },
+    { BLOCK_CARPET, 1, 0x5 }, { BLOCK_CARPET, 1, 0xD }, { BLOCK_CARPET, 1, 0x9 }, { BLOCK_CARPET, 1, 0x3 },
+    { BLOCK_CARPET, 1, 0xB }, { BLOCK_CARPET, 1, 0xA }, { BLOCK_CARPET, 1, 0x2 }, { BLOCK_CARPET, 1, 0x6 },
 
     { ITEM_BONEMEAL, 1, 0x0 }, { ITEM_BONEMEAL, 1, 0x8 }, { ITEM_BONEMEAL, 1, 0x7 }, { ITEM_BONEMEAL, 1, 0xF },
     { ITEM_BONEMEAL, 1, 0xC }, { ITEM_BONEMEAL, 1, 0xE }, { ITEM_BONEMEAL, 1, 0x1 }, { ITEM_BONEMEAL, 1, 0x4 },

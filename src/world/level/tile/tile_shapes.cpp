@@ -164,6 +164,11 @@ int tileShapeBoxes(const World* w, int x, int y, int z, unsigned char id,
     if (id == BLOCK_TOPSNOW) {
         SET(out[0], x + 0.0f, y + 0.0f, z + 0.0f, x + 1.0f, y + 0.125f, z + 1.0f);
         return 1;
+    }
+    if (isCarpet(id)) {
+
+        SET(out[0], x + 0.0f, y + 0.0f, z + 0.0f, x + 1.0f, y + 0.0625f, z + 1.0f);
+        return 1;
     } else if (id == BLOCK_WHEAT) {
 
         float yy1 = (data + 1) / 8.0f;

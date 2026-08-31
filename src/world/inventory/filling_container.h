@@ -36,7 +36,7 @@ public:
 
     void reconfigure(int newTotalSlots, bool creative);
 
-    bool          linkSlot(int selectionSlot, int inventorySlot);
+    bool          linkSlot(int selectionSlot, int inventorySlot, bool propagate = false);
     ItemInstance* getLinked(int selectionSlot);
 
     int           getLinkedSlot(int selectionSlot) const;

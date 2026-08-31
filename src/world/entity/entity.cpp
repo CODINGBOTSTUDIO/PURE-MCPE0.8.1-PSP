@@ -195,7 +195,13 @@ void Entity::move(float xa, float ya, float za) {
         if (xaN * xaN + zaN * zaN >= xa * xa + za * za) {
             xa = xaN; ya = yaN; za = zaN; bb.set(normal);
         } else {
-            ySlideOffset += 0.5f;
+
+            float down = -ya;
+            const std::vector<AABB>& settle = level->getCubes(this, bb.expand(0, down, 0));
+            for (unsigned int i = 0; i < settle.size(); i++) down = settle[i].clipYCollide(bb, down);
+            bb.move(0, down, 0);
+
+            ySlideOffset += ya + down;
         }
     }
 

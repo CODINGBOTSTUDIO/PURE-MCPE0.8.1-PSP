@@ -91,10 +91,6 @@ static int                g_musPcmLeft;
 
 #define MUS_FADE 256
 static unsigned int       musFade = MUS_FADE;
-
-unsigned int              g_musGaps = 0;
-
-unsigned int              g_musWakes = 0;
 static int                g_musPrimed = 0;
 
 static int                g_musLastSample = 0;
@@ -219,8 +215,6 @@ void soundMixBlock(short* out) {
         if (i >= SAMPLE_COUNT) g_musPrimed = 1;
 
         if (i < SAMPLE_COUNT) {
-
-            if (!g_musEnded && g_musPrimed) g_musGaps++;
             g_musPrimed = 0;
             int n = SAMPLE_COUNT - i;
             if (n > MUS_FADE) n = MUS_FADE;
@@ -470,7 +464,6 @@ static bool loadMusicIndex(const char* path) {
 }
 
 static int g_musLast = -1;
-unsigned int g_musStarts = 0;
 
 const char* soundMusicCurrentTrack(void) {
     if (!g_musPlaying || !g_musIndex || g_musLast < 0 || g_musLast >= g_musCount) return 0;
@@ -500,9 +493,17 @@ static unsigned int g_musFeedLo, g_musFeedHi;
 
 static unsigned int g_musSamplesLeft = 0xFFFFFFFFu;
 
+enum { MUS_END_DECODER = 0,
+       MUS_END_CAP     = 1 };
+static unsigned char g_musEndReason;
+
+unsigned int g_musLoopStops;
+unsigned int g_musCutShort;
+unsigned int g_musCutLeftMs;
+
 static unsigned int musicSampleCap(unsigned int bytes) {
     unsigned long long n = (unsigned long long)bytes * SAMPLE_RATE / 16000ULL;
-    n += n / 20;
+    n += 4 * 1152;
     return (unsigned int)(n > 0xFFFFFFFFULL ? 0xFFFFFFFFULL : n);
 }
 
@@ -548,6 +549,13 @@ static bool musicFillStep(int half, int chunkBudget) {
             SceInt32 bytes = sceMp3Decode(g_musHandle, &pcm);
             if (bytes <= 0 || !pcm) {
                 g_musEnded = 1;
+                g_musEndReason = MUS_END_DECODER;
+
+                if (g_musSamplesLeft != 0xFFFFFFFFu &&
+                    g_musSamplesLeft > SAMPLE_RATE / 4) {
+                    g_musCutShort++;
+                    g_musCutLeftMs = g_musSamplesLeft / (SAMPLE_RATE / 1000);
+                }
                 break;
             }
             g_musPcmPtr  = (short*)pcm;
@@ -558,6 +566,8 @@ static bool musicFillStep(int half, int chunkBudget) {
                 g_musPcmLeft = (int)g_musSamplesLeft;
                 g_musSamplesLeft = 0;
                 g_musEnded = 1;
+                g_musEndReason = MUS_END_CAP;
+                g_musLoopStops++;
                 if (g_musPcmLeft <= 0) break;
             } else {
                 g_musSamplesLeft -= (unsigned int)g_musPcmLeft;
@@ -675,7 +685,6 @@ static void musicStart(void) {
     while (!musicFillStep(0, 0)) {}
     while (!musicFillStep(1, 0)) {}
     if (g_musEnded && !g_musFilled) { musicRelease(); musicArmRetry(); return; }
-    g_musStarts++;
     g_musPlaying = 1;
 }
 
@@ -727,7 +736,6 @@ void soundMusicUpdate(void) {
 
 static int musicThread(SceSize, void*) {
     while (!g_musQuit) {
-        g_musWakes++;
         musicLock();
         soundMusicUpdate();
         musicUnlock();
