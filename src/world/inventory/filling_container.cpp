@@ -22,10 +22,9 @@ ItemInstance* FillingContainer::getItem(int slot) {
 }
 
 void FillingContainer::setItem(int slot, ItemInstance* item) {
-
-    if (slot < 0 || slot >= (int)items.size()) { delete item; return; }
+    if (slot < 0 || slot >= (int)items.size()) return;
     delete items[slot];
-    items[slot] = item;
+    items[slot] = item ? new ItemInstance(*item) : 0;
 }
 
 ItemInstance FillingContainer::removeItem(int slot, int count) {
@@ -94,10 +93,10 @@ void FillingContainer::reconfigure(int newTotalSlots, bool creative) {
     for (int i = 0; i < numLinkedSlots; i++) linkedSlots[i].inventorySlot = -1;
 }
 
-int FillingContainer::addItem(ItemInstance* item) {
+int FillingContainer::addItem(ItemInstance& item) {
     int slot = getFreeSlot();
-    if (slot < 0) { delete item; return -1; }
-    items[slot] = item;
+    if (slot < 0) return -1;
+    setItem(slot, &item);
     return slot;
 }
 
@@ -117,23 +116,23 @@ int FillingContainer::addResource(ItemInstance* item) {
     return item->count;
 }
 
-bool FillingContainer::add(ItemInstance* item) {
-    if (!item || item->isNull()) { delete item; return true; }
-    if (_isCreative) { delete item; return true; }
+bool FillingContainer::add(ItemInstance& item) {
+    if (item.isNull()) return true;
+    if (_isCreative) return true;
 
-    if (item->isStackable()) addResource(item);
+    if (item.isStackable()) addResource(&item);
 
-    while (item->count > 0) {
+    while (item.count > 0) {
         int slot = getFreeSlot();
         if (slot < 0) return false;
-        int max = item->getMaxStackSize();
+        int max = item.getMaxStackSize();
         if (max < 1) max = 1;
-        int moved = item->count < max ? item->count : max;
-        items[slot] = new ItemInstance(item->id, (short)moved, item->data);
+        int moved = item.count < max ? item.count : max;
+        delete items[slot];
+        items[slot] = new ItemInstance(item.id, (short)moved, item.data);
         linkEmptySlot(slot);
-        item->count -= moved;
+        item.count -= moved;
     }
-    delete item;
     return true;
 }
 

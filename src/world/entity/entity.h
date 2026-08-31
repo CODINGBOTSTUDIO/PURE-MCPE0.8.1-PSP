@@ -74,6 +74,16 @@ public:
     virtual bool interactPreventDefault();
     virtual bool interact();
 
+    void ride(Entity* e);
+
+    void positionRider(bool dying);
+
+    void rideTick();
+
+    virtual float getRideHeight() { return bbHeight * 0.75f; }
+
+    virtual float getRidingHeight() { return 0.0f; }
+
     virtual void push(Entity* e);
     virtual void push(float xa, float ya, float za);
 
@@ -167,6 +177,9 @@ public:
     int airSupply;
     int onFire;
     int flameTime;
+
+    Entity* rider;
+    Entity* riding;
 
     EntityRendererId entityRendererId;
 

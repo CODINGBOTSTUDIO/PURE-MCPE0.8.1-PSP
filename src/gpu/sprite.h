@@ -2,6 +2,8 @@
 #ifndef MCPSP_GPU_SPRITE_H
 #define MCPSP_GPU_SPRITE_H
 
+#include "gpu/ui_alpha.h"
+
 struct Texture;
 
 void spriteDraw(const Texture* tex,

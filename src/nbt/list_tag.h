@@ -30,7 +30,7 @@ public:
             if (!tag) break;
             tag->load(dis);
 
-            if (dis->failed()) { delete tag; break; }
+            if (dis->failed()) { tag->deleteChildren(); delete tag; break; }
             list.push_back(tag);
         }
     }

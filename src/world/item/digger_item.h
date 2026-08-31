@@ -53,29 +53,25 @@ public:
         return DiggerItem::getDestroySpeed(blockId);
     }
 public:
+
     PickaxeItem(short id, const Tier& tier, int icon) : DiggerItem(id, 2, tier, icon) {
-        addTile(BLOCK_STONE); addTile(BLOCK_COBBLESTONE);
-        addTile(BLOCK_STONE_BRICKS); addTile(BLOCK_MOSSY_COBBLE);
+        addTile(BLOCK_COBBLESTONE);
 
         addTile(BLOCK_DOUBLE_SLAB); addTile(BLOCK_SLAB);
-        addTile(BLOCK_SANDSTONE);
+        addTile(BLOCK_STONE);
+        addTile(BLOCK_SANDSTONE); addTile(BLOCK_MOSSY_COBBLE);
         addTile(BLOCK_ORE_IRON); addTile(BLOCK_IRON_BLOCK);
         addTile(BLOCK_ORE_COAL);
         addTile(BLOCK_GOLD_BLOCK); addTile(BLOCK_ORE_GOLD);
-        addTile(BLOCK_ORE_EMERALD); addTile(BLOCK_DIAMOND_BLOCK);
+        addTile(BLOCK_ORE_EMERALD);
+        addTile(BLOCK_DIAMOND_BLOCK);
         addTile(BLOCK_ICE);
         addTile(BLOCK_ORE_LAPIS); addTile(BLOCK_LAPIS_BLOCK);
         addTile(BLOCK_ORE_REDSTONE); addTile(BLOCK_ORE_REDSTONE_LIT);
-
-        addTile(BLOCK_BRICKS); addTile(BLOCK_QUARTZ_BLOCK);
-        addTile(BLOCK_NETHERRACK); addTile(BLOCK_NETHER_BRICK);
-        addTile(BLOCK_FURNACE); addTile(BLOCK_FURNACE_LIT); addTile(BLOCK_STONECUTTER);
-        addTile(BLOCK_STAIRS_COBBLESTONE); addTile(BLOCK_STAIRS_BRICK);
-        addTile(BLOCK_STAIRS_STONE_BRICK); addTile(BLOCK_STAIRS_SANDSTONE);
-        addTile(BLOCK_STAIRS_NETHER_BRICK);
     }
     virtual bool canDestroySpecial(int b) const {
-        if (b == BLOCK_OBSIDIAN) return level == 3;
+
+        if (b == BLOCK_OBSIDIAN || b == BLOCK_GLOWING_OBSIDIAN) return level == 3;
         if (b == BLOCK_DIAMOND_BLOCK || b == BLOCK_ORE_EMERALD) return level >= 2;
         if (b == BLOCK_GOLD_BLOCK || b == BLOCK_ORE_GOLD)       return level >= 2;
         if (b == BLOCK_IRON_BLOCK || b == BLOCK_ORE_IRON)       return level >= 1;

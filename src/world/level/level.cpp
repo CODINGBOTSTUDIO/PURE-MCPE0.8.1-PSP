@@ -329,7 +329,8 @@ void Level::tickEntities() {
         Entity* e = entities[i];
 
         if (!e->removed && isLoadedAt(e->x, e->z)) {
-            e->tick();
+
+            if (e->riding) e->rideTick(); else e->tick();
 
             relinkIfMoved(e);
         }
@@ -337,6 +338,10 @@ void Level::tickEntities() {
 
     for (size_t i = 0; i < entities.size(); ) {
         if (entities[i]->removed) {
+
+            Entity* dead = entities[i];
+            if (dead->rider)  { dead->positionRider(true); dead->rider->riding = 0; dead->rider = 0; }
+            if (dead->riding) { dead->riding->rider = 0; dead->riding = 0; }
             unlinkEntity(entities[i]);
             delete entities[i];
             entities[i] = entities.back();
@@ -348,6 +353,8 @@ void Level::tickEntities() {
 }
 
 void Level::removeAllEntities() {
+
+    for (size_t i = 0; i < entities.size(); i++) { entities[i]->rider = 0; entities[i]->riding = 0; }
     for (size_t i = 0; i < entities.size(); i++) delete entities[i];
     entities.clear();
     for (int i = 0; i < WORLD_CHUNKS_X * WORLD_CHUNKS_Z; i++) chunkEntityHead[i] = 0;

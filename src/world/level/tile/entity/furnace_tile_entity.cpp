@@ -44,6 +44,8 @@ int FurnaceTileEntity::getBurnDuration(const ItemInstance& fuel) {
         return BURN_INTERVAL * 3 / 2;
     if (id == ITEM_STICK) return BURN_INTERVAL / 2;
     if (id == ITEM_COAL)  return BURN_INTERVAL * 8;
+
+    if (id == BLOCK_COAL_BLOCK) return BURN_INTERVAL * 80;
     return 0;
 }
 

@@ -7,13 +7,18 @@ namespace {
 
 const CreativeEntry kItems[] = {
 
+    { BLOCK_RAIL,               1, 0 },
+    { BLOCK_GOLDEN_RAIL,        1, 0 },
     { BLOCK_COBBLESTONE,        1, 0 },
     { BLOCK_STONE_BRICKS,       1, SB_NORMAL },
     { BLOCK_STONE_BRICKS,       1, SB_MOSSY },
     { BLOCK_STONE_BRICKS,       1, SB_CRACKED },
     { BLOCK_MOSSY_COBBLE,       1, 0 },
 
-    { BLOCK_PLANKS,             1, 0 },
+    { BLOCK_PLANKS,             1, PLANK_OAK },
+    { BLOCK_PLANKS,             1, PLANK_SPRUCE },
+    { BLOCK_PLANKS,             1, PLANK_BIRCH },
+    { BLOCK_PLANKS,             1, PLANK_JUNGLE },
     { BLOCK_BRICKS,             1, 0 },
     { BLOCK_STONE,              1, 0 },
     { BLOCK_DIRT,               1, 0 },
@@ -28,12 +33,15 @@ const CreativeEntry kItems[] = {
     { BLOCK_LOG,                5, LOG_OAK },
     { BLOCK_LOG,                5, LOG_SPRUCE },
     { BLOCK_LOG,                5, LOG_BIRCH },
+    { BLOCK_LOG,                5, LOG_JUNGLE },
     { BLOCK_NETHER_BRICK,       1, 0 },
     { BLOCK_NETHERRACK,         1, 0 },
     { BLOCK_BEDROCK,            1, 0 },
     { BLOCK_STAIRS_COBBLESTONE, 1, 0 },
     { BLOCK_STAIRS_PLANKS,      1, 0 },
-
+    { BLOCK_STAIRS_SPRUCE,      1, 0 },
+    { BLOCK_STAIRS_BIRCH,       1, 0 },
+    { BLOCK_STAIRS_JUNGLE,      1, 0 },
     { BLOCK_STAIRS_BRICK,       1, 0 },
     { BLOCK_STAIRS_SANDSTONE,   1, 0 },
     { BLOCK_STAIRS_STONE_BRICK, 1, 0 },
@@ -42,7 +50,10 @@ const CreativeEntry kItems[] = {
 
     { BLOCK_SLAB,               1, DSLAB_STONE },
     { BLOCK_SLAB,               1, DSLAB_COBBLE },
-    { BLOCK_WOOD_SLAB,          1, 0 },
+    { BLOCK_WOOD_SLAB,          1, PLANK_OAK },
+    { BLOCK_WOOD_SLAB,          1, PLANK_SPRUCE },
+    { BLOCK_WOOD_SLAB,          1, PLANK_BIRCH },
+    { BLOCK_WOOD_SLAB,          1, PLANK_JUNGLE },
     { BLOCK_SLAB,               1, DSLAB_BRICK },
     { BLOCK_SLAB,               1, DSLAB_SAND },
     { BLOCK_SLAB,               1, DSLAB_SMOOTHBRICK },
@@ -60,7 +71,7 @@ const CreativeEntry kItems[] = {
     { BLOCK_IRON_BLOCK,         1, 0 },
     { BLOCK_DIAMOND_BLOCK,      1, 0 },
     { BLOCK_LAPIS_BLOCK,        1, 0 },
-
+    { BLOCK_COAL_BLOCK,         1, 0 },
     { BLOCK_OBSIDIAN,           1, 0 },
 
     { BLOCK_GLOWING_OBSIDIAN,   1, 0 },
@@ -109,9 +120,12 @@ const CreativeEntry kItems[] = {
     { BLOCK_SAPLING,            1, LEAF_OAK },
     { BLOCK_SAPLING,            1, LEAF_SPRUCE },
     { BLOCK_SAPLING,            1, LEAF_BIRCH },
+
+    { BLOCK_SAPLING,            1, LEAF_JUNGLE },
     { BLOCK_LEAVES,             1, LEAF_OAK },
     { BLOCK_LEAVES,             1, LEAF_SPRUCE },
     { BLOCK_LEAVES,             1, LEAF_BIRCH },
+    { BLOCK_LEAVES,             1, LEAF_JUNGLE },
     { ITEM_SEEDS_WHEAT,         1, 0 },
 
     { ITEM_SEEDS_MELON,         1, 0 },
@@ -124,6 +138,11 @@ const CreativeEntry kItems[] = {
     { ITEM_FLINT_AND_STEEL,     1, 0 },
     { ITEM_SHEARS,              1, 0 },
     { ITEM_SIGN,                1, 0 },
+
+    { ITEM_CLOCK,               1, 0 },
+    { ITEM_COMPASS,             1, 0 },
+
+    { ITEM_MINECART,            1, 0 },
 
     { ITEM_SPAWN_EGG,           1, EntityTypes::IdChicken },
     { ITEM_SPAWN_EGG,           1, EntityTypes::IdCow },

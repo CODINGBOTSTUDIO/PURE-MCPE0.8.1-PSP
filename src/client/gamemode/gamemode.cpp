@@ -204,6 +204,12 @@ static bool interactMobUnderCrosshair() {
     return best ? ((Mob*)best)->playerInteract() : false;
 }
 
+static bool interactEntityUnderCrosshair() {
+    const float range = 3.0f;
+    Entity* best = pickEntityOnViewRay(range, range, false);
+    return best ? best->interact() : false;
+}
+
 static void spawnEatParticles(int iconCell, int count) {
     particlesEat(g_level.player->x, g_level.player->y, g_level.player->z,
                  g_level.player->yRot, g_level.player->xRot, iconCell, count);
@@ -621,6 +627,11 @@ void GameMode::handleInput(unsigned int pressed, unsigned int held) {
             playerSwing();
             return;
         }
+
+        if ((pressed & PSP_CTRL_LTRIGGER) && interactEntityUnderCrosshair()) {
+            playerSwing();
+            return;
+        }
         if (pressed & PSP_CTRL_RTRIGGER) {
             playerSwing();
         }
@@ -754,6 +765,14 @@ CrosshairTarget gameModeCrosshairTarget() {
                 break;
         }
         if (t.useLabel) return t;
+    }
+
+    {
+        Entity* e = pickEntityOnViewRay(3.0f, 3.0f, false);
+        if (e && e->getEntityTypeId() == EntityTypes::IdMinecart && !e->rider) {
+            t.useLabel = "Ride";
+            return t;
+        }
     }
 
     if (sel && sel->id == ITEM_BUCKET && sel->data == BUCKET_EMPTY) {

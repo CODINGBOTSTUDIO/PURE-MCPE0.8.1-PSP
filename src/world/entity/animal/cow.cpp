@@ -42,10 +42,8 @@ bool Cow::playerInteract() {
     if (--sel->count <= 0) {
         sel->id = ITEM_BUCKET; sel->count = 1; sel->data = BUCKET_MILK;
     } else {
-
-        ItemInstance* milk = new ItemInstance(ITEM_BUCKET, 1, BUCKET_MILK);
-        if (!p->inventory->add(milk)) delete milk;
-        else p->inventory->ensureHotbar(ITEM_BUCKET, BUCKET_MILK);
+        ItemInstance milk(ITEM_BUCKET, 1, BUCKET_MILK);
+        if (p->inventory->add(milk)) p->inventory->ensureHotbar(ITEM_BUCKET, BUCKET_MILK);
     }
     return true;
 }

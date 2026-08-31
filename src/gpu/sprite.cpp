@@ -5,6 +5,8 @@
 
 #include <pspgu.h>
 
+unsigned char g_uiAlpha = 255;
+
 namespace {
 struct TexVertex {
     float u, v;
@@ -25,10 +27,11 @@ void spriteDraw(const Texture* tex,
     TexVertex* v = (TexVertex*)guFrameAllocPriority(2 * sizeof(TexVertex));
     if (!v) return;
 
+    const unsigned int c = uiAlphaApply(color);
     v[0].u = uvLo(sx, sw); v[0].v = uvLo(sy, sh);
-    v[0].color = color; v[0].x = dx;      v[0].y = dy;      v[0].z = 0.0f;
+    v[0].color = c;     v[0].x = dx;      v[0].y = dy;      v[0].z = 0.0f;
     v[1].u = uvHi(sx, sw); v[1].v = uvHi(sy, sh);
-    v[1].color = color; v[1].x = dx + dw; v[1].y = dy + dh; v[1].z = 0.0f;
+    v[1].color = c;     v[1].x = dx + dw; v[1].y = dy + dh; v[1].z = 0.0f;
 
     sceGuDrawArray(GU_SPRITES,
                    GU_TEXTURE_32BITF | GU_COLOR_8888 | GU_VERTEX_32BITF | GU_TRANSFORM_2D,
@@ -51,9 +54,10 @@ void spriteDrawRot(const Texture* tex,
 
     TexVertex* v = (TexVertex*)guFrameAllocPriority(4 * sizeof(TexVertex));
     if (!v) return;
+    const unsigned int c = uiAlphaApply(color);
     for (int i = 0; i < 4; i++) {
         v[i].u = cu[i]; v[i].v = cv[i];
-        v[i].color = color;
+        v[i].color = c;
         v[i].x = ox + cx[i] * cs - cy[i] * sn;
         v[i].y = oy + cx[i] * sn + cy[i] * cs;
         v[i].z = 0.0f;

@@ -22,6 +22,7 @@ void treeOak(World* w, Random& random, int x, int y, int z);
 void treeBirch(World* w, Random& random, int x, int y, int z);
 void treeSpruce(World* w, Random& random, int x, int y, int z);
 void treePine(World* w, Random& random, int x, int y, int z);
+void treeJungle(World* w, Random& random, int x, int y, int z);
 void flowerFeature(World* w, Random& random, int x, int y, int z, unsigned char tile);
 void mushroomFeature(World* w, Random& random, int x, int y, int z, unsigned char tile);
 void cactusFeature(World* w, Random& random, int x, int y, int z);

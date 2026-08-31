@@ -195,6 +195,12 @@ int tileShapeBoxes(const World* w, int x, int y, int z, unsigned char id,
     } else if (isBed(id)) {
         SET(out[0], x + 0.0f, y + 0.0f, z + 0.0f, x + 1.0f, y + 9.0f/16.0f, z + 1.0f);
         return 1;
+    } else if (isRail(id)) {
+
+        const float h = (railDir(id, data) >= 2 && railDir(id, data) <= 5)
+                        ? (2.0f/16.0f + 0.5f) : (2.0f/16.0f);
+        SET(out[0], x + 0.0f, y + 0.0f, z + 0.0f, x + 1.0f, y + h, z + 1.0f);
+        return 1;
     } else if (isSlab(id)) {
         float y0 = y + ((data & SLAB_TOP_SLOT_BIT) ? 0.5f : 0.0f);
         float y1 = y + ((data & SLAB_TOP_SLOT_BIT) ? 1.0f : 0.5f);

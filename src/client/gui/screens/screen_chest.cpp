@@ -37,7 +37,7 @@ static void paneClear(int pane, int i) {
     if (pane == 0) g_level.player->inventory->clearSlot(i + g_level.player->inventory->firstGridSlot());
     else           s_chest->clearSlot(i);
 }
-static bool paneAdd(int pane, ItemInstance* it) {
+static bool paneAdd(int pane, ItemInstance& it) {
     return pane == 0 ? g_level.player->inventory->add(it) : s_chest->add(it);
 }
 
@@ -51,12 +51,11 @@ static void moveAcross(int n) {
     if (!src || src->isNull()) return;
     if (n > src->count) n = src->count;
 
-    ItemInstance* taken = new ItemInstance(src->id, (short)n, src->data);
-    short before = taken->count;
+    ItemInstance taken(src->id, (short)n, src->data);
+    short before = taken.count;
     if (!paneAdd(1 - s_pane, taken)) {
 
-        n = before - taken->count;
-        delete taken;
+        n = before - taken.count;
     }
     if (n <= 0) return;
     src->count -= n;

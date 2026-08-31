@@ -32,6 +32,8 @@ public:
     float eatAnim;
 
     virtual bool isPlayer() { return true; }
+
+    virtual float getRidingHeight() { return heightOffset - 0.5f; }
     virtual int  getEntityTypeId() const;
     virtual int  getMaxHealth() { return 20; }
 

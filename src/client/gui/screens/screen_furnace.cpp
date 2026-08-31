@@ -85,9 +85,10 @@ static void takeSlot(int slot, int n = 0) {
     ItemInstance& it = s_furnace->items[slot];
     if (it.isNull()) return;
     if (n <= 0 || n > it.count) n = it.count;
-    ItemInstance* copy = new ItemInstance(it);
-    copy->count = n;
-    if (!g_level.player->inventory->add(copy)) g_level.player->drop(copy);
+    ItemInstance copy(it);
+    copy.count = n;
+
+    if (!g_level.player->inventory->add(copy)) g_level.player->drop(new ItemInstance(copy));
     it.count -= n;
     if (it.count <= 0) it.setNull();
     soundPlay("random.click", 1.0f, 1.0f);

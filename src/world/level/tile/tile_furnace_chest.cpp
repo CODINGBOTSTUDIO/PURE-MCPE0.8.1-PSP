@@ -8,7 +8,6 @@ void tileFurnace(unsigned char data, int f, bool lit, int* col, int* row) {
 }
 
 void tileChest(unsigned char data, int f, int* col, int* row) {
-    if (f == F_TOP || f == F_DOWN) { *col = 9; *row = 1; }
-    else if (f == faceFromMcpe(data)) { *col = 11; *row = 1; }
-    else                           { *col = 10; *row = 1; }
+    (void)data; (void)f;
+    *col = 4; *row = 0;
 }

@@ -107,9 +107,13 @@ static CraftItem* currentItem() {
     return &s_items[s_cat[s_curCat][s_cursor]];
 }
 
+static int selectedRecipe() {
+    return (s_cursor >= 0 && s_cursor < (int)s_cat[s_curCat].size())
+         ? s_cat[s_curCat][s_cursor] : -1;
+}
+
 static void resortRecipes() {
-    int selected = (s_cursor >= 0 && s_cursor < (int)s_cat[s_curCat].size())
-                 ? s_cat[s_curCat][s_cursor] : -1;
+    int selected = selectedRecipe();
     for (int c = 0; c < 4; ++c) {
         std::vector<int>& v = s_cat[c];
         std::stable_sort(v.begin(), v.end(), [](int a, int b) {
@@ -177,12 +181,13 @@ static void craftSelectedItem() {
         if (toRemove.count > 0) g_level.player->inventory->removeResource(toRemove);
 
         if (toRemove.id == ITEM_BUCKET && toRemove.data != BUCKET_EMPTY && toRemove.count > 0)
-        {   ItemInstance* back = new ItemInstance(ITEM_BUCKET, toRemove.count, BUCKET_EMPTY);
-            if (!g_level.player->inventory->add(back)) g_level.player->drop(back); }
+        {   ItemInstance back(ITEM_BUCKET, toRemove.count, BUCKET_EMPTY);
+            if (!g_level.player->inventory->add(back)) g_level.player->drop(new ItemInstance(back)); }
     }
 
-    ItemInstance* res = new ItemInstance(result.id, result.count, result.data);
-    if (!g_level.player->inventory->add(res)) g_level.player->drop(res);
+    ItemInstance res(result.id, result.count, result.data);
+
+    if (!g_level.player->inventory->add(res)) g_level.player->drop(new ItemInstance(res));
     soundPlay("random.click", 1.0f, 1.0f);
     s_pressAnim = 8;
     recheckRecipes();
@@ -248,7 +253,9 @@ void CraftScreen::handleInput(MenuState& s, unsigned int pressed, unsigned int )
 
     if (g_level.player->hurtTime > 0) { g_craftOpen = false; return; }
 
-    int before = s_focus * 1000 + s_curCat * 100 + s_cursor;
+    const int beforeSel   = selectedRecipe();
+    const int beforeFocus = s_focus;
+    const int beforeCat   = s_curCat;
 
     s_focus = 1;
 
@@ -263,7 +270,7 @@ void CraftScreen::handleInput(MenuState& s, unsigned int pressed, unsigned int )
     if ((pressed & PSP_CTRL_DOWN) && s_cursor + 1 < rows) s_cursor++;
     if (pressed & PSP_CTRL_CROSS) craftSelectedItem();
 
-    if (before != s_focus * 1000 + s_curCat * 100 + s_cursor)
+    if (beforeFocus != s_focus || beforeCat != s_curCat || beforeSel != selectedRecipe())
         soundPlay("random.click", 1.0f, 1.0f);
 
     if (pressed & PSP_CTRL_CIRCLE) {

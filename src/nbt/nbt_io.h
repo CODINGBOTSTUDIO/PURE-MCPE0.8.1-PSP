@@ -10,7 +10,8 @@ public:
     static CompoundTag* read(IDataInput* dis) {
         Tag* tag = Tag::readNamedTag(dis);
         if (tag && tag->getId() == Tag::TAG_Compound) return (CompoundTag*)tag;
-        delete tag;
+
+        if (tag) { tag->deleteChildren(); delete tag; }
         return NULL;
     }
     static void write(CompoundTag* tag, IDataOutput* dos) {

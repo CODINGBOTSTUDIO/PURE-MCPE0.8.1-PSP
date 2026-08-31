@@ -36,11 +36,17 @@ static void bonemealGrass(World* w, int x, int y, int z) {
 }
 
 static bool bonemealReed(World* w, int x, int y, int z) {
-    while (worldBlock(w, x, y + 1, z) == BLOCK_REEDS) y++;
-    int height = 1;
-    while (worldBlock(w, x, y - height, z) == BLOCK_REEDS) height++;
-    if (height >= 3 || worldBlock(w, x, y + 1, z) != BLOCK_AIR) return false;
-    worldSetTileUpdate(w, x, y + 1, z, BLOCK_REEDS, 0);
+    int below = y - 1;
+    while (below > 0 && worldBlock(w, x, below, z) == BLOCK_REEDS) below--;
+    int above = y + 1;
+    while (above <= WORLD_H - 1 && worldBlock(w, x, above, z) == BLOCK_REEDS) above++;
+
+    const int grow = below - (above - 1) + 3;
+    if (grow <= 0) return false;
+
+    const int top = above - 1 + grow;
+    for (int yy = above; yy <= top; yy++)
+        worldSetTileUpdate(w, x, yy, z, BLOCK_REEDS, 0);
     return true;
 }
 
@@ -48,6 +54,7 @@ bool BonemealItem::useOn(ItemInstance* item, Player* player, World* world, int x
 
     if (item->data != DYE_WHITE) return false;
     switch (worldBlock(world, x, y, z)) {
+
         case BLOCK_SAPLING:
             saplingGrow(world, x, y, z);
             worldUpdateLights(world);
@@ -55,11 +62,15 @@ bool BonemealItem::useOn(ItemInstance* item, Player* player, World* world, int x
             worldRebuildAroundNow(world, x, y, z);
             if (player) player->inventory->consumeSelected();
             return true;
+
         case BLOCK_WHEAT:
-        case BLOCK_MELON_STEM:
-            worldSetData(world, x, y, z, 7);
+        case BLOCK_MELON_STEM: {
+            int age = worldData(world, x, y, z) + 2 + rand() % 3;
+            if (age >= 7) age = 7;
+            worldSetData(world, x, y, z, (unsigned char)age);
             if (player) player->inventory->consumeSelected();
             return true;
+        }
         case BLOCK_GRASS:
             bonemealGrass(world, x, y, z);
             if (player) player->inventory->consumeSelected();

@@ -103,7 +103,7 @@ void quitToMenuNoSave(MenuState& s) {
     g_armorOpen = false;
     g_furnaceOpen = false;
     chestClose();
-    g_signEditing = 0;
+    signStopEdit();
     g_deadScreen = false;
     g_paused = false;
     g_terrainProgress = 0;

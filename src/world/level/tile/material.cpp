@@ -38,12 +38,14 @@ const Material& materialOf(unsigned char id) {
         case BLOCK_LEAVES:
             return Material::leaves;
         case BLOCK_PLANKS: case BLOCK_LOG: case BLOCK_BOOKSHELF: case BLOCK_STAIRS_PLANKS:
+        case BLOCK_STAIRS_SPRUCE: case BLOCK_STAIRS_BIRCH: case BLOCK_STAIRS_JUNGLE:
         case BLOCK_CHEST: case BLOCK_CRAFTING_TABLE: case BLOCK_SIGN: case BLOCK_DOOR_WOOD:
         case BLOCK_WALL_SIGN: case BLOCK_FENCE: case BLOCK_TRAPDOOR: case BLOCK_FENCE_GATE:
 
         case BLOCK_WOOD_SLAB: case BLOCK_WOOD_SLAB_DOUBLE:
             return Material::wood;
         case BLOCK_GOLD_BLOCK: case BLOCK_IRON_BLOCK: case BLOCK_DIAMOND_BLOCK: case BLOCK_DOOR_IRON:
+        case BLOCK_COAL_BLOCK:
         case BLOCK_NETHER_REACTOR:
             return Material::metal;
         case BLOCK_WATER: case BLOCK_CALM_WATER:
@@ -59,7 +61,8 @@ const Material& materialOf(unsigned char id) {
             return Material::cloth;
         case BLOCK_SAND: case BLOCK_GRAVEL:
             return Material::sand;
-        case BLOCK_TORCH: case BLOCK_LADDER:
+
+        case BLOCK_TORCH: case BLOCK_LADDER: case BLOCK_RAIL: case BLOCK_GOLDEN_RAIL:
             return Material::decoration;
         case BLOCK_GLASS: case BLOCK_GLOWSTONE: case BLOCK_GLASS_PANE:
             return Material::glass;

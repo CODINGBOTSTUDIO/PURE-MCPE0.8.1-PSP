@@ -14,6 +14,9 @@
 #include "world/item/bow_item.h"
 #include "world/item/spawn_egg_item.h"
 #include "world/item/shears_item.h"
+#include "world/item/clock_item.h"
+#include "world/item/compass_item.h"
+#include "world/item/minecart_item.h"
 #include "world/entity/entity_types.h"
 
 Item* Item::items[4096];
@@ -114,9 +117,14 @@ void Item::initItems() {
     new SimpleItem(ITEM_PAPER,          ic(10, 3));
     new SimpleItem(ITEM_BOOK,           ic(11, 3));
     new SimpleItem(ITEM_SLIMEBALL,      ic(14, 1));
-    new SimpleItem(ITEM_COMPASS,        ic(6, 3));
-    new SimpleItem(ITEM_CLOCK,          ic(6, 4));
+
+    new MinecartItem(ITEM_MINECART);
+
+    new CompassItem(ITEM_COMPASS);
+    new ClockItem(ITEM_CLOCK);
     new SimpleItem(ITEM_GLOWSTONE_DUST, ic(9, 4));
+
+    new SimpleItem(ITEM_REDSTONE,       ic(8, 3));
     new SimpleItem(ITEM_BONE,           ic(12, 1), 64, 0, true);
     new BucketItem(ITEM_BUCKET);
     new SimpleItem(ITEM_SUGAR,          ic(13, 0));
@@ -158,6 +166,8 @@ void Item::initItems() {
             { ITEM_BUCKET, 2 },
             { ITEM_STRING, 2 }, { ITEM_FEATHER, 2 }, { ITEM_GUNPOWDER, 2 }, { ITEM_FLINT, 2 },
             { ITEM_LEATHER, 2 }, { ITEM_BONE, 2 }, { ITEM_SHEARS, 2 },
+            { ITEM_COMPASS, 2 }, { ITEM_CLOCK, 2 },
+            { ITEM_MINECART, 2 }, { BLOCK_RAIL, 2 }, { BLOCK_GOLDEN_RAIL, 2 },
             { BLOCK_TNT, 2 }, { BLOCK_TORCH, 2 },
 
             { ITEM_APPLE, 4 }, { ITEM_BOWL, 4 }, { ITEM_MUSHROOM_STEW, 4 },
@@ -180,6 +190,8 @@ void Item::initItems() {
             { BLOCK_FENCE_GATE, 1 }, { BLOCK_SNOW_BLOCK, 1 }, { BLOCK_CLAY, 1 },
             { BLOCK_GLOWSTONE, 1 }, { BLOCK_LADDER, 1 }, { BLOCK_TRAPDOOR, 1 },
             { BLOCK_STONE_BRICKS, 1 }, { BLOCK_STAIRS_PLANKS, 1 }, { BLOCK_STAIRS_COBBLESTONE, 1 },
+
+            { BLOCK_STAIRS_SPRUCE, 1 }, { BLOCK_STAIRS_BIRCH, 1 }, { BLOCK_STAIRS_JUNGLE, 1 },
             { BLOCK_STAIRS_BRICK, 1 }, { BLOCK_STAIRS_STONE_BRICK, 1 }, { BLOCK_STAIRS_NETHER_BRICK, 1 },
             { BLOCK_STAIRS_QUARTZ, 1 }, { BLOCK_STAIRS_SANDSTONE, 1 },
             { BLOCK_CHEST, 1 }, { BLOCK_FURNACE, 1 }, { BLOCK_CRAFTING_TABLE, 1 },
@@ -189,8 +201,9 @@ void Item::initItems() {
             { ITEM_DIAMOND, 8 }, { ITEM_IRON_INGOT, 8 }, { ITEM_GOLD_INGOT, 8 },
             { ITEM_PAPER, 8 }, { ITEM_BOOK, 8 }, { ITEM_PAINTING, 8 }, { ITEM_SIGN, 8 },
             { ITEM_SNOWBALL, 8 }, { ITEM_BONEMEAL, 8 },
+            { ITEM_REDSTONE, 8 },
             { BLOCK_GOLD_BLOCK, 8 }, { BLOCK_IRON_BLOCK, 8 }, { BLOCK_DIAMOND_BLOCK, 8 },
-            { BLOCK_LAPIS_BLOCK, 8 }, { BLOCK_BOOKSHELF, 8 },
+            { BLOCK_LAPIS_BLOCK, 8 }, { BLOCK_BOOKSHELF, 8 }, { BLOCK_COAL_BLOCK, 8 },
 
             { ITEM_NETHER_QUARTZ, 16 },
         };
@@ -206,11 +219,13 @@ void Item::initItems() {
             { BLOCK_GRAVEL, 1 }, { BLOCK_ORE_GOLD, 1 }, { BLOCK_ORE_IRON, 1 }, { BLOCK_ORE_COAL, 1 },
             { BLOCK_LOG, 1 }, { BLOCK_LEAVES, 2 }, { BLOCK_GLASS, 2 }, { BLOCK_ORE_LAPIS, 1 },
             { BLOCK_LAPIS_BLOCK, 2 }, { BLOCK_SANDSTONE, 1 }, { BLOCK_BED, 2 }, { BLOCK_COBWEB, 2 },
+            { BLOCK_COAL_BLOCK, 2 },
             { BLOCK_TALLGRASS, 2 }, { BLOCK_WOOL, 2 }, { BLOCK_FLOWER, 2 }, { BLOCK_ROSE, 2 },
             { BLOCK_MUSHROOM_BROWN, 2 }, { BLOCK_MUSHROOM_RED, 2 }, { BLOCK_GOLD_BLOCK, 2 },
             { BLOCK_IRON_BLOCK, 2 }, { BLOCK_DOUBLE_SLAB, 1 }, { BLOCK_SLAB, 1 }, { BLOCK_BRICKS, 1 },
             { BLOCK_TNT, 3 }, { BLOCK_BOOKSHELF, 2 }, { BLOCK_MOSSY_COBBLE, 1 }, { BLOCK_OBSIDIAN, 1 },
             { BLOCK_TORCH, 3 }, { BLOCK_FIRE, 1 }, { BLOCK_STAIRS_PLANKS, 1 }, { BLOCK_CHEST, 2 },
+            { BLOCK_STAIRS_SPRUCE, 1 }, { BLOCK_STAIRS_BIRCH, 1 }, { BLOCK_STAIRS_JUNGLE, 1 },
             { BLOCK_ORE_EMERALD, 1 }, { BLOCK_DIAMOND_BLOCK, 2 }, { BLOCK_CRAFTING_TABLE, 2 },
             { BLOCK_WHEAT, 4 }, { BLOCK_FARMLAND, 1 }, { BLOCK_FURNACE, 2 }, { BLOCK_FURNACE_LIT, 2 },
             { BLOCK_SIGN, 2 }, { BLOCK_DOOR_WOOD, 2 }, { BLOCK_LADDER, 2 },
@@ -249,6 +264,9 @@ void Item::initItems() {
             { ITEM_DOOR_IRON_ITEM, 2 }, { ITEM_SNOWBALL, 3 }, { ITEM_LEATHER, 4 }, { ITEM_BRICK, 4 },
             { ITEM_CLAY, 4 }, { ITEM_REEDS, 4 }, { ITEM_PAPER, 4 }, { ITEM_BOOK, 4 },
             { ITEM_SLIMEBALL, 4 }, { ITEM_EGG, 4 }, { ITEM_COMPASS, 3 }, { ITEM_CLOCK, 3 },
+            { ITEM_REDSTONE, 3 }, { ITEM_MINECART, 3 },
+
+            { BLOCK_RAIL, 3 }, { BLOCK_GOLDEN_RAIL, 3 },
             { ITEM_GLOWSTONE_DUST, 4 }, { ITEM_BONEMEAL, 4 }, { ITEM_BONE, 4 }, { ITEM_SUGAR, 4 },
             { ITEM_CAKE, 2 }, { ITEM_BED_ITEM, 2 }, { ITEM_SHEARS, 3 }, { ITEM_MELON, 2 },
             { ITEM_SEEDS_MELON, 4 }, { ITEM_BEEF_RAW, 4 }, { ITEM_BEEF_COOKED, 4 },

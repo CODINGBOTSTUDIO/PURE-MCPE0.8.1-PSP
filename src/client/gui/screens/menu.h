@@ -216,6 +216,11 @@ void deadScreenOpen();
 
 class SignTileEntity;
 extern SignTileEntity* g_signEditing;
+
+SignTileEntity* signEditLive();
+void signEditRemember(int x, int y, int z);
+void signStopEdit();
+void signOskForget();
 void signStartEdit(SignTileEntity* ste);
 void signEditLine(int line);
 

@@ -41,8 +41,9 @@ static void updateItems() {
 }
 
 static void giveBack(const ItemInstance& item) {
-    ItemInstance* copy = new ItemInstance(item);
-    if (!g_level.player->inventory->add(copy)) g_level.player->drop(copy);
+    ItemInstance copy(item);
+
+    if (!g_level.player->inventory->add(copy)) g_level.player->drop(new ItemInstance(copy));
 }
 
 static void equipSelected() {

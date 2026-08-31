@@ -21,7 +21,7 @@ private:
     void assign(EntityRendererId id, EntityRenderer* r);
     EntityRenderer* getRenderer(Entity* entity);
 
-    static const int MAX_RENDERERS = ER_FALLINGTILE_RENDERER + 1;
+    static const int MAX_RENDERERS = ER_COUNT;
     EntityRenderer* _renderers[MAX_RENDERERS];
 };
 

@@ -10,8 +10,26 @@
 #include "gpu/sprite.h"
 #include "platform/audio/sound.h"
 #include "world/level/tile/entity/sign_tile_entity.h"
+#include "world/level/level.h"
 
 SignTileEntity* g_signEditing = 0;
+
+static int s_signX = 0, s_signY = 0, s_signZ = 0;
+
+void signEditRemember(int x, int y, int z) { s_signX = x; s_signY = y; s_signZ = z; }
+
+SignTileEntity* signEditLive() {
+    if (!g_signEditing) return 0;
+    TileEntity* te = g_level.getTileEntity(s_signX, s_signY, s_signZ);
+    if (te && te->type == TE_SIGN) return (SignTileEntity*)te;
+    signStopEdit();
+    return 0;
+}
+
+void signStopEdit() {
+    g_signEditing = 0;
+    signOskForget();
+}
 struct SignScreen : Screen {
     void renderContent(MenuState& s);
     void handleInput(MenuState& s, unsigned int pressed, unsigned int held);
@@ -19,7 +37,7 @@ struct SignScreen : Screen {
 
 void SignScreen::handleInput(MenuState& s, unsigned int pressed, unsigned int ) {
     (void)s;
-    SignTileEntity* ste = g_signEditing;
+    SignTileEntity* ste = signEditLive();
     if (!ste) return;
 
     int sel = ste->selectedLine;
@@ -34,12 +52,12 @@ void SignScreen::handleInput(MenuState& s, unsigned int pressed, unsigned int ) 
     if (pressed & PSP_CTRL_CROSS) signEditLine(ste->selectedLine);
     if (pressed & (PSP_CTRL_CIRCLE | PSP_CTRL_START)) {
         ste->selectedLine = -1;
-        g_signEditing = 0;
+        signStopEdit();
     }
 }
 
 void SignScreen::renderContent(MenuState& s) {
-    SignTileEntity* ste = g_signEditing;
+    SignTileEntity* ste = signEditLive();
     if (!ste) return;
 
     sceGuDisable(GU_DEPTH_TEST);

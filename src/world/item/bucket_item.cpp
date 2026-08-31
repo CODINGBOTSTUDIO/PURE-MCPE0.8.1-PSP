@@ -50,10 +50,10 @@ static void swapBucket(ItemInstance* item, Player* player, short data) {
         item->id = ITEM_BUCKET; item->count = 1; item->data = data;
         return;
     }
+    ItemInstance made(item->id, 1, data);
 
-    ItemInstance* made = new ItemInstance(item->id, 1, data);
-    if (!player->inventory->add(made)) delete made;
-    else player->inventory->ensureHotbar(ITEM_BUCKET, data);
+    if (player->inventory->add(made))
+        player->inventory->ensureHotbar(ITEM_BUCKET, data);
 }
 
 bool BucketItem::useOn(ItemInstance* item, Player* player, World* world,

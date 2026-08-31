@@ -65,7 +65,7 @@ Entity::Entity(Level* level)
     ySlideOffset(0), footSize(0), pushthrough(0),
     tickCount(0), invulnerableTime(0),
     airSupply(TOTAL_AIR_SUPPLY), onFire(0), flameTime(1),
-    entityRendererId(ER_DEFAULT_RENDERER),
+    rider(0), riding(0), entityRendererId(ER_DEFAULT_RENDERER),
     fallDistance(0), blocksBuilding(false), inChunk(false),
     onGround(false),
     horizontalCollision(false), verticalCollision(false),
@@ -465,6 +465,41 @@ bool  Entity::isCreativeModeAllowed() { return false; }
 float Entity::getShadowHeightOffs() { return bbHeight / 2; }
 bool  Entity::isAlive() { return !removed; }
 bool  Entity::interact() { return false; }
+
+void Entity::ride(Entity* e) {
+    Entity* was = riding;
+    if (e) {
+        if (was) was->rider = 0;
+        riding = e;
+        e->rider = this;
+    } else {
+        if (was) {
+
+            moveTo(was->x, was->bb.y0, was->z, yRot, xRot);
+            was->rider = 0;
+        }
+        riding = 0;
+    }
+}
+
+void Entity::positionRider(bool dying) {
+    if (!rider) return;
+    float h = (removed || dying) ? 0.01f : getRideHeight();
+    rider->setPos(x, y + h + rider->getRidingHeight(), z);
+}
+
+void Entity::rideTick() {
+    if (!riding) return;
+    if (riding->removed) {
+        riding->positionRider(true);
+        riding->rider = 0;
+        riding = 0;
+        return;
+    }
+    xd = yd = zd = 0.0f;
+    tick();
+    if (riding) riding->positionRider(false);
+}
 
 void  Entity::lerpTo(float x, float y, float z, float yr, float xr, int) {
     setPos(x, y, z); setRot(yr, xr);

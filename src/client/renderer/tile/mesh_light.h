@@ -32,6 +32,18 @@ static inline int faceRotation(unsigned char mask, int f, int x, int y, int z) {
     return (int)((tileHash81(x, y, z) >> 24) & 3u);
 }
 
+static inline int pillarFaceRotation(unsigned char id, unsigned char data, int f) {
+    if (id != BLOCK_LOG) return 0;
+    switch (data & LOG_AXIS_MASK) {
+        case LOG_AXIS_X:
+            return (f == F_DOWN || f == F_TOP || f == F_BACK || f == F_FORWARD) ? 1 : 0;
+        case LOG_AXIS_Z:
+            return (f == F_LEFT || f == F_RIGHT) ? 1 : 0;
+        default:
+            return 0;
+    }
+}
+
 static inline void applyFaceRot(int r, int f, float* su, float* sv) {
     static const unsigned char kBranchAIsRot1[6] = { 1, 0, 0, 1, 0, 1 };
     static const unsigned char kMirrored[6]      = { 0, 1, 0, 0, 1, 0 };

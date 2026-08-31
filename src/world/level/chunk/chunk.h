@@ -24,6 +24,8 @@ enum { BLOCK_AIR = 0,
        BLOCK_SANDSTONE = 24,
        BLOCK_BED = 26,
 
+       BLOCK_GOLDEN_RAIL = 27,
+
        BLOCK_COBWEB = 30,
 
        BLOCK_TALLGRASS = 31,
@@ -47,6 +49,7 @@ enum { BLOCK_AIR = 0,
        BLOCK_SIGN = 63,
        BLOCK_DOOR_WOOD = 64, BLOCK_LADDER = 65,
 
+       BLOCK_RAIL = 66,
        BLOCK_STAIRS_COBBLESTONE = 67, BLOCK_WALL_SIGN = 68, BLOCK_DOOR_IRON = 71,
        BLOCK_ORE_REDSTONE = 73, BLOCK_ORE_REDSTONE_LIT = 74,
        BLOCK_TOPSNOW = 78,
@@ -64,6 +67,10 @@ enum { BLOCK_AIR = 0,
        BLOCK_FENCE_GATE = 107, BLOCK_STAIRS_BRICK = 108, BLOCK_STAIRS_STONE_BRICK = 109,
        BLOCK_NETHER_BRICK = 112, BLOCK_STAIRS_NETHER_BRICK = 114,
        BLOCK_STAIRS_SANDSTONE = 128,
+
+       BLOCK_COAL_BLOCK = 173,
+
+       BLOCK_STAIRS_SPRUCE = 134, BLOCK_STAIRS_BIRCH = 135, BLOCK_STAIRS_JUNGLE = 136,
        BLOCK_QUARTZ_BLOCK = 155,
        BLOCK_STAIRS_QUARTZ = 156,
 
@@ -83,7 +90,11 @@ enum { SLAB_TOP_SLOT_BIT = 8 };
 enum { DSLAB_STONE = 0, DSLAB_SAND = 1, DSLAB_WOOD = 2, DSLAB_COBBLE = 3,
        DSLAB_BRICK = 4, DSLAB_SMOOTHBRICK = 5, DSLAB_QUARTZ = 6, DSLAB_MAT_MASK = 7 };
 
-enum { LOG_OAK = 0, LOG_SPRUCE = 1, LOG_BIRCH = 2, LOG_TYPE_MASK = 3 };
+enum { LOG_OAK = 0, LOG_SPRUCE = 1, LOG_BIRCH = 2, LOG_JUNGLE = 3, LOG_TYPE_MASK = 3 };
+enum { LOG_AXIS_Y = 0, LOG_AXIS_X = 4, LOG_AXIS_Z = 8, LOG_AXIS_MASK = 0xC };
+
+enum { PLANK_OAK = 0, PLANK_SPRUCE = 1, PLANK_BIRCH = 2, PLANK_JUNGLE = 3,
+       PLANK_TYPE_MASK = 3 };
 enum { SS_DEFAULT = 0, SS_CHISELED = 1, SS_SMOOTH = 2 };
 
 enum { TG_DEAD_SHRUB = 0, TG_TALL_GRASS = 1, TG_FERN = 2 };
@@ -93,6 +104,7 @@ enum { SB_NORMAL = 0, SB_MOSSY = 1, SB_CRACKED = 2 };
 static inline bool isStairs(unsigned char id) {
     switch (id) {
         case BLOCK_STAIRS_PLANKS: case BLOCK_STAIRS_COBBLESTONE:
+        case BLOCK_STAIRS_SPRUCE: case BLOCK_STAIRS_BIRCH: case BLOCK_STAIRS_JUNGLE:
         case BLOCK_STAIRS_BRICK:  case BLOCK_STAIRS_STONE_BRICK:
         case BLOCK_STAIRS_SANDSTONE: case BLOCK_STAIRS_NETHER_BRICK:
         case BLOCK_STAIRS_QUARTZ:
@@ -111,6 +123,14 @@ static inline bool isDoor(unsigned char id)   { return id == BLOCK_DOOR_WOOD || 
 static inline bool isBed(unsigned char id)    { return id == BLOCK_BED; }
 static inline bool isTrapdoor(unsigned char id) { return id == BLOCK_TRAPDOOR; }
 static inline bool isLadder(unsigned char id) { return id == BLOCK_LADDER; }
+
+static inline bool isRail(unsigned char id) { return id == BLOCK_RAIL || id == BLOCK_GOLDEN_RAIL; }
+
+static inline bool railUsesDataBit(unsigned char id) { return id == BLOCK_GOLDEN_RAIL; }
+
+static inline int railDir(unsigned char id, unsigned char data) {
+    return railUsesDataBit(id) ? (data & 7) : (data & 15);
+}
 static inline bool isTorch(unsigned char id)  { return id == BLOCK_TORCH; }
 static inline bool isSign(unsigned char id)   { return id == BLOCK_SIGN || id == BLOCK_WALL_SIGN; }
 
@@ -191,6 +211,7 @@ static inline bool isWool(unsigned char id) { return id == BLOCK_WOOL; }
 static inline bool isGlass(unsigned char id) { return id == BLOCK_GLASS; }
 
 enum { LEAF_TYPE_MASK = 3, LEAF_OAK = 0, LEAF_SPRUCE = 1, LEAF_BIRCH = 2,
+       LEAF_JUNGLE = 3,
        LEAF_UPDATE_BIT = 4, LEAF_PERSISTENT_BIT = 8 };
 
 static inline bool isOpaque(unsigned char id) { return Tile::tiles[id]->opaque; }

@@ -79,6 +79,8 @@ static const OptionRowDef g_optionRows[OPT_CATEGORIES][OPT_MAX_ROWS] = {
         { 0,              "Dithering",   {"Off", "On", 0, 0}, 2, 0 },
         { 0,              "Hide GUI",    {"Off", "On", 0, 0}, 2, 0 },
 
+        { 0,              "Interface Opacity", {0, 0, 0, 0}, 11, 8, true, 0, 10 },
+
     },
     {
 
@@ -93,7 +95,7 @@ static const OptionRowDef g_optionRows[OPT_CATEGORIES][OPT_MAX_ROWS] = {
     },
 };
 
-static const int g_optionRowCount[OPT_CATEGORIES] = { 7, 5, 11, 8 };
+static const int g_optionRowCount[OPT_CATEGORIES] = { 7, 5, 12, 8 };
 static const char* g_optionCategoryNames[OPT_CATEGORIES] = { "Game", "Controls", "Graphics", "Audio" };
 static int g_optionValueIdx[OPT_CATEGORIES][OPT_MAX_ROWS];
 
@@ -119,6 +121,7 @@ extern int   g_southpaw;
 extern int   g_beautifulSkies;
 extern int   g_animateTextures;
 extern int   g_hideGui;
+extern float g_hudOpacity;
 extern int   g_particles;
 extern float g_analogDeadzone;
 extern bool  g_worldBuilt;
@@ -138,6 +141,7 @@ extern World g_world;
 #define ROW_MIPMAP      8
 #define ROW_DITHER      9
 #define ROW_HIDEGUI     10
+#define ROW_HUDOPACITY  11
 
 static const float kRenderDist[4] = { 16.0f, 32.0f, 48.0f, 64.0f };
 extern int g_lowMemPsp;
@@ -222,6 +226,8 @@ static void optionsApply() {
     g_beautifulSkies = g_optionValueIdx[CAT_GRAPHICS][ROW_SKIES];
     g_animateTextures= g_optionValueIdx[CAT_GRAPHICS][ROW_ANIMTEX];
     g_hideGui        = g_optionValueIdx[CAT_GRAPHICS][ROW_HIDEGUI];
+
+    g_hudOpacity     = g_optionValueIdx[CAT_GRAPHICS][ROW_HUDOPACITY] / 10.0f;
 
     int wantParticles = g_optionValueIdx[CAT_GRAPHICS][ROW_PARTICLES];
     if (!wantParticles && g_particles) particlesReset();

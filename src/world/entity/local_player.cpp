@@ -34,6 +34,9 @@ void LocalPlayer::aiStep(unsigned int btn, unsigned char lx, unsigned char ly,
                          unsigned char rx, unsigned char ry) {
     const float LOOK = 7.5f * g_sensitivity;
 
+    const bool onMount = riding && !riding->removed;
+    if (riding && riding->removed) riding = 0;
+
     sleepTick();
     if (sleeping) {
         xo = x; yo = y; zo = z;
@@ -153,9 +156,15 @@ void LocalPlayer::aiStep(unsigned int btn, unsigned char lx, unsigned char ly,
         if (btn & PSP_CTRL_DOWN)  yd -= 0.15f;
     }
 
-    if (jumping) {
-        if (inLiquid)      yd += 0.04f;
-        else if (onGround) yd = 0.42f;
+    static bool s_jumpEatenByDismount = false;
+    if (!(btn & PSP_CTRL_START)) s_jumpEatenByDismount = false;
+
+    if (jumping && onMount) {
+        ride(0);
+        s_jumpEatenByDismount = true;
+    } else if (jumping) {
+        if (inLiquid)                            yd += 0.04f;
+        else if (onGround && !s_jumpEatenByDismount) yd = 0.42f;
     }
 
     xs *= 0.98f; yf *= 0.98f;
@@ -165,13 +174,24 @@ void LocalPlayer::aiStep(unsigned int btn, unsigned char lx, unsigned char ly,
     if (flying) sneaking = false;
     else if (downNow && !prevSneakBtn) sneaking = !sneaking;
     prevSneakBtn = downNow;
+
+    if (riding && sneaking) { ride(0); sneaking = false; }
     if (sneaking) { xs *= 0.3f; yf *= 0.3f; }
 
     if (bowPull > 0.0f) { xs *= 0.35f; yf *= 0.35f; }
 
     walkDistO = walkDist;
+
+    xxa = xs; yya = yf;
     float wx0 = x, wz0 = z;
-    travel(xs, yf);
+    if (onMount) {
+
+        xd = yd = zd = 0.0f;
+        onGround = true;
+        fallDistance = 0.0f;
+    } else {
+        travel(xs, yf);
+    }
 
     float wdx = x - wx0, wdz = z - wz0;
     float distSq = wdx * wdx + wdz * wdz;

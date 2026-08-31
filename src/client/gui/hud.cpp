@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <cstring>
 #include "gpu/item_icons.h"
+#include "client/renderer/item_anim_icon.h"
 #include "gpu/spawn_egg_colors.h"
 
 #define CHAT_LINES  10
@@ -116,13 +117,33 @@ static inline float hbS(void) { return g_barOnTop ? 1.0f : 2.0f; }
 int g_barOnTop = 0;
 static const unsigned int HUD_WHITE = 0xFFFFFFFFu;
 
+float g_hudOpacity = 0.8f;
+static float s_lastSlotChange = -1.0e9f;
+
+static unsigned char hudAlphaFor(float base) {
+    float o = hudOpacityCurve(base, gameSeconds() - s_lastSlotChange);
+    return (unsigned char)(o * 255.0f + 0.5f);
+}
+static unsigned char hudAlpha255(void) { return hudAlphaFor(g_hudOpacity); }
+
+static const float HINT_MENU_FLOOR = 0.15f;
+
+struct HudAlpha {
+    HudAlpha(unsigned char a) { g_uiAlpha = a; }
+    ~HudAlpha() { g_uiAlpha = 255; }
+};
+
+static int   s_lastSelSlot = -1;
+static short s_lastId      = 255;
+static unsigned char s_lastData = 255;
+static float s_nameDisplayStartTime = -1.0f;
+
 static short guiBlockIcon(short id) {
     switch (id) {
         case BLOCK_STONE: return 7;
         case BLOCK_GRASS: return 9;
         case BLOCK_DIRT: return 8;
         case BLOCK_COBBLESTONE: return 0;
-        case BLOCK_PLANKS: return 5;
         case BLOCK_SAND: return 14;
         case BLOCK_GRAVEL: return 15;
         case BLOCK_CLAY: return 10;
@@ -131,6 +152,7 @@ static short guiBlockIcon(short id) {
         case BLOCK_ORE_COAL: return 38;
         case BLOCK_ORE_LAPIS: return 42;
         case BLOCK_LAPIS_BLOCK: return 47;
+        case BLOCK_COAL_BLOCK: return 83;
         case BLOCK_ORE_REDSTONE: case BLOCK_ORE_REDSTONE_LIT: return 43;
         case BLOCK_ORE_EMERALD: return 41;
         case BLOCK_DIAMOND_BLOCK: return 46;
@@ -172,8 +194,14 @@ static short guiBlockIcon(short id) {
         case BLOCK_STAIRS_STONE_BRICK: return 25;
         case BLOCK_STAIRS_NETHER_BRICK: return 26;
         case BLOCK_STAIRS_QUARTZ: return 27;
+        case BLOCK_STAIRS_SPRUCE: return 75;
+        case BLOCK_STAIRS_BIRCH:  return 76;
+        case BLOCK_STAIRS_JUNGLE: return 77;
 
         case BLOCK_GLASS_PANE: return 128 + II_TILE_GLASS_PANE;
+
+        case BLOCK_RAIL:        return 128 + II_TILE_RAIL;
+        case BLOCK_GOLDEN_RAIL: return 128 + II_TILE_GOLDEN_RAIL;
         case BLOCK_FENCE: return 58;
         case BLOCK_DOOR_WOOD: return 128 + II_TILE_DOOR_WOOD;
         case BLOCK_TRAPDOOR: return 57;
@@ -188,7 +216,17 @@ static inline int logGuiIcon(unsigned char data) {
     switch (data & LOG_TYPE_MASK) {
         case LOG_SPRUCE: return 17;
         case LOG_BIRCH:  return 18;
+        case LOG_JUNGLE: return 81;
         default:         return 16;
+    }
+}
+
+static inline int plankGuiIcon(unsigned char data) {
+    switch (data & PLANK_TYPE_MASK) {
+        case PLANK_SPRUCE: return 72;
+        case PLANK_BIRCH:  return 73;
+        case PLANK_JUNGLE: return 74;
+        default:           return 5;
     }
 }
 static inline int sandstoneGuiIcon(unsigned char data) {
@@ -214,7 +252,13 @@ static inline int stoneBrickGuiIcon(unsigned char data) {
 }
 static inline int slabGuiIcon(short id, unsigned char data) {
 
-    if (id == BLOCK_WOOD_SLAB || id == BLOCK_WOOD_SLAB_DOUBLE) return 30;
+    if (id == BLOCK_WOOD_SLAB || id == BLOCK_WOOD_SLAB_DOUBLE)
+        switch (data & PLANK_TYPE_MASK) {
+            case PLANK_SPRUCE: return 78;
+            case PLANK_BIRCH:  return 79;
+            case PLANK_JUNGLE: return 80;
+            default:           return 30;
+        }
     switch (data & DSLAB_MAT_MASK) {
         case DSLAB_SAND:        return 32;
         case DSLAB_WOOD:        return 30;
@@ -230,6 +274,7 @@ static inline int leafGuiIcon(unsigned char data) {
     switch (data & LEAF_TYPE_MASK) {
         case LEAF_SPRUCE: return 69;
         case LEAF_BIRCH:  return 70;
+        case LEAF_JUNGLE: return 82;
         default:          return 68;
     }
 }
@@ -238,6 +283,7 @@ static inline int saplingGuiIcon(unsigned char data) {
     switch (data & LEAF_TYPE_MASK) {
         case LEAF_SPRUCE: return 128 + II_TILE_SAPLING_SPRUCE;
         case LEAF_BIRCH:  return 128 + II_TILE_SAPLING_BIRCH;
+        case LEAF_JUNGLE: return 128 + II_TILE_SAPLING_JUNGLE;
         default:          return 128 + II_TILE_SAPLING_OAK;
     }
 }
@@ -252,21 +298,21 @@ static inline int tallGrassGuiIcon(unsigned char data) {
 
 static const unsigned int kWoolTint[16] = {
     0xFFFFFFFFu,
-    0xFF3F92FFu,
-    0xFFE757DBu,
-    0xFFF3A077u,
-    0xFF20D0DFu,
-    0xFF37D944u,
-    0xFFB297FAu,
-    0xFF4C4C4Cu,
-    0xFFBEBEB6u,
-    0xFFAC862Du,
-    0xFFE13E95u,
-    0xFFB13B2Cu,
-    0xFF203B63u,
-    0xFF1C5840u,
-    0xFF2F33BCu,
-    0xFF1B1B1Fu,
+    0xFF4890FCu,
+    0xFFD95DCFu,
+    0xFFE79F7Bu,
+    0xFF2DBFCCu,
+    0xFF41C84Cu,
+    0xFFB098EFu,
+    0xFF4A4A4Au,
+    0xFFB9B9B2u,
+    0xFF9E7F36u,
+    0xFFD14792u,
+    0xFFA34135u,
+    0xFF243A5Bu,
+    0xFF20513Du,
+    0xFF383CADu,
+    0xFF1A1A1Eu,
 };
 #define WOOL_GUI_ICON 56
 
@@ -277,6 +323,7 @@ int getGuiBlockIcon(short id, unsigned char data) {
          : (id == BLOCK_TALLGRASS) ? tallGrassGuiIcon(data)
          : isWool(id) ? WOOL_GUI_ICON
          : isLog(id) ? logGuiIcon(data)
+         : (id == BLOCK_PLANKS) ? plankGuiIcon(data)
          : (id == BLOCK_SANDSTONE) ? sandstoneGuiIcon(data)
          : (id == BLOCK_QUARTZ_BLOCK) ? quartzGuiIcon(data)
          : (id == BLOCK_STONE_BRICKS) ? stoneBrickGuiIcon(data)
@@ -315,6 +362,16 @@ void drawBlockIcon(short id, unsigned char data, float x, float y, float sizePx,
             drawFlatIcon(II_SPAWN_EGG_OVERLAY, x, y, sizePx, eggMul(spot, colorTint));
             return;
         }
+
+        {
+            int sx, sy;
+            const Texture* anim = itemAnimIcon(id, itemAnimFrame(id, g_level.player), &sx, &sy);
+            if (anim) {
+                textureBind(anim);
+                spriteDraw(anim, x, y, sizePx, sizePx, (float)sx, (float)sy, 16.0f, 16.0f, colorTint);
+                return;
+            }
+        }
         drawFlatIcon(itemFlatIcon(id, data), x, y, sizePx, colorTint);
         return;
     }
@@ -322,7 +379,7 @@ void drawBlockIcon(short id, unsigned char data, float x, float y, float sizePx,
     if (i >= 0 && g_haveGuiBlocks) {
 
         float sx, sy, ss;
-        if (i < 128) { ss = 48.0f; sx = (i % 10) * 48.0f;         sy = (i / 10) * 48.0f; }
+        if (i < 128) { ss = 32.0f; sx = (i % 10) * 32.0f;         sy = (i / 10) * 32.0f; }
         else { i -= 128; ss = 16.0f; sx = (i & 31) * 16.0f; sy = (27 + (i >> 5)) * 16.0f; }
 
         if (isWool(id)) colorTint = eggMul(kWoolTint[data & 0xF], colorTint);
@@ -435,6 +492,8 @@ const char* getBlockName(short id, unsigned char data) {
             case ITEM_BOOK: return "Book";
             case ITEM_SLIMEBALL: return "Slimeball";
             case ITEM_GLOWSTONE_DUST: return "Glowstone Dust";
+            case ITEM_REDSTONE: return "Redstone";
+            case ITEM_MINECART: return "Minecart";
             case ITEM_BONE: return "Bone";
             case ITEM_SUGAR: return "Sugar";
             case ITEM_BUCKET:
@@ -484,7 +543,14 @@ const char* getBlockName(short id, unsigned char data) {
         case BLOCK_COBBLESTONE: return "Cobblestone";
         case BLOCK_STONE: return "Stone";
         case BLOCK_MOSSY_COBBLE: return "Moss Stone";
-        case BLOCK_PLANKS: return "Wooden Planks";
+
+        case BLOCK_PLANKS:
+            switch (data & PLANK_TYPE_MASK) {
+                case PLANK_SPRUCE: return "Spruce Planks";
+                case PLANK_BIRCH:  return "Birch Planks";
+                case PLANK_JUNGLE: return "Jungle Planks";
+                default:           return "Oak Planks";
+            }
         case BLOCK_BRICKS: return "Bricks";
         case BLOCK_STONE_BRICKS:
             switch (data) {
@@ -514,13 +580,19 @@ const char* getBlockName(short id, unsigned char data) {
             switch (data & LOG_TYPE_MASK) {
                 case LOG_SPRUCE: return "Spruce Wood";
                 case LOG_BIRCH:  return "Birch Wood";
+                case LOG_JUNGLE: return "Jungle Wood";
                 default:         return "Wood";
             }
         case BLOCK_NETHER_BRICK: return "Nether Bricks";
 
+        case BLOCK_RAIL: return "Rail";
+        case BLOCK_GOLDEN_RAIL: return "Powered Rail";
         case BLOCK_NETHERRACK: return "Netherrack";
         case BLOCK_STAIRS_COBBLESTONE: return "Cobblestone Stairs";
-        case BLOCK_STAIRS_PLANKS: return "Wooden Stairs";
+        case BLOCK_STAIRS_PLANKS: return "Oak Stairs";
+        case BLOCK_STAIRS_SPRUCE: return "Spruce Stairs";
+        case BLOCK_STAIRS_BIRCH:  return "Birch Stairs";
+        case BLOCK_STAIRS_JUNGLE: return "Jungle Stairs";
         case BLOCK_STAIRS_BRICK: return "Brick Stairs";
         case BLOCK_STAIRS_SANDSTONE: return "Sandstone Stairs";
         case BLOCK_STAIRS_STONE_BRICK: return "Stone Brick Stairs";
@@ -537,7 +609,12 @@ const char* getBlockName(short id, unsigned char data) {
                 default:                return "Stone Slab";
             }
         case BLOCK_WOOD_SLAB: case BLOCK_WOOD_SLAB_DOUBLE:
-            return "Oak Wooden Slab";
+            switch (data & PLANK_TYPE_MASK) {
+                case PLANK_SPRUCE: return "Spruce Wooden Slab";
+                case PLANK_BIRCH:  return "Birch Wooden Slab";
+                case PLANK_JUNGLE: return "Jungle Wooden Slab";
+                default:           return "Oak Wooden Slab";
+            }
         case BLOCK_QUARTZ_BLOCK:
             switch (data) {
                 case QZ_PILLAR:   return "Pillar Quartz Block";
@@ -555,6 +632,7 @@ const char* getBlockName(short id, unsigned char data) {
         case BLOCK_IRON_BLOCK: return "Block of Iron";
         case BLOCK_DIAMOND_BLOCK: return "Block of Diamond";
         case BLOCK_LAPIS_BLOCK: return "Lapis Lazuli Block";
+        case BLOCK_COAL_BLOCK: return "Block of Coal";
         case BLOCK_OBSIDIAN: return "Obsidian";
         case BLOCK_GLOWING_OBSIDIAN: return "Glowing Obsidian";
         case BLOCK_TALLGRASS:
@@ -611,6 +689,7 @@ const char* getBlockName(short id, unsigned char data) {
             int t = data & LEAF_TYPE_MASK;
             if (t == LEAF_SPRUCE) return "Spruce Leaves";
             if (t == LEAF_BIRCH) return "Birch Leaves";
+            if (t == LEAF_JUNGLE) return "Jungle Leaves";
             return "Leaves";
         }
 
@@ -622,6 +701,7 @@ const char* getBlockName(short id, unsigned char data) {
             int t = data & LEAF_TYPE_MASK;
             if (t == LEAF_SPRUCE) return "Spruce Sapling";
             if (t == LEAF_BIRCH) return "Birch Sapling";
+            if (t == LEAF_JUNGLE) return "Jungle Sapling";
             return "Sapling";
         }
         case BLOCK_REEDS: return "Sugar Cane";
@@ -653,6 +733,8 @@ const char* getBlockDescription(short id, unsigned char data) {
             case ITEM_SHEARS: return "Used to obtain wool from sheep and to harvest placeable Leaf blocks.";
             case ITEM_COMPASS: return "Points to your start point.";
             case ITEM_CLOCK: return "Displays positions of the Sun and Moon.";
+            case ITEM_REDSTONE: return "Mined from Redstone Ore. Used to craft Compasses and Clocks.";
+            case ITEM_MINECART: return "Place it on a Rail and ride it.";
             case ITEM_BOW: return "Allows for ranged attacks by using arrows.";
             case ITEM_SIGN: return "Shows text entered by you or other players.";
             case ITEM_PAINTING: return "Used as decoration.";
@@ -749,6 +831,7 @@ const char* getBlockDescription(short id, unsigned char data) {
         case BLOCK_STAIRS_COBBLESTONE: case BLOCK_STAIRS_PLANKS: case BLOCK_STAIRS_BRICK:
         case BLOCK_STAIRS_SANDSTONE: case BLOCK_STAIRS_STONE_BRICK: case BLOCK_STAIRS_NETHER_BRICK:
         case BLOCK_STAIRS_QUARTZ:
+        case BLOCK_STAIRS_SPRUCE: case BLOCK_STAIRS_BIRCH: case BLOCK_STAIRS_JUNGLE:
             return "Used for compact staircases.";
         case BLOCK_SLAB: return "Used for making long staircases.";
         case BLOCK_QUARTZ_BLOCK: return "Decorative block, used to create other kinds of Quartz blocks.";
@@ -759,6 +842,7 @@ const char* getBlockDescription(short id, unsigned char data) {
         case BLOCK_ORE_LAPIS: return "Can be mined with a stone pickaxe or better to collect lapis lazuli.";
         case BLOCK_ORE_REDSTONE: return "Can be mined with an iron pickaxe or better to collect redstone dust.";
         case BLOCK_GOLD_BLOCK: case BLOCK_IRON_BLOCK: case BLOCK_DIAMOND_BLOCK: case BLOCK_LAPIS_BLOCK:
+        case BLOCK_COAL_BLOCK:
             return "Used as an expensive building block or compact storage of the ore.";
         case BLOCK_OBSIDIAN: return "Can only be mined with a diamond pickaxe. Is produced by the meeting of water and still lava, and is used to build a portal.";
         case BLOCK_GLOWING_OBSIDIAN: return "Obsidion activated by external source.";
@@ -834,6 +918,32 @@ void hotbarDraw(MenuState& s) {
 
     const bool sleeping = g_level.player && g_level.player->isSleeping();
     const bool hideBar  = sleeping;
+
+    short curId = 0;
+    unsigned char curData = 0;
+    if (g_level.player) {
+        ItemInstance* selIt = g_level.player->inventory->getSelected();
+        curId = selIt ? selIt->id : 0;
+        curData = selIt ? (unsigned char)selIt->data : 0;
+
+        if (curId > 0 && curId < 4096 && Item::items[curId] && Item::items[curId]->maxDamage > 0)
+            curData = 0;
+        const int sel = g_level.player->inventory->selected;
+
+        if (s_lastSelSlot >= 0 && sel != s_lastSelSlot) s_lastSlotChange = gameSeconds();
+        if (sel != s_lastSelSlot || curId != s_lastId || curData != s_lastData) {
+            s_lastSelSlot = sel;
+            s_lastId = curId;
+            s_lastData = curData;
+
+            s_nameDisplayStartTime = (curId > 0) ? gameSeconds() : -1.0f;
+        }
+    }
+
+    const bool screenUp = g_invOpen || g_chestOpen || g_furnaceOpen ||
+                          g_craftOpen || g_armorOpen || g_paused;
+
+    HudAlpha hudAlpha(screenUp ? (unsigned char)255 : hudAlpha255());
     const float barW = 20.0f * HUD_N * HB_S;
     const float barX = (480.0f - barW) * 0.5f;
     const float barY = HUD_HOTBAR_TOP;
@@ -897,9 +1007,6 @@ void hotbarDraw(MenuState& s) {
                         !g_level.player->inventory->isCreative());
     }
     }
-
-    const bool screenUp = g_invOpen || g_chestOpen || g_furnaceOpen ||
-                          g_craftOpen || g_armorOpen || g_paused;
 
     const bool statusHidden = g_barOnTop ? sleeping : screenUp;
     extern int g_cloudTicks;
@@ -1006,35 +1113,21 @@ void hotbarDraw(MenuState& s) {
         textureBind(&s.guiAtlas);
         float cx = 240.0f - 8.0f * HUD_S;
         float cy = 136.0f - 8.0f * HUD_S;
-        spriteDraw(&s.guiAtlas, cx, cy, 16.0f * HUD_S, 16.0f * HUD_S, GA_ICONS_X + 0, 0 + GA_ICONS_Y, 16, 16, HUD_WHITE);
+
+        const unsigned char passAlpha = g_uiAlpha;
+        const unsigned int  cg = passAlpha;
+        const unsigned int  chTint = 0xFF000000u | (cg << 16) | (cg << 8) | cg;
+        g_uiAlpha = 255;
+        spriteDraw(&s.guiAtlas, cx, cy, 16.0f * HUD_S, 16.0f * HUD_S, GA_ICONS_X + 0, 0 + GA_ICONS_Y, 16, 16, chTint);
+        g_uiAlpha = passAlpha;
         sceGuBlendFunc(GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
     }
 
-    static int lastSelSlot = -1;
-    static short lastId = 255;
-    static unsigned char lastData = 255;
-    static float nameDisplayStartTime = -1.0f;
-
-    ItemInstance* selIt = g_level.player->inventory->getSelected();
-    short curId = selIt ? selIt->id : 0;
-    unsigned char curData = selIt ? (unsigned char)selIt->data : 0;
-
-    if (curId > 0 && curId < 4096 && Item::items[curId] && Item::items[curId]->maxDamage > 0)
-        curData = 0;
-
-    if (g_level.player->inventory->selected != lastSelSlot || curId != lastId || curData != lastData) {
-        lastSelSlot = g_level.player->inventory->selected;
-        lastId = curId;
-        lastData = curData;
-
-        nameDisplayStartTime = (curId > 0) ? gameSeconds() : -1.0f;
-    }
-
-    if (nameDisplayStartTime >= 0.0f && !hideBar) {
+    if (s_nameDisplayStartTime >= 0.0f && !hideBar) {
         float now = gameSeconds();
-        float since = now - nameDisplayStartTime;
+        float since = now - s_nameDisplayStartTime;
         if (since > 2.0f) {
-            nameDisplayStartTime = -1.0f;
+            s_nameDisplayStartTime = -1.0f;
         } else {
             const char* name = getBlockName(curId, curData);
 
@@ -1058,8 +1151,9 @@ void guiFill(float x, float y, float w, float h, unsigned int color) {
     struct CV { unsigned int color; float x, y, z; };
     CV* v = (CV*)guFrameAllocPriority(2 * sizeof(CV));
     if (!v) return;
-    v[0].color = color; v[0].x = x;     v[0].y = y;     v[0].z = 0.0f;
-    v[1].color = color; v[1].x = x + w; v[1].y = y + h; v[1].z = 0.0f;
+    const unsigned int c = uiAlphaApply(color);
+    v[0].color = c; v[0].x = x;     v[0].y = y;     v[0].z = 0.0f;
+    v[1].color = c; v[1].x = x + w; v[1].y = y + h; v[1].z = 0.0f;
     sceGuDisable(GU_TEXTURE_2D);
     sceGuDrawArray(GU_SPRITES, GU_COLOR_8888 | GU_VERTEX_32BITF | GU_TRANSFORM_2D, 2, 0, v);
     sceGuEnable(GU_TEXTURE_2D);
@@ -1084,10 +1178,11 @@ void guiFillGradient(float x, float y, float w, float h,
     struct CV { unsigned int color; float x, y, z; };
     CV* v = (CV*)guFrameAllocPriority(4 * sizeof(CV));
     if (!v) return;
-    v[0].color = topColor; v[0].x = x;     v[0].y = y;     v[0].z = 0.0f;
-    v[1].color = topColor; v[1].x = x + w; v[1].y = y;     v[1].z = 0.0f;
-    v[2].color = botColor; v[2].x = x;     v[2].y = y + h; v[2].z = 0.0f;
-    v[3].color = botColor; v[3].x = x + w; v[3].y = y + h; v[3].z = 0.0f;
+    const unsigned int ct = uiAlphaApply(topColor), cb = uiAlphaApply(botColor);
+    v[0].color = ct; v[0].x = x;     v[0].y = y;     v[0].z = 0.0f;
+    v[1].color = ct; v[1].x = x + w; v[1].y = y;     v[1].z = 0.0f;
+    v[2].color = cb; v[2].x = x;     v[2].y = y + h; v[2].z = 0.0f;
+    v[3].color = cb; v[3].x = x + w; v[3].y = y + h; v[3].z = 0.0f;
     sceGuDisable(GU_TEXTURE_2D);
 
     const int ditherPrev = guDitherWanted();
@@ -1154,6 +1249,12 @@ void gameHintsDraw(MenuState& s) {
 
     float hintsY = HUD_HINTS_Y;
 
+    float hintBase = g_hudOpacity;
+    if ((g_furnaceOpen || g_chestOpen || g_armorOpen || g_craftOpen || g_invOpen) &&
+        hintBase < HINT_MENU_FLOOR)
+        hintBase = HINT_MENU_FLOOR;
+    HudAlpha hintAlpha(hudAlphaFor(hintBase));
+
     if (g_level.player && g_level.player->isSleeping()) {
         n += hudHint(&h[n], PSP_CTRL_LTRIGGER, "Wake Up");
         buttonHintsDraw(s, h, n, hintsY, HUD_HINT_S);
@@ -1219,6 +1320,8 @@ void gameHintsDraw(MenuState& s) {
     } else {
 
         CrosshairTarget t = gameModeCrosshairTarget();
+
+        if (g_level.player->riding) n += hudHint(&h[n], PSP_CTRL_START, "Exit");
         if (g_level.player->isInWater()) n += hudHint(&h[n], PSP_CTRL_START, "Swim Up");
         if (!g_level.player->inventory->isCreative())
             n += hudHint(&h[n], ACT_CRAFT, "Crafting");

@@ -9,13 +9,17 @@
 PathFinder::PathFinder() : avoidWater(false), level(0), _nodeIndex(0) {}
 
 bool PathFinder::findPath(Path* path, Entity* from, Entity* to, float maxDist) {
+    if (!path || !from || !to) { if (path) path->destroy(); return false; }
     return findPathTo(*path, from, to->x, to->bb.y0, to->z, maxDist);
 }
 bool PathFinder::findPath(Path* path, Entity* from, int x, int y, int z, float maxDist) {
+    if (!path || !from) { if (path) path->destroy(); return false; }
     return findPathTo(*path, from, x + 0.5f, y + 0.5f, z + 0.5f, maxDist);
 }
 
 bool PathFinder::findPathTo(Path& path, Entity* e, float xt, float yt, float zt, float maxDist) {
+
+    if (!e || !level) { path.destroy(); return false; }
     memset(_table, 0, sizeof(_table));
     _nodeIndex = 0;
 

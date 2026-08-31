@@ -72,9 +72,11 @@ enum {
     ITEM_SLIMEBALL      = 341,
     ITEM_EGG            = 344,
     ITEM_SPAWN_EGG      = 383,
+    ITEM_MINECART       = 328,
     ITEM_COMPASS        = 345,
     ITEM_BUCKET         = 325,
     ITEM_CLOCK          = 347,
+    ITEM_REDSTONE       = 331,
     ITEM_GLOWSTONE_DUST = 348,
     ITEM_BONEMEAL       = 351,
     ITEM_BONE           = 352,
@@ -167,6 +169,9 @@ public:
     virtual bool  isArmor() const { return false; }
 
     virtual int getIcon(short data) const { return -1; }
+
+    virtual int iconFrameCount() const { return 0; }
+    virtual int getAnimationFrameFor(const Player*) const { return 0; }
 
     static Item* items[4096];
     static void initItems();

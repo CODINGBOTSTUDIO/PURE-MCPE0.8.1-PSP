@@ -37,7 +37,7 @@ public:
 
     ItemInstance* getItem(int i) const;
     void          clearSlot(int i);
-    bool          add(ItemInstance* it);
+    bool          add(ItemInstance& it);
 
     float openness, oOpenness;
     int   openCount;

@@ -7,6 +7,7 @@
 #include "world/entity/primed_tnt.h"
 #include "world/entity/item_entity.h"
 #include "world/entity/throwable.h"
+#include "world/entity/minecart.h"
 #include "world/entity/animal/pig.h"
 #include "world/entity/animal/cow.h"
 #include "world/entity/animal/chicken.h"
@@ -36,6 +37,7 @@ Entity* createEntity(int typeId, Level* level) {
         case EntityTypes::IdFallingTile: return new FallingTile(level);
         case EntityTypes::IdPrimedTnt: return new PrimedTnt(level);
         case EntityTypes::IdItemEntity:  return new ItemEntity(level);
+        case EntityTypes::IdMinecart:    return new Minecart(level);
         case EntityTypes::IdSnowball:    return new Throwable(level, EntityTypes::IdSnowball);
         case EntityTypes::IdThrownEgg:   return new Throwable(level, EntityTypes::IdThrownEgg);
     }

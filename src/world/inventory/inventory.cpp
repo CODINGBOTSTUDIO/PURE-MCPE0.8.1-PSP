@@ -24,7 +24,8 @@ void Inventory::setupDefault() {
 
     for (int i = 0; i < kStarterCount; i++) {
         int slot = i + firstGridSlot();
-        setItem(slot, new ItemInstance(kStarter[i], CREATIVE_STACK, 0));
+        ItemInstance stack(kStarter[i], CREATIVE_STACK, 0);
+        setItem(slot, &stack);
         linkSlot(i, slot);
     }
 }
@@ -55,8 +56,8 @@ void Inventory::setSelectedIfEmpty(short id, unsigned char data) {
     if (_isCreative) return;
     ItemInstance* held = getSelected();
     if (held && !held->isNull()) return;
-    ItemInstance* stack = new ItemInstance(id, 1, data);
-    if (!add(stack)) delete stack;
+    ItemInstance stack(id, 1, data);
+    add(stack);
 }
 
 bool Inventory::hurtSelected(int amount) {
@@ -121,9 +122,10 @@ int Inventory::creativeAddItem(short id, short count, short aux) {
         return selected;
     }
     int inv = selected + firstGridSlot();
-    setItem(inv, new ItemInstance(id, count, aux));
+    ItemInstance stack(id, count, aux);
+    setItem(inv, &stack);
     linkSlot(selected, inv);
 
-    setItem(selected, new ItemInstance(id, count, aux));
+    setItem(selected, &stack);
     return selected;
 }

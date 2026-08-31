@@ -9,6 +9,7 @@
 #include <string.h>
 #include <stdio.h>
 #include "world/item/armor_item.h"
+#include "client/renderer/item_anim_icon.h"
 
 #include "gpu/texture.h"
 #include "platform/time.h"
@@ -202,11 +203,24 @@ void playerModelRender(float a) {
     parts[P_ARM0].xRot = tcos1; parts[P_ARM0].yRot = parts[P_ARM0].zRot = 0.0f;
     parts[P_ARM1].xRot = tcos0; parts[P_ARM1].yRot = parts[P_ARM1].zRot = 0.0f;
     parts[P_LEG0].xRot = tcos0 * 1.4f; parts[P_LEG1].xRot = tcos1 * 1.4f;
+    parts[P_LEG0].yRot = parts[P_LEG1].yRot = 0.0f;
+
+    if (p->riding) {
+        const float HALF_PI = PIF * 0.5f;
+        parts[P_ARM0].xRot += -HALF_PI * 0.4f;
+        parts[P_ARM1].xRot += -HALF_PI * 0.4f;
+        parts[P_LEG0].xRot = -HALF_PI * 0.8f;
+        parts[P_LEG1].xRot = -HALF_PI * 0.8f;
+        parts[P_LEG0].yRot =  HALF_PI * 0.2f;
+        parts[P_LEG1].yRot = -HALF_PI * 0.2f;
+    }
 
     ItemInstance* selHeld = g_level.player->inventory->getSelected();
     bool holding = selHeld && !selHeld->isNull();
     bool aiming = holding && selHeld->id == ITEM_BOW && p->bowPull > 0.0f;
-    int  bowStage = aiming ? bowStageIcon(p->bowTimeHeld) : -1;
+
+    int  bowStage = aiming ? bowStageIcon(p->bowTimeHeld)
+                           : (holding ? itemAnimStage(selHeld->id, p) : -1);
 
     if (holding) parts[P_ARM0].xRot = parts[P_ARM0].xRot * 0.5f - PIF / 2.0f * 0.2f;
 
@@ -329,6 +343,7 @@ void playerModelRender(float a) {
     drawArmorLayers(brCol);
     sceGuColor(0xFFFFFFFFu);
 
+    sceGuDisable(GU_BLEND);
     if (g_haveTerrain) {
         ItemInstance* held = g_level.player->inventory->getSelected();
         if (held && !held->isNull()) {
@@ -389,6 +404,8 @@ void playerModelRender(float a) {
             }
         }
     }
+
+    sceGuEnable(GU_BLEND);
 
     sceGumPopMatrix();
     sceGuEnable(GU_CULL_FACE);

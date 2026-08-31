@@ -7,6 +7,7 @@ extern World g_world;
 #include "client/renderer/entity/arrow_renderer.h"
 #include "client/renderer/entity/falling_tile_renderer.h"
 #include "client/renderer/entity/primed_tnt_renderer.h"
+#include "client/renderer/entity/minecart_renderer.h"
 #include "client/renderer/entity/item_renderer.h"
 #include "client/renderer/entity/throwable_renderer.h"
 #include "client/renderer/entity/pig_renderer.h"
@@ -31,6 +32,7 @@ EntityRenderDispatcher::EntityRenderDispatcher() {
     assign(ER_ARROW_RENDERER, new ArrowRenderer());
     assign(ER_FALLINGTILE_RENDERER, new FallingTileRenderer());
     assign(ER_TNT_RENDERER, new PrimedTntRenderer());
+    assign(ER_MINECART_RENDERER, new MinecartRenderer());
     assign(ER_ITEM_RENDERER, new ItemRenderer());
 
     assign(ER_SNOWBALL_RENDERER, new ThrowableRenderer());

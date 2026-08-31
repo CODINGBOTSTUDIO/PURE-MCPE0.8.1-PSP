@@ -490,10 +490,11 @@ void applyLoadedHotbar() {
             if (!g_loadedStorage[s].used ||
                 g_loadedStorage[s].count <= 0 || g_loadedStorage[s].id == 0) continue;
 
-            g_level.player->inventory->setItem(s + g_level.player->inventory->firstGridSlot(),
-                          new ItemInstance(g_loadedStorage[s].id,
-                                           g_loadedStorage[s].count,
-                                           g_loadedStorage[s].damage));
+            ItemInstance stack(g_loadedStorage[s].id,
+                               g_loadedStorage[s].count,
+                               g_loadedStorage[s].damage);
+            g_level.player->inventory->setItem(
+                s + g_level.player->inventory->firstGridSlot(), &stack);
         }
         for (int i = 0; i < Inventory::HOTBAR; i++)
             if (g_loadedLinks[i] >= 0) g_level.player->inventory->linkSlot(i, g_loadedLinks[i] + g_level.player->inventory->firstGridSlot());
@@ -506,8 +507,8 @@ void applyLoadedHotbar() {
         int slot = i + g_level.player->inventory->firstGridSlot();
         int n = g_loadedHotbar[i].count;
         if (n <= 0) n = 1;
-        g_level.player->inventory->setItem(slot,
-            new ItemInstance(g_loadedHotbar[i].id, (short)n, g_loadedHotbar[i].damage));
+        ItemInstance stack(g_loadedHotbar[i].id, (short)n, g_loadedHotbar[i].damage);
+        g_level.player->inventory->setItem(slot, &stack);
         g_level.player->inventory->linkSlot(i, slot);
     }
 }

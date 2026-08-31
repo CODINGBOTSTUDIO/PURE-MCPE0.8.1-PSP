@@ -22,6 +22,7 @@
 #include "client/renderer/entity/mob_model.h"
 #include "gpu/item_icons.h"
 #include "gpu/spawn_egg_colors.h"
+#include "client/renderer/item_anim_icon.h"
 
 extern World g_world;
 extern bool g_worldBuilt;
@@ -209,30 +210,36 @@ int bowStageIcon(float ticks) {
 int itemBuildFlatMesh(short id, unsigned char data, ChunkVertex* out, int bowStage, int cap) {
     if (id == BLOCK_AIR) return 0;
 
-    float tex_w;
+    float tex_w, tex_h;
     float sx, sy;
     unsigned int tileTint = 0xFFFFFFFFu;
-    if (id >= 256) {
+
+    int animX, animY;
+    const Texture* animTex = itemAnimIcon(id, bowStage >= 0 ? bowStage : 0, &animX, &animY);
+    if (animTex) {
+        sx = (float)animX; sy = (float)animY;
+        tex_w = (float)animTex->texW; tex_h = (float)animTex->texH;
+    } else if (id >= 256) {
 
         int icon = itemFlatIcon(id, data);
         if (bowStage >= 0) icon = bowStage;
         if (icon < 0) return 0;
         sx = (icon & 31) * 16.0f;
         sy = (27 + (icon >> 5)) * 16.0f;
-        tex_w = 512.0f;
+        tex_w = 512.0f; tex_h = 512.0f;
     } else {
         int i = getGuiBlockIcon(id, data);
         if (i >= 128) {
             int iconIdx = i - 128;
             sx = (iconIdx & 31) * 16.0f;
             sy = (27 + (iconIdx >> 5)) * 16.0f;
-            tex_w = 512.0f;
+            tex_w = 512.0f; tex_h = 512.0f;
         } else {
             int col, row; unsigned int t;
             tileForBlock(id, data, 0, &col, &row, &t);
             sx = col * 16.0f;
             sy = row * 16.0f;
-            tex_w = 256.0f;
+            tex_w = 256.0f; tex_h = 256.0f;
 
             tileTint = t;
         }
@@ -245,7 +252,7 @@ int itemBuildFlatMesh(short id, unsigned char data, ChunkVertex* out, int bowSta
     const unsigned int colLR = eggMul(0xFFCCCCCCu, tileTint);
     const unsigned int colTB = eggMul(0xFF999999u, tileTint);
 
-    const Texture* texPtr = itemFlatTexture(id, data);
+    const Texture* texPtr = animTex ? animTex : itemFlatTexture(id, data);
     const int basex = (int)sx, basey = (int)sy;
 
     const bool egg = (id == ITEM_SPAWN_EGG);
@@ -275,7 +282,7 @@ int itemBuildFlatMesh(short id, unsigned char data, ChunkVertex* out, int bowSta
             if (isTransparent(texPtr, tx, ty)) continue;
 
             const float uu = (tx + 0.5f) / tex_w;
-            const float vv = (ty + 0.5f) / tex_w;
+            const float vv = (ty + 0.5f) / tex_h;
 
             const float x0 = x * T,       x1 = x0 + T;
             const float y0 = y * T,       y1 = y0 + T;
@@ -307,6 +314,9 @@ int itemBuildFlatMesh(short id, unsigned char data, ChunkVertex* out, int bowSta
 }
 
 const Texture* itemFlatTexture(short id, unsigned char data) {
+    int ax, ay;
+    const Texture* anim = itemAnimIcon(id, 0, &ax, &ay);
+    if (anim) return anim;
     if (id >= 256) return g_haveGuiBlocks ? &g_guiBlocks : 0;
     int i = getGuiBlockIcon(id, data);
     if (i >= 128) return g_haveGuiBlocks ? &g_guiBlocks : 0;
@@ -317,6 +327,18 @@ const Texture* itemFlatIconUV(short id, unsigned char data,
                             float* u0, float* v0, float* u1, float* v1,
                             unsigned int* tint) {
     if (tint) *tint = 0xFFFFFFFFu;
+
+    {
+        int ax, ay;
+        const Texture* anim = itemAnimIcon(id, 0, &ax, &ay);
+        if (anim) {
+            *u0 = (ax + 0.5f)  / (float)anim->texW;
+            *v0 = (ay + 0.5f)  / (float)anim->texH;
+            *u1 = (ax + 15.5f) / (float)anim->texW;
+            *v1 = (ay + 15.5f) / (float)anim->texH;
+            return anim;
+        }
+    }
     if (id >= 256) {
         if (!g_haveGuiBlocks) return 0;
         int icon = itemFlatIcon(id, data);
@@ -407,7 +429,8 @@ void itemHandDraw(float a, float bs, float bc) {
     static ItemModelRenderer s_model;
     if (hasItem) {
         int bowStage = (id == ITEM_BOW && g_level.player->bowPull > 0.0f)
-                       ? bowStageIcon(g_level.player->bowTimeHeld) : -1;
+                       ? bowStageIcon(g_level.player->bowTimeHeld)
+                       : itemAnimStage(id, g_level.player);
 
         if (!s_model.build((short)id, (unsigned char)data, bowStage)) {
             hasItem = false;
@@ -423,6 +446,10 @@ void itemHandDraw(float a, float bs, float bc) {
     sceGuClearDepth(0);
     sceGuClear(GU_DEPTH_BUFFER_BIT);
     sceGuEnable(GU_DEPTH_TEST);
+
+    sceGuDisable(GU_BLEND);
+    sceGuEnable(GU_ALPHA_TEST);
+    sceGuAlphaFunc(GU_GREATER, 0, 0xff);
 
     if (hasItem && !isFlat && !isCrossShaped(id)) {
         sceGuEnable(GU_CULL_FACE);

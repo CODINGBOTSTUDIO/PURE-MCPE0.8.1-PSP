@@ -14,6 +14,7 @@ OBJS = \
 	src/client/renderer/particle.o \
 	src/client/renderer/water_anim.o \
 	src/client/renderer/item_hand.o \
+	src/client/renderer/item_anim_icon.o \
 	src/client/renderer/item_model.o \
 	src/client/gui/gen_screen.o \
 	src/client/gui/hud.o \
@@ -68,7 +69,6 @@ OBJS = \
 	src/world/level/chunk/chunk_draw.o \
 	src/world/level/tile/tile_glass.o \
 	src/world/level/tile/tile_wool.o \
-	src/world/level/tile/tile_leaves.o \
 	src/world/level/tile/tile_furnace_chest.o \
 	src/world/level/tile/tile_quartz_sandstone.o \
 	src/world/level/tile/tile_reactor.o \
@@ -86,6 +86,9 @@ OBJS = \
 	src/world/item/sign_item.o \
 	src/world/item/bonemeal_item.o \
 	src/world/item/spawn_egg_item.o \
+	src/world/item/minecart_item.o \
+	src/world/item/clock_item.o \
+	src/world/item/compass_item.o \
 	src/world/item/armor_item.o \
 	src/world/level/level.o \
 	src/world/entity/entity.o \
@@ -96,6 +99,7 @@ OBJS = \
 	src/world/entity/throwable.o \
 	src/world/entity/falling_tile.o \
 	src/world/entity/primed_tnt.o \
+	src/world/entity/minecart.o \
 	src/world/entity/item_entity.o \
 	src/world/entity/entity_factory.o \
 	src/world/entity/path_finder_mob.o \
@@ -120,6 +124,7 @@ OBJS = \
 	src/client/renderer/entity/arrow_renderer.o \
 	src/client/renderer/entity/falling_tile_renderer.o \
 	src/client/renderer/entity/primed_tnt_renderer.o \
+	src/client/renderer/entity/minecart_renderer.o \
 	src/client/renderer/entity/item_renderer.o \
 	src/client/renderer/entity/throwable_renderer.o \
 	src/client/renderer/entity/mob_model.o \
@@ -154,6 +159,7 @@ OBJS = \
 	src/world/level/tile/tile_farmland.o \
 	src/world/level/tile/tile_support.o \
 	src/world/level/tile/redstone_ore.o \
+	src/world/level/tile/rail_tile.o \
 	src/world/level/tile/fire.o \
 	src/world/level/tile/tile_drops.o \
 	src/world/level/levelgen/Synth.o \
@@ -166,6 +172,7 @@ OBJS = \
 	src/world/level/levelgen/features_common.o \
 	src/world/level/levelgen/feature_tree_oak.o \
 	src/world/level/levelgen/feature_tree_birch.o \
+	src/world/level/levelgen/feature_tree_jungle.o \
 	src/world/level/levelgen/feature_tree_spruce.o \
 	src/world/level/levelgen/feature_tree_pine.o \
 	src/world/level/levelgen/feature_clay.o \

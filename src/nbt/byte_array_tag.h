@@ -13,14 +13,21 @@ public:
     TagMemoryChunk data;
     ByteArrayTag(const std::string& n) : Tag(n) {}
     ByteArrayTag(const std::string& n, TagMemoryChunk d) : Tag(n), data(d) {}
+
+    ~ByteArrayTag() { delete[] (char*)data.data; data.data = 0; data.len = 0; }
     char getId() const { return TAG_Byte_Array; }
     void write(IDataOutput* o) { o->writeInt(data.len); o->writeBytes(data.data, data.len); }
     void load(IDataInput* i) {
+
+        static const int MAX_LENGTH = 1 << 20;
         int length = i->readInt();
-        if (length < 0) length = 0;
-        data.data = new char[length];
+        if (length < 0 || i->failed()) length = 0;
+        if (length > MAX_LENGTH) length = MAX_LENGTH;
+
+        delete[] (char*)data.data;
+        data.data = length ? new char[length] : 0;
         data.len = length;
-        i->readBytes(data.data, length);
+        if (length) i->readBytes(data.data, length);
     }
 };
 #endif

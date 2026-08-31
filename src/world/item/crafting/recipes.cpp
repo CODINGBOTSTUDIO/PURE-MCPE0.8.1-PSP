@@ -110,13 +110,15 @@ Recipes::Recipes() {
     }
 
     {
-        struct { short block; short item; short itemAux; } map[4] = {
+        struct { short block; short item; short itemAux; } map[5] = {
             { BLOCK_GOLD_BLOCK,    ITEM_GOLD_INGOT, 0 },
             { BLOCK_IRON_BLOCK,    ITEM_IRON_INGOT, 0 },
             { BLOCK_DIAMOND_BLOCK, ITEM_DIAMOND,    0 },
             { BLOCK_LAPIS_BLOCK,   ITEM_BONEMEAL,   DYE_BLUE },
+
+            { BLOCK_COAL_BLOCK,    ITEM_COAL,       0 },
         };
-        for (int i = 0; i < 4; ++i) {
+        for (int i = 0; i < 5; ++i) {
             addShapedRecipe(ItemInstance(map[i].block, 1, 0),
                             "###",
                             "###",
@@ -229,6 +231,8 @@ Recipes::Recipes() {
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_YELLOW),
         { ItemInstance(BLOCK_FLOWER, 1, 0) });
 
+    addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_RED),
+        { ItemInstance(BLOCK_ROSE, 1, 0) });
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 3, DYE_WHITE),
         { ItemInstance(ITEM_BONE, 1, 0) });
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_PINK),
@@ -318,8 +322,9 @@ Recipes::Recipes() {
     addShapedRecipe(ItemInstance(BLOCK_SLAB, 6, SLAB_SAND),
                     "###", { INST('#', BLOCK_SANDSTONE, SANDSTONE_PLAIN) });
 
-    addShapedRecipe(ItemInstance(BLOCK_WOOD_SLAB, 6, 0),
-                    "###", { TILE('#', BLOCK_PLANKS) });
+    for (short sp = 0; sp < 4; ++sp)
+        addShapedRecipe(ItemInstance(BLOCK_WOOD_SLAB, 6, sp),
+                        "###", { INST('#', BLOCK_PLANKS, sp) });
     addShapedRecipe(ItemInstance(BLOCK_SLAB, 6, SLAB_BRICK),
                     "###", { TILE('#', BLOCK_BRICKS) });
     addShapedRecipe(ItemInstance(BLOCK_SLAB, 6, SLAB_SMOOTHBRICK),
@@ -356,8 +361,9 @@ Recipes::Recipes() {
     addShapedRecipe(ItemInstance(ITEM_SUGAR, 1, 0),
                     "#", { ITEM('#', ITEM_REEDS) });
 
-    addShapedRecipe(ItemInstance(BLOCK_PLANKS, 4, 0),
-                    "#", { TILE('#', BLOCK_LOG) });
+    for (short sp = 0; sp < 4; ++sp)
+        addShapedRecipe(ItemInstance(BLOCK_PLANKS, 4, sp),
+                        "#", { INST('#', BLOCK_LOG, sp) });
 
     addShapedRecipe(ItemInstance(ITEM_STICK, 4, 0),
                     "#",
@@ -383,13 +389,43 @@ Recipes::Recipes() {
                     "A ",
                     " B", { ITEM('A', ITEM_IRON_INGOT), ITEM('B', ITEM_FLINT) });
 
+    addShapedRecipe(ItemInstance(BLOCK_RAIL, 16, 0),
+                    "X X",
+                    "X#X",
+                    "X X", { ITEM('#', ITEM_STICK), ITEM('X', ITEM_IRON_INGOT) });
+
+    addShapedRecipe(ItemInstance(BLOCK_GOLDEN_RAIL, 6, 0),
+                    "X X",
+                    "X#X",
+                    "XRX", { ITEM('#', ITEM_STICK), ITEM('X', ITEM_GOLD_INGOT),
+                             ITEM('R', ITEM_REDSTONE) });
+
+    addShapedRecipe(ItemInstance(ITEM_MINECART, 1, 0),
+                    "# #",
+                    "###", { ITEM('#', ITEM_IRON_INGOT) });
+
+    addShapedRecipe(ItemInstance(ITEM_CLOCK, 1, 0),
+                    " # ",
+                    "#X#",
+                    " # ", { ITEM('#', ITEM_GOLD_INGOT), ITEM('X', ITEM_REDSTONE) });
+
+    addShapedRecipe(ItemInstance(ITEM_COMPASS, 1, 0),
+                    " # ",
+                    "#X#",
+                    " # ", { ITEM('#', ITEM_IRON_INGOT), ITEM('X', ITEM_REDSTONE) });
+
     addShapedRecipe(ItemInstance(ITEM_BREAD, 1, 0),
                     "###", { ITEM('#', ITEM_WHEAT) });
 
-    addShapedRecipe(ItemInstance(BLOCK_STAIRS_PLANKS, 4, 0),
-                    "#  ",
-                    "## ",
-                    "###", { TILE('#', BLOCK_PLANKS) });
+    {
+        static const short kStairOf[4] = { BLOCK_STAIRS_PLANKS, BLOCK_STAIRS_SPRUCE,
+                                           BLOCK_STAIRS_BIRCH,  BLOCK_STAIRS_JUNGLE };
+        for (short sp = 0; sp < 4; ++sp)
+            addShapedRecipe(ItemInstance(kStairOf[sp], 4, 0),
+                            "#  ",
+                            "## ",
+                            "###", { INST('#', BLOCK_PLANKS, sp) });
+    }
 
     addShapedRecipe(ItemInstance(BLOCK_STAIRS_COBBLESTONE, 4, 0),
                     "#  ",

@@ -263,9 +263,46 @@ int emitLadder(ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id,
     return writeQuadDouble(out, n, P, UV, bright);
 }
 
+int emitRail(ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id,
+             unsigned char data, unsigned int bright) {
+    int col, row; unsigned int tint;
+    tileForBlock(id, data, 0, &col, &row, &tint);
+    const float HT = TILE_UV / 128.0f;
+    const float u0 = col * TILE_UV + HT,       v0t = row * TILE_UV + HT;
+    const float u1 = (col + 1) * TILE_UV - HT, v1t = (row + 1) * TILE_UV - HT;
+
+    const int dir = railDir(id, data);
+
+    const float CX[4] = { gx + 1.0f, gx + 1.0f, gx + 0.0f, gx + 0.0f };
+    const float CZ[4] = { gz + 0.0f, gz + 1.0f, gz + 1.0f, gz + 0.0f };
+
+    int rot;
+    switch (dir) {
+        case 1: case 2: case 3: case 7: rot = 1; break;
+        case 8:                         rot = 2; break;
+        case 9:                         rot = 3; break;
+        default:                        rot = 0; break;
+    }
+
+    const bool lift03 = (dir == 2 || dir == 4);
+    const bool lift12 = (dir == 3 || dir == 5);
+
+    const float yb = (float)y + 0.0625f;
+    float P[4][3];
+    for (int k = 0; k < 4; k++) {
+        const int c = (k + rot) & 3;
+        P[k][0] = CX[c];
+        P[k][2] = CZ[c];
+        P[k][1] = yb + (((k == 0 || k == 3) && lift03) || ((k == 1 || k == 2) && lift12) ? 1.0f : 0.0f);
+    }
+    const float UV[4][2] = { {u1, v0t}, {u1, v1t}, {u0, v1t}, {u0, v0t} };
+
+    return writeQuadDouble(out, n, P, UV, bright, false);
+}
+
 static inline bool isNoMipLayerId(unsigned char id) {
     return isCrossShaped(id) || id == BLOCK_WHEAT || id == BLOCK_MELON_STEM
-        || id == BLOCK_FIRE || isLadder(id) || id == BLOCK_BED || isTorch(id)
+        || id == BLOCK_FIRE || isLadder(id) || isRail(id) || id == BLOCK_BED || isTorch(id)
         || isPane(id) || isDoor(id) || isTrapdoor(id)
         || id == BLOCK_CACTUS || isGlass(id) || id == BLOCK_CAKE;
 }
@@ -358,6 +395,13 @@ int meshPass(const World* w, int ox, int oz, int y0, int y1, ChunkVertex* out, i
         if (layer == 3 && isLadder(id)) {
             if (out && n + 12 > cap) return -1;
             if (out) n = emitLadder(out, n, gx, y, gz, id, worldData(w, gx, y, gz), g_brightColor[LLB(gx, y, gz)]);
+            else n += 12;
+            continue;
+        }
+
+        if (layer == 3 && isRail(id)) {
+            if (out && n + 12 > cap) return -1;
+            if (out) n = emitRail(out, n, gx, y, gz, id, worldData(w, gx, y, gz), g_brightColor[LLB(gx, y, gz)]);
             else n += 12;
             continue;
         }
@@ -512,7 +556,8 @@ int meshPass(const World* w, int ox, int oz, int y0, int y1, ChunkVertex* out, i
 
                 static const int tri[6] = { 0, 1, 2, 2, 3, 0 };
 
-                const int fr = faceRotation(rotFaceMask(id), f, gx, y, gz);
+                int fr = pillarFaceRotation(id, (unsigned char)blockData, f);
+                if (fr == 0) fr = faceRotation(rotFaceMask(id), f, gx, y, gz);
                 for (int t = 0; t < 6; t++) {
                     int k = tri[t];
                     const signed char* c = kFaceCorner[f][k];
@@ -641,6 +686,10 @@ int meshSectionSink(const World* w, int ox, int oz, int y0, int y1,
             if (!sinkReserve(&sk, 3, 12)) return -1;
             nn = emitLadder(sk.buf[3], nn, gx, y, gz, id, worldData(w, gx, y, gz), g_brightColor[lightLazy(w, llc, base, gx, y, gz)]);
             continue;
+        } else if (isRail(id)) {
+            if (!sinkReserve(&sk, 3, 12)) return -1;
+            nn = emitRail(sk.buf[3], nn, gx, y, gz, id, worldData(w, gx, y, gz), g_brightColor[lightLazy(w, llc, base, gx, y, gz)]);
+            continue;
         } else if (id == BLOCK_BED) {
             if (!sinkReserve(&sk, 3, 36)) return -1;
             nn = emitBed(w, gx, y, gz, id, worldData(w, gx, y, gz), sk.buf[3], nn);
@@ -757,7 +806,8 @@ int meshSectionSink(const World* w, int ox, int oz, int y0, int y1,
 
             float cTE = TE, cInner = TILE_INNER;
 
-            const int fr = faceRotation(rotFaceMask(id), f, gx, y, gz);
+            int fr = pillarFaceRotation(id, (unsigned char)blockData, f);
+            if (fr == 0) fr = faceRotation(rotFaceMask(id), f, gx, y, gz);
             for (int t = 0; t < 6; t++) {
                 int k = tri[t];
                 const signed char* c = kFaceCorner[f][k];

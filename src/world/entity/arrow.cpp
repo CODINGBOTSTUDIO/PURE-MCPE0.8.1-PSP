@@ -90,8 +90,8 @@ void Arrow::tick() {
                 y >= feet     && y <= feet + PLAYER_H) {
 
                 if (!g_level.player->inventory->isCreative()) {
-                    ItemInstance* stack = new ItemInstance(ITEM_ARROW, 1, 0);
-                    if (!g_level.player->inventory->add(stack)) { delete stack; return; }
+                    ItemInstance stack(ITEM_ARROW, 1, 0);
+                    if (!g_level.player->inventory->add(stack)) return;
                     g_level.player->inventory->ensureHotbar(ITEM_ARROW, 0);
                 }
                 level->playSound(this, "random.pop", 0.2f,

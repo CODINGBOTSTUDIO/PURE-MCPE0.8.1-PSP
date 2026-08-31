@@ -19,6 +19,7 @@
 #include "world/level/tile/entity/reactor_tile_entity.h"
 #include "world/level/tile/nether_reactor_pattern.h"
 #include "world/level/tile/redstone_ore.h"
+#include "world/level/tile/rail_tile.h"
 #include "world/level/tile/fire.h"
 #include "client/gamemode/gamemode.h"
 #include <stdlib.h>
@@ -103,6 +104,7 @@ Drop Tile::getResource(int data) {
         case BLOCK_WOOD_SLAB_DOUBLE:    return { BLOCK_WOOD_SLAB, 2, (short)(data & DSLAB_MAT_MASK) };
         case BLOCK_WOOD_SLAB:           return { BLOCK_WOOD_SLAB, 1, (short)(data & DSLAB_MAT_MASK) };
         case BLOCK_LOG:                 return { BLOCK_LOG, 1, (short)(data & LOG_TYPE_MASK) };
+        case BLOCK_PLANKS:              return { BLOCK_PLANKS, 1, (short)(data & PLANK_TYPE_MASK) };
         case BLOCK_SANDSTONE:           return { BLOCK_SANDSTONE, 1, (short)data };
         case BLOCK_QUARTZ_BLOCK:        return { BLOCK_QUARTZ_BLOCK, 1, (short)data };
         case BLOCK_STONE_BRICKS:        return { BLOCK_STONE_BRICKS, 1, (short)data };
@@ -111,6 +113,9 @@ Drop Tile::getResource(int data) {
         case BLOCK_GLOWING_OBSIDIAN:    return { BLOCK_OBSIDIAN, 1, 0 };
 
         case BLOCK_ORE_COAL:            return { ITEM_COAL, 1, 0 };
+
+        case BLOCK_ORE_REDSTONE: case BLOCK_ORE_REDSTONE_LIT:
+                                        return { ITEM_REDSTONE, 1, 0 };
         case BLOCK_ORE_EMERALD:         return { ITEM_DIAMOND, 1, 0 };
 
         case BLOCK_GLOWSTONE:           return { ITEM_GLOWSTONE_DUST, 1, 0 };
@@ -132,7 +137,6 @@ Drop Tile::getResource(int data) {
         case BLOCK_SNOW_BLOCK:          return { ITEM_SNOWBALL, 4, 0 };
         case BLOCK_GLASS: case BLOCK_GLASS_PANE:
         case BLOCK_ICE:
-        case BLOCK_ORE_REDSTONE: case BLOCK_ORE_REDSTONE_LIT:
         case BLOCK_MELON_STEM:
         case BLOCK_BEDROCK:
         case BLOCK_WATER: case BLOCK_CALM_WATER: case BLOCK_LAVA: case BLOCK_CALM_LAVA:
@@ -155,10 +159,14 @@ bool Tile::playerDestroy(World*, int, int, int, int, const ItemInstance*) {
 bool Tile::isShearable(const ItemInstance*) const { return false; }
 
 int Tile::getResourceCount(int data, Random& rng) {
-    if (id == BLOCK_LEAVES) return (rng.nextInt(20) == 0) ? 1 : 0;
+
+    if (id == BLOCK_LEAVES)
+        return (rng.nextInt((data & LEAF_TYPE_MASK) == LEAF_JUNGLE ? 40 : 20) == 0) ? 1 : 0;
 
     if (id == BLOCK_TALLGRASS)
         return (data == TG_DEAD_SHRUB) ? rng.nextInt(3) : ((rng.nextInt(8) == 0) ? 1 : 0);
+
+    if (id == BLOCK_ORE_REDSTONE || id == BLOCK_ORE_REDSTONE_LIT) return 4 + rng.nextInt(2);
     if (id == BLOCK_CLAY) return 4;
     if (id == BLOCK_BOOKSHELF) return 3;
     if (id == BLOCK_MELON) return 3 + rng.nextInt(5);
@@ -206,7 +214,7 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
 
         case BLOCK_WOOD_SLAB:
         case BLOCK_WOOD_SLAB_DOUBLE:
-            Tile::tiles[BLOCK_PLANKS]->getTexture(0, f, col, row, tint); return;
+            Tile::tiles[BLOCK_PLANKS]->getTexture(data & DSLAB_MAT_MASK, f, col, row, tint); return;
         case BLOCK_SLAB:
         case BLOCK_DOUBLE_SLAB:
             switch (data & DSLAB_MAT_MASK) {
@@ -282,20 +290,31 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
             break;
         }
         case BLOCK_CLAY:      *col = 8; *row = 4;  break;
-        case BLOCK_LOG:
 
-            if (f == F_TOP || f == F_DOWN) { *col = 5; *row = 1; }
+        case BLOCK_LOG: {
+            bool rings;
+            switch (data & LOG_AXIS_MASK) {
+                case LOG_AXIS_X: rings = (f == F_LEFT || f == F_RIGHT);    break;
+                case LOG_AXIS_Z: rings = (f == F_BACK || f == F_FORWARD);  break;
+
+                default:         rings = (f == F_TOP  || f == F_DOWN);     break;
+            }
+            if (rings) { *col = 5; *row = 1; }
             else switch (data & LOG_TYPE_MASK) {
                 case LOG_SPRUCE: *col = 4; *row = 7; break;
                 case LOG_BIRCH:  *col = 5; *row = 7; break;
+                case LOG_JUNGLE: *col = 9; *row = 9; break;
                 default:         *col = 4; *row = 1; break;
             }
             break;
+        }
 
         case BLOCK_LEAVES:
             switch (data & LEAF_TYPE_MASK) {
                 case LEAF_SPRUCE: *col = 4; *row = 8; *tint = 0xFF619961u; break;
                 case LEAF_BIRCH:  *col = 4; *row = 3; *tint = 0xFF55A780u; break;
+
+                case LEAF_JUNGLE: *col = 4; *row = 12; *tint = 0xFF05BC29u; break;
                 default:          *col = 4; *row = 3; *tint = 0xFF18B548u; break;
             }
             break;
@@ -332,20 +351,40 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
             else if (f == F_DOWN) { *col = 7; *row = 4; }
             else                  { *col = 6; *row = 4; }
             break;
+
         case BLOCK_SAPLING:
-            *col = 15;
-            if (data == 1)      *row = 3;
-            else if (data == 2) *row = 4;
-            else                *row = 0;
+            switch (data & 3) {
+                case 1:  *col = 15; *row = 3;  break;
+                case 2:  *col = 15; *row = 4;  break;
+                case 3:  *col = 14; *row = 1;  break;
+                default: *col = 15; *row = 0;  break;
+            }
             break;
         case BLOCK_TOPSNOW: *col = 2; *row = 4; break;
         case BLOCK_STAIRS_COBBLESTONE:
         case BLOCK_COBBLESTONE:  *col = 0; *row = 1;  break;
+
         case BLOCK_FENCE_GATE:
         case BLOCK_STAIRS_PLANKS:
         case BLOCK_FENCE:
         case BLOCK_SIGN: case BLOCK_WALL_SIGN:
-        case BLOCK_PLANKS:       *col = 4; *row = 0;  break;
+                                 *col = 4; *row = 0;  break;
+
+        case BLOCK_STAIRS_SPRUCE:
+            Tile::tiles[BLOCK_PLANKS]->getTexture(PLANK_SPRUCE, f, col, row, tint); return;
+        case BLOCK_STAIRS_BIRCH:
+            Tile::tiles[BLOCK_PLANKS]->getTexture(PLANK_BIRCH,  f, col, row, tint); return;
+        case BLOCK_STAIRS_JUNGLE:
+            Tile::tiles[BLOCK_PLANKS]->getTexture(PLANK_JUNGLE, f, col, row, tint); return;
+
+        case BLOCK_PLANKS:
+            switch (data & PLANK_TYPE_MASK) {
+                case PLANK_SPRUCE: *col = 6; *row = 12; break;
+                case PLANK_BIRCH:  *col = 6; *row = 13; break;
+                case PLANK_JUNGLE: *col = 7; *row = 12; break;
+                default:           *col = 4; *row = 0;  break;
+            }
+            break;
         case BLOCK_TRAPDOOR:     *col = 4; *row = 5;  break;
         case BLOCK_LADDER:       *col = 3; *row = 5;  break;
         case BLOCK_TORCH:        *col = 0; *row = 5;  break;
@@ -366,9 +405,10 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
             break;
         case BLOCK_MOSSY_COBBLE: *col = 4; *row = 2;  break;
         case BLOCK_OBSIDIAN:     *col = 5; *row = 2;  break;
-        case BLOCK_GLOWING_OBSIDIAN: *col = 10; *row = 13; break;
+        case BLOCK_GLOWING_OBSIDIAN: *col = 12; *row = 8;  break;
         case BLOCK_GOLD_BLOCK:   *col = 7; *row = 1;  break;
         case BLOCK_IRON_BLOCK:   *col = 6; *row = 1;  break;
+        case BLOCK_COAL_BLOCK:   *col = 13; *row = 10; break;
         case BLOCK_DIAMOND_BLOCK:*col = 8; *row = 1;  break;
         case BLOCK_LAPIS_BLOCK:  *col = 0; *row = 9;  break;
         case BLOCK_SNOW_BLOCK:   *col = 2; *row = 4;  break;
@@ -417,10 +457,10 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
             *tint = 0xFF000000u | (b << 16) | (g << 8) | r;
             break;
         }
-        case BLOCK_UPDATE1: *col = 12; *row = 15; break;
 
+        case BLOCK_UPDATE1:
         case BLOCK_UPDATE2:
-        default:            *col = 13; *row = 15; break;
+        default:            *col = 12; *row = 10; break;
     }
 }
 
@@ -506,6 +546,18 @@ struct FarmTile : Tile { FarmTile(unsigned char i) : Tile(i) { randomTicks = tru
             worldNotifyNeighborsChanged(w, x, y, z);
             worldRebuildAroundNow(w, x, y, z);
         }
+    } };
+
+struct TreeTile : Tile { TreeTile(unsigned char i) : Tile(i) {}
+    int getPlacedOnFaceDataValue(World*, int, int, int, int face,
+                                 float, float, float, int itemValue) {
+        int axis;
+        switch (face) {
+            case F_BACK: case F_FORWARD: axis = LOG_AXIS_Z; break;
+            case F_LEFT: case F_RIGHT:   axis = LOG_AXIS_X; break;
+            default:                     axis = LOG_AXIS_Y; break;
+        }
+        return (itemValue & LOG_TYPE_MASK) | axis;
     } };
 
 struct SlabTile : Tile { SlabTile(unsigned char i) : Tile(i) {}
@@ -616,6 +668,45 @@ struct TrapdoorTile : Tile { TrapdoorTile(unsigned char i) : Tile(i) {}
     int getPlacedOnFaceDataValue(World*, int, int, int, int face, float, float, float, int) {
         switch (face) { case F_BACK: return 0; case F_FORWARD: return 1;
                         case F_LEFT: return 2; case F_RIGHT: return 3; default: return 0; }
+    } };
+
+struct BaseRailTile : Tile { BaseRailTile(unsigned char i) : Tile(i) {}
+
+    int getAABB(const World*, int, int, int, BlockAABB[3]) { return 0; }
+
+    bool mayPlace(World* w, int x, int y, int z) {
+        if (!Tile::mayPlace(w, x, y, z)) return false;
+        return railSupportOk(w, x, y - 1, z);
+    }
+    bool canSurvive(World* w, int x, int y, int z) {
+        if (!railSupportOk(w, x, y - 1, z)) return false;
+
+        int dir = railDir(id, worldData(w, x, y, z));
+        if (dir == 2) return railSupportOk(w, x + 1, y, z);
+        if (dir == 3) return railSupportOk(w, x - 1, y, z);
+        if (dir == 4) return railSupportOk(w, x, y, z - 1);
+        if (dir == 5) return railSupportOk(w, x, y, z + 1);
+        return true;
+    }
+
+    void setPlacedBy(World* w, int x, int y, int z, Player*) { railUpdateDir(w, x, y, z, true); }
+
+    void neighborChanged(World* w, int x, int y, int z) {
+        Tile::neighborChanged(w, x, y, z);
+        if (worldBlock(w, x, y, z) != id) return;
+
+    }
+    Drop getResource(int) { return { (short)id, 1, 0 }; }
+    void getTexture(unsigned char data, int, int* col, int* row, unsigned int* tint) {
+        *tint = 0xFFFFFFFFu;
+        if (id == BLOCK_GOLDEN_RAIL) {
+
+            *col = 3; *row = 11;
+            return;
+        }
+
+        int dir = railDir(id, data);
+        *col = 0; *row = (dir >= 6) ? 7 : 8;
     } };
 
 struct LadderTile : Tile { LadderTile(unsigned char i) : Tile(i) {}
@@ -967,6 +1058,7 @@ static bool rawSolidPhys(unsigned char id) {
     if (id == BLOCK_FIRE) return false;
     if (isSign(id)) return false;
     if (id == BLOCK_LADDER) return false;
+    if (isRail(id)) return false;
     return true;
 }
 static bool rawCube(unsigned char id) {
@@ -980,6 +1072,7 @@ static bool rawCube(unsigned char id) {
     if (isSign(id)) return false;
     if (id == BLOCK_CHEST) return false;
     if (id == BLOCK_CAKE) return false;
+    if (isRail(id)) return false;
     return true;
 }
 static bool rawOpaque(unsigned char id) {
@@ -988,7 +1081,8 @@ static bool rawOpaque(unsigned char id) {
            !isCrossShaped(id) && id != BLOCK_CACTUS && id != BLOCK_TOPSNOW && id != BLOCK_REEDS &&
            !isSlab(id) && !isStairs(id) && id != BLOCK_FENCE && id != BLOCK_LADDER && id != BLOCK_TORCH &&
            !isDoor(id) && !isTrapdoor(id) && !isFenceGate(id) && !isBed(id) && id != BLOCK_FARMLAND &&
-           id != BLOCK_CHEST && !isSign(id) && id != BLOCK_FIRE && id != BLOCK_CAKE;
+           id != BLOCK_CHEST && !isSign(id) && id != BLOCK_FIRE && id != BLOCK_CAKE &&
+           !isRail(id);
 }
 static bool rawReplaceable(unsigned char id) {
 
@@ -1007,7 +1101,7 @@ static int rawLightOpacity(unsigned char id) {
         isFence(id) || isStairs(id) || isSlab(id) || isDoor(id) ||
         isTrapdoor(id) || isFenceGate(id) || id == BLOCK_LADDER || id == BLOCK_TORCH || isBed(id) ||
         id == BLOCK_FARMLAND || isSign(id) || id == BLOCK_FIRE ||
-        id == BLOCK_CHEST || id == BLOCK_CAKE) return 0;
+        id == BLOCK_CHEST || id == BLOCK_CAKE || isRail(id)) return 0;
     return 15;
 }
 static int rawLightEmit(unsigned char id) {
@@ -1047,6 +1141,7 @@ static int rawSoundType(unsigned char id) {
 
         case BLOCK_GOLD_BLOCK: case BLOCK_IRON_BLOCK: case BLOCK_DIAMOND_BLOCK:
         case BLOCK_LAPIS_BLOCK: case BLOCK_DOOR_IRON:
+        case BLOCK_RAIL: case BLOCK_GOLDEN_RAIL:
             return SOUND_METAL;
 
         case BLOCK_LOG:
@@ -1058,6 +1153,7 @@ static int rawSoundType(unsigned char id) {
         case BLOCK_FIRE:
 
         case BLOCK_STAIRS_PLANKS:
+        case BLOCK_STAIRS_SPRUCE: case BLOCK_STAIRS_BIRCH: case BLOCK_STAIRS_JUNGLE:
 
         case BLOCK_WOOD_SLAB: case BLOCK_WOOD_SLAB_DOUBLE:
             return SOUND_WOOD;
@@ -1076,6 +1172,8 @@ static int rawRotFaceMask(int id) {
         case BLOCK_DIRT: case BLOCK_OBSIDIAN: case BLOCK_CLAY:
         case BLOCK_SNOW_BLOCK: case BLOCK_TOPSNOW: case BLOCK_GLOWSTONE:
         case BLOCK_SAND: case BLOCK_NETHERRACK:
+
+        case BLOCK_COAL_BLOCK:
             return 255;
 
         default:
@@ -1104,6 +1202,7 @@ static float rawDestroySpeed(int id) {
         case BLOCK_WOOD_SLAB: case BLOCK_WOOD_SLAB_DOUBLE:
         case BLOCK_BRICKS: case BLOCK_MOSSY_COBBLE: case BLOCK_NETHER_BRICK:
         case BLOCK_STAIRS_PLANKS: case BLOCK_STAIRS_COBBLESTONE:
+        case BLOCK_STAIRS_SPRUCE: case BLOCK_STAIRS_BIRCH: case BLOCK_STAIRS_JUNGLE:
         case BLOCK_STAIRS_BRICK: case BLOCK_STAIRS_NETHER_BRICK:
             return 2.0f;
         case BLOCK_LEAVES:
@@ -1117,6 +1216,7 @@ static float rawDestroySpeed(int id) {
         case BLOCK_DOOR_WOOD: case BLOCK_TRAPDOOR: case BLOCK_NETHER_REACTOR:
             return 3.0f;
         case BLOCK_IRON_BLOCK: case BLOCK_DIAMOND_BLOCK: case BLOCK_DOOR_IRON:
+        case BLOCK_COAL_BLOCK:
             return 5.0f;
         case BLOCK_OBSIDIAN: case BLOCK_GLOWING_OBSIDIAN:
             return 10.0f;
@@ -1135,6 +1235,8 @@ static float rawDestroySpeed(int id) {
             return 0.5f;
         case BLOCK_CACTUS: case BLOCK_LADDER: case BLOCK_NETHERRACK:
             return 0.4f;
+        case BLOCK_RAIL: case BLOCK_GOLDEN_RAIL:
+            return 0.7f;
         case BLOCK_CHEST: case BLOCK_CRAFTING_TABLE: case BLOCK_STONECUTTER:
             return 2.5f;
         case BLOCK_FURNACE: case BLOCK_FURNACE_LIT:
@@ -1164,6 +1266,7 @@ static int shapeOf(unsigned char id) {
     if (isDoor(id))             return SHAPE_DOOR;
     if (isTrapdoor(id))         return SHAPE_TRAPDOOR;
     if (isLadder(id))           return SHAPE_LADDER;
+    if (isRail(id))             return SHAPE_RAIL;
     if (isTorch(id))            return SHAPE_TORCH;
     if (isBed(id))              return SHAPE_BED;
     if (isSign(id))             return SHAPE_SIGN;
@@ -1190,6 +1293,7 @@ static Tile* makeTile(unsigned char id) {
         case BLOCK_FIRE:     return new FireTile(id);
         case BLOCK_GRASS:    return new GrassTile(id);
         case BLOCK_LEAVES:   return new LeafTile(id);
+        case BLOCK_LOG:      return new TreeTile(id);
         case BLOCK_CACTUS:   return new CactusTile(id);
         case BLOCK_REEDS:    return new ReedTile(id);
         case BLOCK_FLOWER: case BLOCK_ROSE: case BLOCK_SAPLING:
@@ -1225,6 +1329,7 @@ static Tile* makeTile(unsigned char id) {
         case SHAPE_DOOR:      return new DoorTile(id);
         case SHAPE_TRAPDOOR:  return new TrapdoorTile(id);
         case SHAPE_LADDER:    return new LadderTile(id);
+        case SHAPE_RAIL:      return new BaseRailTile(id);
         case SHAPE_BED:       return new BedTile(id);
         case SHAPE_CHEST:     return new ChestTile(id);
         case SHAPE_CAKE:      return new CakeTile(id);

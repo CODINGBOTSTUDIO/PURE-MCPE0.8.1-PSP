@@ -110,6 +110,13 @@ static float drawFaultCounters(MenuState& s, float ty) {
         ty += 12.0f;
     }
 
+    extern unsigned int g_musGaps, g_musWakes;
+    if (g_musGaps) {
+        std::snprintf(buf, sizeof(buf), "MUSIC GAPS %u  WAKE %u", g_musGaps, g_musWakes);
+        fontDrawTextShadow(&s.font, 10, ty, buf, 0xFF50FFFFu, 1.0f);
+        ty += 12.0f;
+    }
+
     extern unsigned int g_frameAllocFails, g_frameAllocListFails;
     if (g_frameAllocFails) {
 
@@ -266,33 +273,65 @@ int main(int argc, char* argv[]) {
 
     guInit();
 
+    static const float INTRO_WHITE    = 0.9f;
+    static const float INTRO_FADE_IN  = 0.7f;
+    static const float INTRO_HOLD     = 1.1f;
+    static const float INTRO_FADE_OUT = 0.7f;
+    static const float INTRO_LOGO_UP  = INTRO_WHITE + INTRO_FADE_IN;
+    static const float INTRO_DARK_AT  = INTRO_LOGO_UP + INTRO_HOLD;
+    static const float INTRO_END      = INTRO_DARK_AT + INTRO_FADE_OUT;
+
     Texture mojangSplash;
     if (loadTex(&mojangSplash, "data/images/logo.png")) {
-        float startTime = nowSeconds();
-        while (!g_exitRequested && (nowSeconds() - startTime) < 2.0f) {
+        const float startTime = nowSeconds();
+        float skipAt = -1.0f;
+        while (!g_exitRequested) {
+            float t = nowSeconds() - startTime;
 
-            if (!guStartFrame(0xFFFFFFFF)) continue;
+            if (skipAt >= 0.0f) t = INTRO_DARK_AT + (nowSeconds() - skipAt);
+            if (t >= INTRO_END) break;
+
+            unsigned int ground = 0xFFFFFFFFu;
+            float dark = 0.0f;
+            if (t > INTRO_DARK_AT) {
+                dark = (t - INTRO_DARK_AT) / INTRO_FADE_OUT;
+                if (dark > 1.0f) dark = 1.0f;
+                const unsigned int g = (unsigned int)(255.0f * (1.0f - dark));
+                ground = 0xFF000000u | (g << 16) | (g << 8) | g;
+            }
+
+            scePowerTick(0);
+            if (!guStartFrame(ground)) continue;
             guOrtho();
             sceGuDisable(GU_DEPTH_TEST);
 
-            textureBind(&mojangSplash);
+            sceGuEnable(GU_BLEND);
+            sceGuBlendFunc(GU_ADD, GU_SRC_ALPHA, GU_ONE_MINUS_SRC_ALPHA, 0, 0);
 
             float scaleW = 480.0f / mojangSplash.realW;
             float scaleH = 272.0f / mojangSplash.realH;
-            float scale = (scaleW < scaleH) ? scaleW : scaleH;
+            float scale  = (scaleW < scaleH) ? scaleW : scaleH;
+            float w = mojangSplash.realW * scale, h = mojangSplash.realH * scale;
+            float x = (480.0f - w) / 2.0f,        y = (272.0f - h) / 2.0f;
 
-            float w = mojangSplash.realW * scale;
-            float h = mojangSplash.realH * scale;
-            float x = (480.0f - w) / 2.0f;
-            float y = (272.0f - h) / 2.0f;
-
-            spriteDraw(&mojangSplash, x, y, w, h, 0, 0, mojangSplash.realW, mojangSplash.realH, 0xFFFFFFFF);
-
+            float a = 0.0f;
+            if (t >= INTRO_WHITE)   a = (t - INTRO_WHITE) / INTRO_FADE_IN;
+            if (a > 1.0f)           a = 1.0f;
+            a *= (1.0f - dark);
+            if (a > 0.0f) {
+                const unsigned int al = (unsigned int)(255.0f * a);
+                textureBind(&mojangSplash);
+                spriteDraw(&mojangSplash, x, y, w, h,
+                           0, 0, mojangSplash.realW, mojangSplash.realH,
+                           (al << 24) | 0x00FFFFFFu);
+            }
             guEndFrame();
 
-            SceCtrlData splashPad;
-            sceCtrlReadBufferPositive(&splashPad, 1);
-            if (splashPad.Buttons != 0) break;
+            if (skipAt < 0.0f && t >= INTRO_WHITE) {
+                SceCtrlData splashPad;
+                sceCtrlReadBufferPositive(&splashPad, 1);
+                if (splashPad.Buttons & PSP_CTRL_CROSS) skipAt = nowSeconds();
+            }
         }
         textureFree(&mojangSplash);
     }

@@ -22,9 +22,9 @@ public:
     int getContainerSize() const { return numTotalSlots; }
     int getMaxStackSize() const  { return Container::LARGE_MAX_STACK_SIZE; }
 
-    virtual bool add(ItemInstance* item);
+    virtual bool add(ItemInstance& item);
 
-    int  addItem(ItemInstance* item);
+    int           addItem(ItemInstance& item);
 
     void clearSlot(int slot);
     void clearInventory();

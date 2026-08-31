@@ -43,7 +43,7 @@ void ChestTileEntity::clearSlot(int i) {
     o->container.clearSlot(i);
 }
 
-bool ChestTileEntity::add(ItemInstance* it) {
+bool ChestTileEntity::add(ItemInstance& it) {
     if (!pair) return container.add(it);
 
     ChestTileEntity* m = isMaster() ? this : pair;
@@ -205,10 +205,10 @@ void ChestTileEntity::load(CompoundTag* tag) {
         if (!c) continue;
         int slot = (unsigned char)c->getByte("Slot");
         if (slot < 0 || slot >= CONTAINER_SIZE) continue;
-        container.setItem(slot, new ItemInstance(
-            c->getShort("id"),
-            (unsigned char)c->getByte("Count"),
-            c->getShort("Damage")));
+        ItemInstance stack(c->getShort("id"),
+                           (unsigned char)c->getByte("Count"),
+                           c->getShort("Damage"));
+        container.setItem(slot, &stack);
     }
 
     pairPending = tag->contains("pairx");

@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
+#include <ctime>
 #include <malloc.h>
 
 #include "platform/path.h"
@@ -91,7 +92,11 @@ static int                g_musPcmLeft;
 static unsigned int       musFade = MUS_FADE;
 
 unsigned int              g_musGaps = 0;
+
+unsigned int              g_musWakes = 0;
 static int                g_musPrimed = 0;
+
+static int                g_musLastSample = 0;
 static int                g_thid    = -1;
 static volatile int       g_mixerQuit = 0;
 
@@ -188,7 +193,7 @@ void soundMixBlock(short* out) {
         int vol = (int)(g_catVol[SND_CAT_MUSIC] * 4096.0f);
         unsigned int pos = g_musPos, halfN = MUSIC_HALF_SAMPLES;
         int half = g_musHalf;
-        int last = 0;
+        int last = g_musLastSample;
         int i = 0;
         for (; i < SAMPLE_COUNT; i++) {
             if (!g_musReady[half]) {
@@ -209,6 +214,7 @@ void soundMixBlock(short* out) {
             }
         }
         g_musPos = pos; g_musHalf = half;
+        g_musLastSample = last;
         if (i >= SAMPLE_COUNT) g_musPrimed = 1;
 
         if (i < SAMPLE_COUNT) {
@@ -219,8 +225,16 @@ void soundMixBlock(short* out) {
             if (n > MUS_FADE) n = MUS_FADE;
             for (int k = 0; k < n; k++) mix[i + k] += last * (MUS_FADE - k) / MUS_FADE;
             musFade = 0;
+            g_musLastSample = 0;
+
         }
     } else {
+
+        if (g_musLastSample) {
+            int n = (MUS_FADE < SAMPLE_COUNT) ? MUS_FADE : SAMPLE_COUNT;
+            for (int k = 0; k < n; k++) mix[k] += g_musLastSample * (MUS_FADE - k) / MUS_FADE;
+            g_musLastSample = 0;
+        }
         musFade = 0;
     }
 
@@ -263,7 +277,7 @@ static int  musicThread(SceSize, void*);
 
 void soundInit(void) {
 
-    srand(sceKernelGetSystemTimeLow());
+    srand((unsigned)time(0) * 2654435761u + sceKernelGetSystemTimeLow());
 
     extern int g_lowMemPsp;
     const char* want  = g_lowMemPsp ? "data/sound/sounds_lo.bin" : "data/sound/sounds.bin";
@@ -510,6 +524,7 @@ static bool musicFillStep(int half, int chunkBudget) {
                 break;
             }
             g_musPcmPtr  = (short*)pcm;
+
             g_musPcmLeft = bytes / 4;
             chunks++;
         }
@@ -521,6 +536,11 @@ static bool musicFillStep(int half, int chunkBudget) {
         g_musPcmPtr  += take * 2;
         g_musPcmLeft -= (int)take;
         g_musFillPos += take;
+    }
+
+    if (g_musEnded && g_musFillPos == 0) {
+        g_musFillHalf = -1;
+        return true;
     }
 
     if (g_musFillPos < MUSIC_HALF_SAMPLES) {
@@ -566,7 +586,8 @@ static void musicStart(void) {
     if (!musicInitResource()) { g_musCount = 0; return; }
 
     if (!g_musBuf) {
-        g_musBuf    = (short*)malloc(2 * MUSIC_HALF_SAMPLES * sizeof(short));
+
+        g_musBuf    = (short*)calloc(2 * MUSIC_HALF_SAMPLES, sizeof(short));
 
         g_musInBuf  = (unsigned char*)memalign(64, MUSIC_IN_BUF);
         g_musPcmBuf = (unsigned char*)memalign(64, MUSIC_PCM_BUF);
@@ -582,6 +603,9 @@ static void musicStart(void) {
     const Entry* e = &g_musIndex[musicPickTrack()];
     g_musFile = fopen(g_musPath, "rb");
     if (!g_musFile) return;
+
+    memset(g_musInBuf,  0, MUSIC_IN_BUF);
+    memset(g_musPcmBuf, 0, MUSIC_PCM_BUF);
 
     SceMp3InitArg args;
     memset(&args, 0, sizeof(args));
@@ -600,6 +624,7 @@ static void musicStart(void) {
     g_musEnded = 0;
     g_musHalf = 0; g_musPos = 0;
     g_musReady[0] = 0; g_musReady[1] = 0;
+    g_musLastSample = 0;
     g_musFillHalf = -1; g_musFillPos = 0;
 
     while (!musicFillStep(0, 0)) {}
@@ -654,6 +679,7 @@ void soundMusicUpdate(void) {
 
 static int musicThread(SceSize, void*) {
     while (!g_musQuit) {
+        g_musWakes++;
         musicLock();
         soundMusicUpdate();
         musicUnlock();

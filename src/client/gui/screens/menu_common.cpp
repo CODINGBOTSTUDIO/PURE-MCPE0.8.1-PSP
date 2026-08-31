@@ -306,12 +306,16 @@ void startOsk(int target, const char* desc, const char* intext, int maxLen) {
 void signStartEdit(SignTileEntity* ste) {
     if (!ste) return;
     g_signEditing = ste;
+    signEditRemember(ste->x, ste->y, ste->z);
     ste->selectedLine = 0;
 }
 
+void signOskForget() { g_oskSign = 0; }
+
 void signEditLine(int line) {
-    if (!g_signEditing || line < 0 || line >= SignTileEntity::NUM_LINES) return;
-    g_oskSign = g_signEditing;
+    SignTileEntity* ste = signEditLive();
+    if (!ste || line < 0 || line >= SignTileEntity::NUM_LINES) return;
+    g_oskSign = ste;
     g_oskSignLine = line;
     char desc[16];
     snprintf(desc, sizeof(desc), "Sign line %d:", line + 1);
@@ -338,7 +342,9 @@ bool menuOskUpdate(MenuState& s) {
             for (int i = 0; i < SignTileEntity::MAX_LINE_LENGTH && oskOutText[i]; i++)
                 line[n++] = (char)oskOutText[i];
             line[n] = 0;
-            if (g_oskSign) g_oskSign->messages[g_oskSignLine] = line;
+
+            if (SignTileEntity* live = signEditLive())
+                live->messages[g_oskSignLine] = line;
             g_oskSign = 0;
             return true;
         }
