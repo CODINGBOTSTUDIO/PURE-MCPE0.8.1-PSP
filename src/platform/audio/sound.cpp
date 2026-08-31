@@ -634,6 +634,8 @@ static void musicStart(void) {
 }
 
 static void musicArmGap(void) {
+    extern bool g_worldBuilt;
+    if (!g_worldBuilt) { g_musNextAt = 0; return; }
     g_musNextAt = sceKernelGetSystemTimeLow() + (unsigned int)(rand() % (20 * 60 * 3)) * 50000u;
     if (!g_musNextAt) g_musNextAt = 1;
 }

@@ -1,5 +1,6 @@
 
 #include "world/entity/minecart.h"
+#include "client/gamemode/gamemode.h"
 #include "world/entity/entity_types.h"
 #include "world/entity/local_player.h"
 #include "world/level/level.h"
@@ -48,6 +49,8 @@ bool Minecart::hurt(Entity* source, int amount) {
     hurtDir = -hurtDir;
     hurtTime = 10;
     markHurt();
+
+    if (g_gameMode && g_gameMode->isCreative()) damage = 100.0f;
     damage += amount * 10.0f;
     if (damage <= 40.0f) return true;
     if (rider) rider->ride(0);
