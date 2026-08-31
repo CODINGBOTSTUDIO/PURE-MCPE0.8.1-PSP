@@ -91,10 +91,6 @@ static int                g_musPcmLeft;
 
 #define MUS_FADE 256
 static unsigned int       musFade = MUS_FADE;
-
-unsigned int              g_musGaps = 0;
-
-unsigned int              g_musWakes = 0;
 static int                g_musPrimed = 0;
 
 static int                g_musLastSample = 0;
@@ -219,8 +215,6 @@ void soundMixBlock(short* out) {
         if (i >= SAMPLE_COUNT) g_musPrimed = 1;
 
         if (i < SAMPLE_COUNT) {
-
-            if (!g_musEnded && g_musPrimed) g_musGaps++;
             g_musPrimed = 0;
             int n = SAMPLE_COUNT - i;
             if (n > MUS_FADE) n = MUS_FADE;
@@ -470,7 +464,6 @@ static bool loadMusicIndex(const char* path) {
 }
 
 static int g_musLast = -1;
-unsigned int g_musStarts = 0;
 
 const char* soundMusicCurrentTrack(void) {
     if (!g_musPlaying || !g_musIndex || g_musLast < 0 || g_musLast >= g_musCount) return 0;
@@ -692,7 +685,6 @@ static void musicStart(void) {
     while (!musicFillStep(0, 0)) {}
     while (!musicFillStep(1, 0)) {}
     if (g_musEnded && !g_musFilled) { musicRelease(); musicArmRetry(); return; }
-    g_musStarts++;
     g_musPlaying = 1;
 }
 
@@ -744,7 +736,6 @@ void soundMusicUpdate(void) {
 
 static int musicThread(SceSize, void*) {
     while (!g_musQuit) {
-        g_musWakes++;
         musicLock();
         soundMusicUpdate();
         musicUnlock();
