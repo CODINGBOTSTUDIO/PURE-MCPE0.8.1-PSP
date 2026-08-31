@@ -27,6 +27,8 @@ static void evict(World* w, int slotIdx) {
 
     if (c->unsaved && !worldSlotBusy(c)) chunkStorageSave(w, c->x, c->z);
     c->resident = false;
+
+    worldEditQueueDropSlot(slotIdx);
     blockSlotRecycle(w, slotIdx);
     lightSlotRelease(w, slotIdx);
 
