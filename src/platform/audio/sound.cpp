@@ -500,9 +500,17 @@ static unsigned int g_musFeedLo, g_musFeedHi;
 
 static unsigned int g_musSamplesLeft = 0xFFFFFFFFu;
 
+enum { MUS_END_DECODER = 0,
+       MUS_END_CAP     = 1 };
+static unsigned char g_musEndReason;
+
+unsigned int g_musLoopStops;
+unsigned int g_musCutShort;
+unsigned int g_musCutLeftMs;
+
 static unsigned int musicSampleCap(unsigned int bytes) {
     unsigned long long n = (unsigned long long)bytes * SAMPLE_RATE / 16000ULL;
-    n += n / 20;
+    n += 4 * 1152;
     return (unsigned int)(n > 0xFFFFFFFFULL ? 0xFFFFFFFFULL : n);
 }
 
@@ -548,6 +556,13 @@ static bool musicFillStep(int half, int chunkBudget) {
             SceInt32 bytes = sceMp3Decode(g_musHandle, &pcm);
             if (bytes <= 0 || !pcm) {
                 g_musEnded = 1;
+                g_musEndReason = MUS_END_DECODER;
+
+                if (g_musSamplesLeft != 0xFFFFFFFFu &&
+                    g_musSamplesLeft > SAMPLE_RATE / 4) {
+                    g_musCutShort++;
+                    g_musCutLeftMs = g_musSamplesLeft / (SAMPLE_RATE / 1000);
+                }
                 break;
             }
             g_musPcmPtr  = (short*)pcm;
@@ -558,6 +573,8 @@ static bool musicFillStep(int half, int chunkBudget) {
                 g_musPcmLeft = (int)g_musSamplesLeft;
                 g_musSamplesLeft = 0;
                 g_musEnded = 1;
+                g_musEndReason = MUS_END_CAP;
+                g_musLoopStops++;
                 if (g_musPcmLeft <= 0) break;
             } else {
                 g_musSamplesLeft -= (unsigned int)g_musPcmLeft;

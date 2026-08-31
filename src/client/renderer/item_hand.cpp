@@ -172,6 +172,7 @@ int itemBuildBlockMesh(short id, unsigned char data, ChunkVertex* out) {
     float iz = (id == BLOCK_CACTUS) ? 0.0625f : 0.0f;
 
     float th = (id == BLOCK_TOPSNOW)  ? 0.125f
+             : (isCarpet(id))         ? 0.0625f
              : (id == BLOCK_FARMLAND) ? 0.9375f
              : 1.0f;
     return emitPartialBox(&g_world, 0, 150, 0, id, data,

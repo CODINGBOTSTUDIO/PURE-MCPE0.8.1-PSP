@@ -140,6 +140,8 @@ static float s_nameDisplayStartTime = -1.0f;
 
 static short guiBlockIcon(short id) {
     switch (id) {
+        case BLOCK_SPONGE: return 85;
+        case BLOCK_HAY_BLOCK: return 86;
         case BLOCK_STONE: return 7;
         case BLOCK_GRASS: return 9;
         case BLOCK_DIRT: return 8;
@@ -316,12 +318,15 @@ static const unsigned int kWoolTint[16] = {
 };
 #define WOOL_GUI_ICON 56
 
+#define CARPET_GUI_ICON 84
+
 int getGuiBlockIcon(short id, unsigned char data) {
     if (id >= 256) return -2;
     return isLeaf(id) ? leafGuiIcon(data)
          : (id == BLOCK_SAPLING) ? saplingGuiIcon(data)
          : (id == BLOCK_TALLGRASS) ? tallGrassGuiIcon(data)
          : isWool(id) ? WOOL_GUI_ICON
+         : isCarpet(id) ? CARPET_GUI_ICON
          : isLog(id) ? logGuiIcon(data)
          : (id == BLOCK_PLANKS) ? plankGuiIcon(data)
          : (id == BLOCK_SANDSTONE) ? sandstoneGuiIcon(data)
@@ -382,7 +387,7 @@ void drawBlockIcon(short id, unsigned char data, float x, float y, float sizePx,
         if (i < 128) { ss = 32.0f; sx = (i % 10) * 32.0f;         sy = (i / 10) * 32.0f; }
         else { i -= 128; ss = 16.0f; sx = (i & 31) * 16.0f; sy = (27 + (i >> 5)) * 16.0f; }
 
-        if (isWool(id)) colorTint = eggMul(kWoolTint[data & 0xF], colorTint);
+        if (isWool(id) || isCarpet(id)) colorTint = eggMul(kWoolTint[data & 0xF], colorTint);
         textureBind(&g_guiBlocks);
         spriteDraw(&g_guiBlocks, x, y, sizePx, sizePx, sx, sy, ss, ss, colorTint);
     } else if (g_haveTerrain) {
@@ -677,6 +682,18 @@ const char* getBlockName(short id, unsigned char data) {
             }
         }
 
+        case BLOCK_CARPET: {
+            static const char* const kCarpetName[16] = {
+                "White Carpet",      "Orange Carpet", "Magenta Carpet", "Light Blue Carpet",
+                "Yellow Carpet",     "Lime Carpet",   "Pink Carpet",    "Gray Carpet",
+                "Light Gray Carpet", "Cyan Carpet",   "Purple Carpet",  "Blue Carpet",
+                "Brown Carpet",      "Green Carpet",  "Red Carpet",     "Black Carpet",
+            };
+            return kCarpetName[data & 0xF];
+        }
+
+        case BLOCK_SPONGE: return "Sponge";
+        case BLOCK_HAY_BLOCK: return "Hay Bale";
         case BLOCK_BOOKSHELF: return "Bookshelf";
         case BLOCK_CRAFTING_TABLE: return "Crafting Table";
         case BLOCK_STONECUTTER: return "Stonecutter";
@@ -859,6 +876,11 @@ const char* getBlockDescription(short id, unsigned char data) {
         case BLOCK_GLOWSTONE: return "Used to create brighter light than torches. Melts snow/ice and can be used underwater.";
         case BLOCK_NETHER_REACTOR: return "Core of the Nether Reactor";
         case BLOCK_WOOL: return "Collected from sheep, and can be colored with dyes.";
+        case BLOCK_CARPET: return "A thin layer of wool. Place it on top of a block.";
+
+        case BLOCK_SPONGE: return "Used as decoration.";
+
+        case BLOCK_HAY_BLOCK: return "Nine wheat, packed for storage.";
         case BLOCK_BOOKSHELF: return "Used as decoration.";
         case BLOCK_CRAFTING_TABLE: return "Allows you to craft a more varied selection of items than the normal crafting.";
         case BLOCK_STONECUTTER: return "For crafting stoneblocks.";

@@ -110,6 +110,14 @@ static float drawFaultCounters(MenuState& s, float ty) {
         ty += 12.0f;
     }
 
+    extern unsigned int g_musCutShort, g_musCutLeftMs, g_musLoopStops;
+    if (g_musCutShort) {
+        std::snprintf(buf, sizeof(buf), "MUSIC CUT %u  owed %ums  LOOP %u",
+                      g_musCutShort, g_musCutLeftMs, g_musLoopStops);
+        fontDrawTextShadow(&s.font, 10, ty, buf, 0xFF50FFFFu, 1.0f);
+        ty += 12.0f;
+    }
+
     extern unsigned int g_musGaps, g_musWakes, g_musStarts;
     const char* mtrack = soundMusicCurrentTrack();
     if (g_musGaps) {

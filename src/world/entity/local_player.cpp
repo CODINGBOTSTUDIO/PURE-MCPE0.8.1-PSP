@@ -5,6 +5,7 @@
 #include "world/level/chunk/chunk.h"
 #include "world/level/tile/tile_shapes.h"
 #include "world/difficulty.h"
+#include "client/gamemode/gamemode.h"
 #include "client/player/player_state.h"
 #include "client/renderer/item_hand.h"
 #include "client/renderer/particle.h"
@@ -69,6 +70,8 @@ void LocalPlayer::aiStep(unsigned int btn, unsigned char lx, unsigned char ly,
         if (isLavaId(feet)) lavaHurt();
 
         if (onFire > 0) { if (onFire % 20 == 0) hurt(0, 1); onFire--; }
+
+        if (onFire > 1 && g_gameMode && g_gameMode->isCreative()) onFire = 1;
 
         if (isAlive() && isInWall()) hurt(0, 1);
 

@@ -96,7 +96,7 @@ struct ArmorScreen : ContainerScreen {
 void ArmorScreen::handleInput(MenuState& s, unsigned int pressed, unsigned int ) {
     (void)s;
 
-    if (!g_level.player) { g_armorOpen = false; return; }
+    if (!g_level.player) { g_armorOpen = false; g_uiParentIsInventory = false; return; }
     const int cols = 3;
     const int n = (int)s_list.size();
     int before = s_focus * 1000 + s_cursor + s_slotSel * 100;
@@ -122,6 +122,8 @@ void ArmorScreen::handleInput(MenuState& s, unsigned int pressed, unsigned int )
 
     if (pressed & PSP_CTRL_CIRCLE) {
         g_armorOpen = false;
+
+        if (g_uiParentIsInventory) { g_uiParentIsInventory = false; g_invOpen = true; }
         soundPlay("random.click", 1.0f, 1.0f);
     }
 }

@@ -186,6 +186,7 @@ void Item::initItems() {
             { ITEM_DOOR_IRON_ITEM, 1 }, { ITEM_BED_ITEM, 1 }, { ITEM_NETHER_BRICK, 1 },
             { BLOCK_STONE, 1 }, { BLOCK_PLANKS, 1 }, { BLOCK_COBBLESTONE, 1 },
             { BLOCK_SAND, 1 }, { BLOCK_SANDSTONE, 1 }, { BLOCK_WOOL, 1 }, { BLOCK_SLAB, 1 }, { BLOCK_WOOD_SLAB, 1 },
+            { BLOCK_SPONGE, 1 },
             { BLOCK_BRICKS, 1 }, { BLOCK_GLASS_PANE, 1 }, { BLOCK_FENCE, 1 },
             { BLOCK_FENCE_GATE, 1 }, { BLOCK_SNOW_BLOCK, 1 }, { BLOCK_CLAY, 1 },
             { BLOCK_GLOWSTONE, 1 }, { BLOCK_LADDER, 1 }, { BLOCK_TRAPDOOR, 1 },
@@ -204,6 +205,8 @@ void Item::initItems() {
             { ITEM_REDSTONE, 8 },
             { BLOCK_GOLD_BLOCK, 8 }, { BLOCK_IRON_BLOCK, 8 }, { BLOCK_DIAMOND_BLOCK, 8 },
             { BLOCK_LAPIS_BLOCK, 8 }, { BLOCK_BOOKSHELF, 8 }, { BLOCK_COAL_BLOCK, 8 },
+            { BLOCK_CARPET, 8 },
+            { BLOCK_HAY_BLOCK, 8 },
 
             { ITEM_NETHER_QUARTZ, 16 },
         };
@@ -220,7 +223,10 @@ void Item::initItems() {
             { BLOCK_LOG, 1 }, { BLOCK_LEAVES, 2 }, { BLOCK_GLASS, 2 }, { BLOCK_ORE_LAPIS, 1 },
             { BLOCK_LAPIS_BLOCK, 2 }, { BLOCK_SANDSTONE, 1 }, { BLOCK_BED, 2 }, { BLOCK_COBWEB, 2 },
             { BLOCK_COAL_BLOCK, 2 },
+            { BLOCK_CARPET, 2 },
+            { BLOCK_HAY_BLOCK, 2 },
             { BLOCK_TALLGRASS, 2 }, { BLOCK_WOOL, 2 }, { BLOCK_FLOWER, 2 }, { BLOCK_ROSE, 2 },
+            { BLOCK_SPONGE, 2 },
             { BLOCK_MUSHROOM_BROWN, 2 }, { BLOCK_MUSHROOM_RED, 2 }, { BLOCK_GOLD_BLOCK, 2 },
             { BLOCK_IRON_BLOCK, 2 }, { BLOCK_DOUBLE_SLAB, 1 }, { BLOCK_SLAB, 1 }, { BLOCK_BRICKS, 1 },
             { BLOCK_TNT, 3 }, { BLOCK_BOOKSHELF, 2 }, { BLOCK_MOSSY_COBBLE, 1 }, { BLOCK_OBSIDIAN, 1 },

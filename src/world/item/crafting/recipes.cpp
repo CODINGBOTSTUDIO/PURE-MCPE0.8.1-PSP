@@ -110,15 +110,17 @@ Recipes::Recipes() {
     }
 
     {
-        struct { short block; short item; short itemAux; } map[5] = {
+        struct { short block; short item; short itemAux; } map[6] = {
             { BLOCK_GOLD_BLOCK,    ITEM_GOLD_INGOT, 0 },
             { BLOCK_IRON_BLOCK,    ITEM_IRON_INGOT, 0 },
             { BLOCK_DIAMOND_BLOCK, ITEM_DIAMOND,    0 },
             { BLOCK_LAPIS_BLOCK,   ITEM_BONEMEAL,   DYE_BLUE },
 
+            { BLOCK_HAY_BLOCK,     ITEM_WHEAT,      0 },
+
             { BLOCK_COAL_BLOCK,    ITEM_COAL,       0 },
         };
-        for (int i = 0; i < 5; ++i) {
+        for (int i = 0; i < 6; ++i) {
             addShapedRecipe(ItemInstance(map[i].block, 1, 0),
                             "###",
                             "###",
@@ -327,6 +329,10 @@ Recipes::Recipes() {
                         "###", { INST('#', BLOCK_PLANKS, sp) });
     addShapedRecipe(ItemInstance(BLOCK_SLAB, 6, SLAB_BRICK),
                     "###", { TILE('#', BLOCK_BRICKS) });
+
+    for (short c = 0; c < 16; ++c)
+        addShapedRecipe(ItemInstance(BLOCK_CARPET, 3, c),
+                        "##", { INST('#', BLOCK_WOOL, c) });
     addShapedRecipe(ItemInstance(BLOCK_SLAB, 6, SLAB_SMOOTHBRICK),
                     "###", { TILE('#', BLOCK_STONE_BRICKS) });
 

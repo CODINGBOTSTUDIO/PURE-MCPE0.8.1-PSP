@@ -33,6 +33,8 @@ const Material& materialOf(unsigned char id) {
 
         case BLOCK_GRASS:
         case BLOCK_DIRT: case BLOCK_FARMLAND: case BLOCK_UPDATE1: case BLOCK_UPDATE2:
+        case BLOCK_SPONGE:
+        case BLOCK_HAY_BLOCK:
             return Material::dirt;
 
         case BLOCK_LEAVES:
@@ -57,7 +59,7 @@ const Material& materialOf(unsigned char id) {
             return Material::plant;
         case BLOCK_TALLGRASS:
             return Material::replaceablePlant;
-        case BLOCK_BED: case BLOCK_WOOL:
+        case BLOCK_BED: case BLOCK_WOOL: case BLOCK_CARPET:
             return Material::cloth;
         case BLOCK_SAND: case BLOCK_GRAVEL:
             return Material::sand;

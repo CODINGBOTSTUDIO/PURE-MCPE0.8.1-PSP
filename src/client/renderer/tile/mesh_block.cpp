@@ -420,6 +420,13 @@ int meshPass(const World* w, int ox, int oz, int y0, int y1, ChunkVertex* out, i
             continue;
         }
 
+        if (layer == 0 && isCarpet(id)) {
+            if (out && n + 36 > cap) return -1;
+            if (out) n = emitCarpet(w, gx, y, gz, id, worldData(w, gx, y, gz), out, n);
+            else n += 36;
+            continue;
+        }
+
         if (layer == 0 && (isSlab(id) || isStairs(id))) {
             if (out && n + 108 > cap) return -1;
             n = isSlab(id) ? emitSlab(w, gx, y, gz, id, worldData(w, gx, y, gz), out, n)
@@ -697,6 +704,13 @@ int meshSectionSink(const World* w, int ox, int oz, int y0, int y1,
         } else if (isTorch(id)) {
             if (!sinkReserve(&sk, 3, 36)) return -1;
             nn = emitTorch(w, gx, y, gz, id, worldData(w, gx, y, gz), sk.buf[3], nn);
+            continue;
+        }
+
+        if (isCarpet(id)) {
+
+            if (!sinkReserve(&sk, 0, 36)) return -1;
+            no = emitCarpet(w, gx, y, gz, id, worldData(w, gx, y, gz), sk.buf[0], no);
             continue;
         }
 

@@ -101,6 +101,7 @@ void quitToMenuNoSave(MenuState& s) {
     g_invOpen = false;
     g_craftOpen = false;
     g_armorOpen = false;
+    g_uiParentIsInventory = false;
     g_furnaceOpen = false;
     chestClose();
     signStopEdit();
@@ -382,6 +383,7 @@ void gameUpdate(MenuState& s, unsigned int pressed, const SceCtrlData& padIn) {
         if (act >= 0 && invHeaderButton(s, act)) {
             g_invOpen = false;
 
+            g_uiParentIsInventory = (act == INV_BTN_CRAFT || act == INV_BTN_ARMOR);
             if (act == INV_BTN_CRAFT)      craftOpen(Recipe::SIZE_2X2, CRAFT_WORKBENCH);
             else if (act == INV_BTN_ARMOR) armorOpen();
             else soundPlay("random.click", 1.0f, 1.0f);

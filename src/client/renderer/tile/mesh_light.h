@@ -33,7 +33,7 @@ static inline int faceRotation(unsigned char mask, int f, int x, int y, int z) {
 }
 
 static inline int pillarFaceRotation(unsigned char id, unsigned char data, int f) {
-    if (id != BLOCK_LOG) return 0;
+    if (id != BLOCK_LOG && id != BLOCK_HAY_BLOCK) return 0;
     switch (data & LOG_AXIS_MASK) {
         case LOG_AXIS_X:
             return (f == F_DOWN || f == F_TOP || f == F_BACK || f == F_FORWARD) ? 1 : 0;
