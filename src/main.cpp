@@ -263,6 +263,7 @@ int main(int argc, char* argv[]) {
     pspFpuSetEnable(0);
     setupCallbacks();
     pathInit(argc > 0 ? argv[0] : 0);
+    savePathInit();
 
     detectLowMemPsp();
     detectPspGo();

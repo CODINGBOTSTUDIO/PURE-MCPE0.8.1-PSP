@@ -6,4 +6,8 @@ void pathInit(const char* argv0);
 
 const char* assetPath(const char* rel);
 
+const char* savePath(const char* rel);
+
+void savePathInit(void);
+
 #endif

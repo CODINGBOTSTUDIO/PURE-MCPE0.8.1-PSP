@@ -51,6 +51,7 @@ OBJS = \
 	src/gpu/font.o \
 	src/gpu/widgets.o \
 	src/platform/path.o \
+	src/platform/savedata.o \
 	src/platform/png_loader.o \
 	src/platform/malloc_lock.o \
 	src/platform/audio/sound.o \

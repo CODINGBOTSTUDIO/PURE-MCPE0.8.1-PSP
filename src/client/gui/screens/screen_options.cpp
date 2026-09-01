@@ -277,8 +277,10 @@ void optionsSetControlScheme(int scheme) {
     optionsApply();
 }
 
+static const char* optionsFile() { return savePath("options.txt"); }
+
 void optionsSave() {
-    FILE* f = fopen(assetPath("options.txt"), "w");
+    FILE* f = fopen(optionsFile(), "w");
     if (!f) return;
     for (int c = 0; c < OPT_CATEGORIES; c++)
         for (int r = 0; r < g_optionRowCount[c]; r++)
@@ -291,7 +293,8 @@ void optionsSave() {
 
 void optionsLoad() {
     optionsSetDefaults();
-    FILE* f = fopen(assetPath("options.txt"), "r");
+    FILE* f = fopen(optionsFile(), "r");
+
     if (f) {
         char line[128];
         while (fgets(line, sizeof(line), f)) {

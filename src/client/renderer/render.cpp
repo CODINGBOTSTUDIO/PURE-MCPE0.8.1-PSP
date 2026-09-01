@@ -1092,7 +1092,7 @@ void gameRender(MenuState& s) {
                 sArgs.gamemode = sel ? s.worlds.gameModes[s.worldSelected] : 1;
                 char rel[320];
                 snprintf(rel, sizeof(rel), "saves/%s", sel ? s.worlds.names[s.worldSelected] : "world");
-                strncpy(sArgs.dir, assetPath(rel), sizeof(sArgs.dir) - 1);
+                strncpy(sArgs.dir, savePath(rel), sizeof(sArgs.dir) - 1);
                 sArgs.dir[sizeof(sArgs.dir) - 1] = '\0';
                 strncpy(sArgs.name, sel ? s.worlds.displayNames[s.worldSelected] : "World", sizeof(sArgs.name) - 1);
                 sArgs.name[sizeof(sArgs.name) - 1] = '\0';
@@ -1178,7 +1178,7 @@ void gameRender(MenuState& s) {
             tArgs.genMask = sel ? s.worlds.genMasks[s.worldSelected] : GEN_FEATURES_ALL_ON;
             char rel[320];
             snprintf(rel, sizeof(rel), "saves/%s", sel ? s.worlds.names[s.worldSelected] : "world");
-            strncpy(tArgs.dir, assetPath(rel), sizeof(tArgs.dir) - 1);
+            strncpy(tArgs.dir, savePath(rel), sizeof(tArgs.dir) - 1);
             tArgs.dir[sizeof(tArgs.dir) - 1] = '\0';
             strncpy(tArgs.name, sel ? s.worlds.displayNames[s.worldSelected] : "World", sizeof(tArgs.name) - 1);
             tArgs.name[sizeof(tArgs.name) - 1] = '\0';

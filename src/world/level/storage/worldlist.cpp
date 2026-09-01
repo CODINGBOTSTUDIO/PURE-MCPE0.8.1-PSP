@@ -32,7 +32,7 @@ long worldSeedFromString(const char* str) {
 void worldListScan(WorldList* out) {
     out->count = 0;
 
-    const char* dir = assetPath("saves");
+    const char* dir = savePath("saves");
     sceIoMkdir(dir, 0777);
 
     SceUID d = sceIoDopen(dir);
@@ -61,13 +61,13 @@ void worldListScan(WorldList* out) {
 
             char infoPath[320];
             snprintf(infoPath, sizeof(infoPath), "saves/%s/level.txt", entry.d_name);
-            SceUID fd = sceIoOpen(assetPath(infoPath), PSP_O_RDONLY, 0777);
+            SceUID fd = sceIoOpen(savePath(infoPath), PSP_O_RDONLY, 0777);
             if (fd < 0) {
 
                 char dirRel[320];
                 snprintf(dirRel, sizeof(dirRel), "saves/%s", entry.d_name);
                 char dirAbs[320];
-                snprintf(dirAbs, sizeof(dirAbs), "%s", assetPath(dirRel));
+                snprintf(dirAbs, sizeof(dirAbs), "%s", savePath(dirRel));
                 int gm = 0; long sd = 0;
                 if (LevelStorage::readInfo(dirAbs, out->displayNames[out->count],
                                            sizeof(out->displayNames[0]), &gm, &sd)) {
@@ -122,10 +122,10 @@ void worldListScan(WorldList* out) {
         SceIoStat st;
         char p[320];
         snprintf(p, sizeof(p), "saves/%s/lastplayed", out->names[i]);
-        int ok = sceIoGetstat(assetPath(p), &st) >= 0;
+        int ok = sceIoGetstat(savePath(p), &st) >= 0;
         if (!ok) {
             snprintf(p, sizeof(p), "saves/%s/level.dat", out->names[i]);
-            ok = sceIoGetstat(assetPath(p), &st) >= 0;
+            ok = sceIoGetstat(savePath(p), &st) >= 0;
         }
         if (ok) {
             ScePspDateTime* t = &st.sce_st_mtime;
@@ -185,11 +185,11 @@ bool worldListCreate(WorldList* list, const char* inName, char* outName, int gam
     }
 
     snprintf(full, sizeof(full), "saves/%s", candidate);
-    sceIoMkdir(assetPath(full), 0777);
+    sceIoMkdir(savePath(full), 0777);
 
     char infoPath[320];
     snprintf(infoPath, sizeof(infoPath), "saves/%s/level.txt", candidate);
-    SceUID fd = sceIoOpen(assetPath(infoPath), PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
+    SceUID fd = sceIoOpen(savePath(infoPath), PSP_O_WRONLY | PSP_O_CREAT | PSP_O_TRUNC, 0777);
     if (fd >= 0) {
         char buf[128];
 
@@ -221,7 +221,7 @@ bool worldListDelete(WorldList* list, int index) {
     char dirRel[320];
     snprintf(dirRel, sizeof(dirRel), "saves/%s", list->names[index]);
     char dirFull[320];
-    snprintf(dirFull, sizeof(dirFull), "%s", assetPath(dirRel));
+    snprintf(dirFull, sizeof(dirFull), "%s", savePath(dirRel));
 
     SceUID d = sceIoDopen(dirFull);
     if (d >= 0) {
@@ -232,7 +232,7 @@ bool worldListDelete(WorldList* list, int index) {
                 strcmp(entry.d_name, ".") != 0 && strcmp(entry.d_name, "..") != 0) {
                 char fileRel[640];
                 snprintf(fileRel, sizeof(fileRel), "%s/%s", dirRel, entry.d_name);
-                sceIoRemove(assetPath(fileRel));
+                sceIoRemove(savePath(fileRel));
             }
             memset(&entry, 0, sizeof(entry));
         }
