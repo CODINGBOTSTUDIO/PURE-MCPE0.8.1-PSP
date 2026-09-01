@@ -76,6 +76,7 @@ bool Recipe::isAnyAuxValue(int id) {
     bool isTile = id < 256;
     if (!isTile) return false;
     if (id == BLOCK_WOOL || id == BLOCK_CARPET || id == BLOCK_SLAB || id == BLOCK_SANDSTONE ||
+        id == BLOCK_COBBLE_WALL ||
         id == BLOCK_QUARTZ_BLOCK ||
         id == BLOCK_LOG || id == BLOCK_PLANKS)
         return false;

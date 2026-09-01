@@ -1405,7 +1405,7 @@ void gameRender(MenuState& s) {
     if (thirdNow) {
         const float baseCamX = nearOx, baseCamY = nearOy, baseCamZ = nearOz;
 
-        const float CLEAR = 0.16f;
+        const float CLEAR = 0.18f;
         for (int iter = 0; iter < 3; iter++) {
             bool moved = false;
             int cbx = (int)floorf(nearOx), cby = (int)floorf(nearOy), cbz = (int)floorf(nearOz);
@@ -1472,13 +1472,30 @@ void gameRender(MenuState& s) {
         }
     }
 
+    float camEyeX = nearOx, camEyeY = nearOy, camEyeZ = nearOz;
+    int   camBx = Mth::floor(camEyeX), camBy = Mth::floor(camEyeY), camBz = Mth::floor(camEyeZ);
+    unsigned char eyeBlk = worldBlock(&g_world, camBx, camBy, camBz);
+
+    if (isWaterId(eyeBlk) || isLavaId(eyeBlk)) {
+        float hh = liquidTileHeight(worldData(&g_world, camBx, camBy, camBz)) - 1.0f / 9.0f;
+        if (camEyeY >= (float)(camBy + 1) - hh)
+            eyeBlk = worldBlock(&g_world, camBx, camBy + 1, camBz);
+    }
+
+    float fov = isWaterId(eyeBlk) ? 60.0f : 70.0f;
+
     float targetNearZ = nearSolid * 0.4f;
     if (targetNearZ > 0.25f) targetNearZ = 0.25f;
 
-    if (targetNearZ < 0.14f) targetNearZ = 0.14f;
+    const float NEARZ_FLOOR_FOV70 = 0.14f;
+    const float TAN35 = 0.70021f;
+    float nearFloor = NEARZ_FLOOR_FOV70 * TAN35 / tanf(fov * 0.5f * 3.14159265f / 180.0f);
+    if (targetNearZ < nearFloor) targetNearZ = nearFloor;
 
     static float s_targetNearZ = 0.25f;
-    if (fabsf(targetNearZ - s_targetNearZ) > 0.025f || targetNearZ == 0.14f || targetNearZ == 0.25f) {
+
+    if (fabsf(targetNearZ - s_targetNearZ) > 0.025f ||
+        targetNearZ == nearFloor || targetNearZ == 0.25f) {
         s_targetNearZ = targetNearZ;
     }
 
@@ -1493,20 +1510,6 @@ void gameRender(MenuState& s) {
     float NEAR_Z = s_nearZ;
 
     g_nearZPlane = NEAR_Z;
-
-    float camEyeX = ix - fx * camBack + dpCamX;
-    float camEyeY = iy - fy * camBack + dpCamY;
-    float camEyeZ = iz - fz * camBack + dpCamZ;
-    int   camBx = Mth::floor(camEyeX), camBy = Mth::floor(camEyeY), camBz = Mth::floor(camEyeZ);
-    unsigned char eyeBlk = worldBlock(&g_world, camBx, camBy, camBz);
-
-    if (isWaterId(eyeBlk) || isLavaId(eyeBlk)) {
-        float hh = liquidTileHeight(worldData(&g_world, camBx, camBy, camBz)) - 1.0f / 9.0f;
-        if (camEyeY >= (float)(camBy + 1) - hh)
-            eyeBlk = worldBlock(&g_world, camBx, camBy + 1, camBz);
-    }
-
-    float fov = isWaterId(eyeBlk) ? 60.0f : 70.0f;
 
     guPerspective(fov, NEAR_Z, g_viewDist);
 

@@ -228,7 +228,8 @@ void Entity::move(float xa, float ya, float za) {
         int t = level->getTile(xt, yt, zt);
         if (t == 0) {
             int under = level->getTile(xt, yt - 1, zt);
-            if (isFence((unsigned char)under) || isFenceGate((unsigned char)under)) t = under;
+            if (isFence((unsigned char)under) || isFenceGate((unsigned char)under) ||
+                isWall((unsigned char)under)) t = under;
         }
         if (walkDist > nextStep && t > 0) {
             nextStep = ((int)walkDist) + 1;

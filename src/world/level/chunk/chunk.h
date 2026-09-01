@@ -86,6 +86,8 @@ enum { BLOCK_AIR = 0,
 
        BLOCK_STAIRS_SPRUCE = 134, BLOCK_STAIRS_BIRCH = 135, BLOCK_STAIRS_JUNGLE = 136,
 
+       BLOCK_COBBLE_WALL = 139,
+
        BLOCK_CARROTS = 141, BLOCK_POTATOES = 142,
        BLOCK_QUARTZ_BLOCK = 155,
        BLOCK_STAIRS_QUARTZ = 156,
@@ -117,6 +119,8 @@ enum { TG_DEAD_SHRUB = 0, TG_TALL_GRASS = 1, TG_FERN = 2 };
 enum { QZ_DEFAULT = 0, QZ_CHISELED = 1, QZ_PILLAR = 2 };
 enum { SB_NORMAL = 0, SB_MOSSY = 1, SB_CRACKED = 2 };
 
+enum { WALL_COBBLE = 0, WALL_MOSSY = 1 };
+
 static inline bool isStairs(unsigned char id) {
     switch (id) {
         case BLOCK_STAIRS_PLANKS: case BLOCK_STAIRS_COBBLESTONE:
@@ -139,6 +143,7 @@ static inline bool isHayBlock(unsigned char id) { return id == BLOCK_HAY_BLOCK; 
 #define PANE_EDGE_COL 4
 #define PANE_EDGE_ROW 9
 static inline bool isFence(unsigned char id)  { return id == BLOCK_FENCE; }
+static inline bool isWall(unsigned char id)   { return id == BLOCK_COBBLE_WALL; }
 static inline bool isFenceGate(unsigned char id){ return id == BLOCK_FENCE_GATE; }
 static inline bool isDoor(unsigned char id)   { return id == BLOCK_DOOR_WOOD || id == BLOCK_DOOR_IRON; }
 static inline bool isBed(unsigned char id)    { return id == BLOCK_BED; }
@@ -196,6 +201,7 @@ static inline bool autoJumpable(unsigned char id, unsigned char data) {
     if (isStairs(id))                   return false;
     if (isSlab(id))                     return false;
     if (isFence(id) || isFenceGate(id)) return false;
+    if (isWall(id))                     return false;
     if (isTrapdoor(id) || isSign(id))   return false;
     if (id == BLOCK_COBWEB)             return false;
     if (isCarpet(id))                   return false;
@@ -252,6 +258,10 @@ enum { LEAF_TYPE_MASK = 3, LEAF_OAK = 0, LEAF_SPRUCE = 1, LEAF_BIRCH = 2,
 static inline bool isOpaque(unsigned char id) { return Tile::tiles[id]->opaque; }
 
 static inline bool connectsFence(unsigned char nb) { return isFence(nb) || isFenceGate(nb) || isOpaque(nb); }
+
+static inline bool connectsWall(unsigned char nb) {
+    return isWall(nb) || isFenceGate(nb) || Tile::tiles[nb]->wallConnect;
+}
 
 static inline bool paneAttachsTo(unsigned char id, unsigned char nb) {
     return nb == id || isGlass(nb) || isOpaque(nb);
@@ -314,6 +324,7 @@ int emitStairs(const World* w, int gx, int y, int gz, unsigned char id, unsigned
 
 int emitPane(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
 int emitFence(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
+int emitWall(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
 int emitDoor(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
 int emitTrapdoor(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
 int emitFenceGate(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);

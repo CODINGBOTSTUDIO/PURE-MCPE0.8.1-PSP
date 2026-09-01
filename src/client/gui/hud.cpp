@@ -227,6 +227,10 @@ static inline int logGuiIcon(unsigned char data) {
     }
 }
 
+static inline int wallGuiIcon(unsigned char data) {
+    return data == WALL_MOSSY ? 90 : 89;
+}
+
 static inline int plankGuiIcon(unsigned char data) {
     switch (data & PLANK_TYPE_MASK) {
         case PLANK_SPRUCE: return 72;
@@ -336,6 +340,7 @@ int getGuiBlockIcon(short id, unsigned char data) {
          : (id == BLOCK_SANDSTONE) ? sandstoneGuiIcon(data)
          : (id == BLOCK_QUARTZ_BLOCK) ? quartzGuiIcon(data)
          : (id == BLOCK_STONE_BRICKS) ? stoneBrickGuiIcon(data)
+         : isWall(id) ? wallGuiIcon(data)
          : isSlab(id) ? slabGuiIcon(id, data)
          : guiBlockIcon(id);
 }
@@ -574,6 +579,12 @@ const char* getBlockName(short id, unsigned char data) {
                 case SB_MOSSY:   return "Mossy Stone Bricks";
                 case SB_CRACKED: return "Cracked Stone Bricks";
                 default:         return "Stone Bricks";
+            }
+
+        case BLOCK_COBBLE_WALL:
+            switch (data) {
+                case WALL_MOSSY: return "Mossy Cobblestone Wall";
+                default:         return "Cobblestone Wall";
             }
         case BLOCK_DIRT: return "Dirt";
         case BLOCK_GRASS: return "Grass Block";

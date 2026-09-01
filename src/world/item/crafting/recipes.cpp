@@ -172,6 +172,10 @@ Recipes::Recipes() {
                     "##",
                     "##", { TILE('#', BLOCK_COBBLESTONE) });
 
+    addShapedRecipe(ItemInstance(BLOCK_COBBLE_WALL, 6, WALL_COBBLE),
+                    "###",
+                    "###", { TILE('#', BLOCK_COBBLESTONE) });
+
     addShapedRecipe(ItemInstance(BLOCK_SANDSTONE, 1, 0),
                     "##",
                     "##", { TILE('#', BLOCK_SAND) });

@@ -198,7 +198,7 @@ static const int GEN_CREATURE_CAP = 40;
 
 void populateInitial(Level* level) {
 
-    if (g_level.player->inventory->isCreative()) return;
+    if (!level->player || level->player->inventory->isCreative()) return;
 
     if (!activeLevelSource().spawnsMobs()) return;
 
@@ -251,7 +251,7 @@ void populateInitial(Level* level) {
 
 void tick(Level* level, bool spawnEnemies, bool spawnFriendlies) {
 
-    if (g_level.player->inventory->isCreative()) return;
+    if (!level->player || level->player->inventory->isCreative()) return;
 
     if (!activeLevelSource().spawnsMobs()) return;
 

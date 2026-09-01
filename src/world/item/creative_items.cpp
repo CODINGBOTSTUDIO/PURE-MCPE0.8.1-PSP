@@ -29,6 +29,8 @@ const CreativeEntry kItems[] = {
     { BLOCK_SANDSTONE,          5, SS_SMOOTH },
     { BLOCK_SAND,               1, 0 },
     { BLOCK_GRAVEL,             1, 0 },
+    { BLOCK_COBBLE_WALL,        1, WALL_COBBLE },
+    { BLOCK_COBBLE_WALL,        5, WALL_MOSSY },
 
     { BLOCK_LOG,                5, LOG_OAK },
     { BLOCK_LOG,                5, LOG_SPRUCE },

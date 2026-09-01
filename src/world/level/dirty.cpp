@@ -127,6 +127,31 @@ static void editQueueForceHead(int ci, int si) {
     editQueuePushFront(ci, si);
 }
 
+void worldRebuildRegionNow(World* w, int x0, int y0, int z0, int x1, int y1, int z1) {
+    if (!w->lightReady) return;
+
+    if (--y0 < 0) y0 = 0;
+    if (++y1 > WORLD_H - 1) y1 = WORLD_H - 1;
+    x0--; z0--; x1++; z1++;
+    int burst[8][2], nb = 0;
+    for (int cx = x0 >> 4; cx <= (x1 >> 4); cx++)
+    for (int cz = z0 >> 4; cz <= (z1 >> 4); cz++) {
+        if (!worldChunkSettled(w, cx, cz)) continue;
+        int ci = worldSlotIndex(w, cx, cz);
+        for (int si = y0 / SECTION_SY; si <= y1 / SECTION_SY; si++) {
+            editQueueForceHead(ci, si);
+            bool seen = false;
+            for (int k = 0; k < nb; k++) if (burst[k][0] == ci && burst[k][1] == si) { seen = true; break; }
+            if (!seen && nb < 8) { burst[nb][0] = ci; burst[nb][1] = si; nb++; }
+        }
+    }
+
+    int mx = (x0 + x1) / 2, my = (y0 + y1) / 2, mz = (z0 + z1) / 2;
+    if (worldChunkSettled(w, mx >> 4, mz >> 4))
+        editQueueForceHead(worldSlotIndex(w, mx >> 4, mz >> 4), my / SECTION_SY);
+    g_editBurst = nb;
+}
+
 void worldRebuildAroundNow(World* w, int x, int y, int z) {
     if (y < 0 || y >= WORLD_H) return;
 

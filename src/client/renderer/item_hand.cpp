@@ -150,6 +150,22 @@ int itemBuildBlockMesh(short id, unsigned char data, ChunkVertex* out) {
                            7.0f/16.0f, 5.0f/16.0f, -2.0f/16.0f, 9.0f/16.0f, 7.0f/16.0f, 18.0f/16.0f, 0, 0, out, n);
         return n;
     }
+    if (isWall(id)) {
+
+        const float POST_W = 4.0f/16.0f, WALL_W = 3.0f/16.0f, WALL_H = 13.0f/16.0f;
+        const float P0 = 0.5f - POST_W, P1 = 0.5f + POST_W;
+        const float A0 = 0.5f - WALL_W, A1 = 0.5f + WALL_W;
+        int n = 0;
+        n = emitPartialBox(&g_world, 0, 150, 0, id, data,
+                           P0, 0.0f, 0.75f, P1, 1.0f,   1.25f, 0, 0, out, n);
+        n = emitPartialBox(&g_world, 0, 150, 0, id, data,
+                           A0, 0.0f, 0.5f,  A1, WALL_H, 0.75f, 0, 0, out, n);
+        n = emitPartialBox(&g_world, 0, 150, 0, id, data,
+                           A0, 0.0f, 0.25f, A1, WALL_H, 0.5f,  0, 0, out, n);
+        n = emitPartialBox(&g_world, 0, 150, 0, id, data,
+                           P0, 0.0f, -0.25f, P1, 1.0f,  0.25f, 0, 0, out, n);
+        return n;
+    }
     if (isTrapdoor(id))
         return emitPartialBox(&g_world, 0, 150, 0, id, data,
                               0.0f, (8.0f - 1.5f)/16.0f, 0.0f, 1.0f, (8.0f + 1.5f)/16.0f, 1.0f, 0, 0, out, 0);

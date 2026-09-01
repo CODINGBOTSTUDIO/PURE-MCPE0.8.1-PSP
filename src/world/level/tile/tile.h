@@ -17,7 +17,8 @@ enum TileShape {
     SHAPE_CACTUS, SHAPE_TOPSNOW, SHAPE_REEDS, SHAPE_WHEAT, SHAPE_MELON_STEM,
     SHAPE_SLAB, SHAPE_STAIRS, SHAPE_PANE, SHAPE_FENCE, SHAPE_FENCEGATE,
     SHAPE_DOOR, SHAPE_TRAPDOOR, SHAPE_LADDER, SHAPE_TORCH, SHAPE_BED,
-    SHAPE_SIGN, SHAPE_CHEST, SHAPE_FIRE, SHAPE_CAKE, SHAPE_RAIL, SHAPE_CARPET
+    SHAPE_SIGN, SHAPE_CHEST, SHAPE_FIRE, SHAPE_CAKE, SHAPE_RAIL, SHAPE_CARPET,
+    SHAPE_WALL
 };
 
 static inline bool tileCanRenderAsBlock(int shape) {
@@ -31,6 +32,7 @@ static inline bool tileCanRenderAsBlock(int shape) {
         case SHAPE_STAIRS:
         case SHAPE_FENCE:
         case SHAPE_FENCEGATE:
+        case SHAPE_WALL:
 
         case SHAPE_CHEST:
             return true;
@@ -65,6 +67,8 @@ public:
     bool replaceable;
 
     bool blocksLight;
+
+    bool wallConnect;
     bool randomTicks;
     unsigned char lightBlock;
     unsigned char lightEmission;

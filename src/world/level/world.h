@@ -326,6 +326,8 @@ void worldEditQueueDropSlot(int slotIdx);
 
 void worldRebuildAroundNow(World* w, int x, int y, int z);
 
+void worldRebuildRegionNow(World* w, int x0, int y0, int z0, int x1, int y1, int z1);
+
 void lightOnBlockChanged(World* w, int x, int y, int z);
 
 void worldRelightBox(World* w, int x0, int y0, int z0, int x1, int y1, int z1);

@@ -111,6 +111,8 @@ Drop Tile::getResource(int data) {
         case BLOCK_QUARTZ_BLOCK:        return { BLOCK_QUARTZ_BLOCK, 1, (short)data };
         case BLOCK_STONE_BRICKS:        return { BLOCK_STONE_BRICKS, 1, (short)data };
 
+        case BLOCK_COBBLE_WALL:         return { BLOCK_COBBLE_WALL, 1, (short)data };
+
         case BLOCK_FURNACE_LIT:         return { BLOCK_FURNACE, 1, 0 };
         case BLOCK_GLOWING_OBSIDIAN:    return { BLOCK_OBSIDIAN, 1, 0 };
 
@@ -428,6 +430,11 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
             }
             break;
         case BLOCK_MOSSY_COBBLE: *col = 4; *row = 2;  break;
+
+        case BLOCK_COBBLE_WALL:
+            if (data == WALL_MOSSY) { *col = 4; *row = 2; }
+            else                    { *col = 0; *row = 1; }
+            break;
         case BLOCK_OBSIDIAN:     *col = 5; *row = 2;  break;
         case BLOCK_GLOWING_OBSIDIAN: *col = 12; *row = 8;  break;
         case BLOCK_GOLD_BLOCK:   *col = 7; *row = 1;  break;
@@ -677,6 +684,12 @@ struct FenceTile : Tile { FenceTile(unsigned char i) : Tile(i) {}
         out[0].z1 = fs ? z + 1.0f : z + 10.0f/16.0f;
         out[0].y0 = (float)y; out[0].y1 = y + 1.5f;
         return 1; } };
+
+struct WallTile : Tile { WallTile(unsigned char i) : Tile(i) {}
+    int getAABB(const World* w, int x, int y, int z, BlockAABB out[3]) {
+        int n = getTileAABB(w, x, y, z, out);
+        if (n > 0) out[0].y1 = y + 1.5f;
+        return n; } };
 
 struct DoorTile : Tile { DoorTile(unsigned char i) : Tile(i) {}
     bool canSurvive(World* w, int x, int y, int z) { return supportCanSurvive(w, id, x, y, z, -1); }
@@ -1177,6 +1190,7 @@ static bool rawCube(unsigned char id) {
     if (isCrossShaped(id)) return false;
     if (id == BLOCK_CACTUS || id == BLOCK_TOPSNOW || id == BLOCK_TORCH) return false;
     if (isFence(id) || isFenceGate(id) || isPane(id)) return false;
+    if (isWall(id)) return false;
     if (isStairs(id) || isSlab(id)) return false;
     if (id == BLOCK_TRAPDOOR || isDoor(id) || id == BLOCK_LADDER || id == BLOCK_TORCH || isBed(id)) return false;
     if (id == BLOCK_FIRE) return false;
@@ -1194,7 +1208,8 @@ static bool rawOpaque(unsigned char id) {
            !isSlab(id) && !isStairs(id) && id != BLOCK_FENCE && id != BLOCK_LADDER && id != BLOCK_TORCH &&
            !isDoor(id) && !isTrapdoor(id) && !isFenceGate(id) && !isBed(id) && id != BLOCK_FARMLAND &&
            id != BLOCK_CHEST && !isSign(id) && id != BLOCK_FIRE && id != BLOCK_CAKE &&
-           !isRail(id) && !isCarpet(id);
+           !isRail(id) && !isCarpet(id) &&
+           !isWall(id);
 }
 static bool rawReplaceable(unsigned char id) {
 
@@ -1210,7 +1225,7 @@ static int rawLightOpacity(unsigned char id) {
     if (isCrossShaped(id) ||
         id == BLOCK_CACTUS || id == BLOCK_TOPSNOW ||
         id == BLOCK_GLASS || isPane(id) ||
-        isFence(id) || isStairs(id) || isSlab(id) || isDoor(id) ||
+        isFence(id) || isWall(id) || isStairs(id) || isSlab(id) || isDoor(id) ||
         isTrapdoor(id) || isFenceGate(id) || id == BLOCK_LADDER || id == BLOCK_TORCH || isBed(id) ||
         id == BLOCK_FARMLAND || isSign(id) || id == BLOCK_FIRE ||
         id == BLOCK_CHEST || id == BLOCK_CAKE || isRail(id) ||
@@ -1326,6 +1341,8 @@ static float rawDestroySpeed(int id) {
             return 0.6f;
         case BLOCK_PLANKS: case BLOCK_LOG: case BLOCK_FENCE: case BLOCK_FENCE_GATE:
         case BLOCK_DOUBLE_SLAB: case BLOCK_SLAB: case BLOCK_COBBLESTONE:
+
+        case BLOCK_COBBLE_WALL:
         case BLOCK_WOOD_SLAB: case BLOCK_WOOD_SLAB_DOUBLE:
         case BLOCK_BRICKS: case BLOCK_MOSSY_COBBLE: case BLOCK_NETHER_BRICK:
         case BLOCK_STAIRS_PLANKS: case BLOCK_STAIRS_COBBLESTONE:
@@ -1427,6 +1444,8 @@ static float rawExplosionResistance(int id) {
         case BLOCK_STAIRS_SANDSTONE:    return rawExplosionResistance(BLOCK_SANDSTONE);
         case BLOCK_STAIRS_QUARTZ:       return rawExplosionResistance(BLOCK_QUARTZ_BLOCK);
 
+        case BLOCK_COBBLE_WALL:         return rawExplosionResistance(BLOCK_COBBLESTONE) / 3.0f;
+
         case BLOCK_WATER: case BLOCK_CALM_WATER: case BLOCK_CALM_LAVA: return 100.0f;
         case BLOCK_LAVA:                                               return 0.0f;
 
@@ -1442,6 +1461,7 @@ static int shapeOf(unsigned char id) {
     if (isStairs(id))           return SHAPE_STAIRS;
     if (isPane(id))             return SHAPE_PANE;
     if (isFence(id))            return SHAPE_FENCE;
+    if (isWall(id))             return SHAPE_WALL;
     if (isFenceGate(id))        return SHAPE_FENCEGATE;
     if (isDoor(id))             return SHAPE_DOOR;
     if (isTrapdoor(id))         return SHAPE_TRAPDOOR;
@@ -1517,6 +1537,7 @@ static Tile* makeTile(unsigned char id) {
         case SHAPE_STAIRS:    return new StairTile(id);
         case SHAPE_PANE:      return new PaneTile(id);
         case SHAPE_FENCE:     return new FenceTile(id);
+        case SHAPE_WALL:      return new WallTile(id);
         case SHAPE_FENCEGATE: return new FenceGateTile(id);
         case SHAPE_DOOR:      return new DoorTile(id);
         case SHAPE_TRAPDOOR:  return new TrapdoorTile(id);
@@ -1546,6 +1567,8 @@ void Tile::initTiles() {
         t->slipperiness  = rawSlipperiness((unsigned char)id);
         t->material      = &materialOf((unsigned char)id);
         t->blocksLight   = t->material->blocksLight();
+        t->wallConnect   = t->material->isSolidBlocking() && t->cube &&
+                           t->material != &Material::vegetable;
         tiles[id] = t;
     }
 }

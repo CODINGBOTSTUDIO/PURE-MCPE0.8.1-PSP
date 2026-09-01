@@ -553,6 +553,36 @@ static inline int emitGateBox(const World* w, int gx, int y, int gz,
                           boxBoundaryMask(x0, y0, z0, x1, y1, z1), 0, out, n);
 }
 
+int emitWall(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n) {
+    const float POST_W = 4.0f/16.0f;
+    const float WALL_W = 3.0f/16.0f;
+    const float WALL_H = 13.0f/16.0f;
+    const float P0 = 0.5f - POST_W, P1 = 0.5f + POST_W;
+    const float A0 = 0.5f - WALL_W, A1 = 0.5f + WALL_W;
+
+    bool cw = connectsWall(worldBlock(w, gx - 1, y, gz));
+    bool ce = connectsWall(worldBlock(w, gx + 1, y, gz));
+    bool cn = connectsWall(worldBlock(w, gx,     y, gz - 1));
+    bool cs = connectsWall(worldBlock(w, gx,     y, gz + 1));
+
+    bool vertical   =  cn &&  cs && !cw && !ce;
+    bool horizontal = !cn && !cs &&  cw &&  ce;
+
+    bool emptyAbove = worldBlock(w, gx, y + 1, gz) == BLOCK_AIR;
+
+    if (vertical && emptyAbove)
+        return emitGateBox(w, gx, y, gz, id, data, A0, 0.0f, 0.0f, A1, WALL_H, 1.0f, out, n);
+    if (horizontal && emptyAbove)
+        return emitGateBox(w, gx, y, gz, id, data, 0.0f, 0.0f, A0, 1.0f, WALL_H, A1, out, n);
+
+    n = emitGateBox(w, gx, y, gz, id, data, P0, 0.0f, P0, P1, 1.0f, P1, out, n);
+    if (cw) n = emitGateBox(w, gx, y, gz, id, data, 0.0f, 0.0f, A0,   P0,   WALL_H, A1,   out, n);
+    if (ce) n = emitGateBox(w, gx, y, gz, id, data, P1,   0.0f, A0,   1.0f, WALL_H, A1,   out, n);
+    if (cn) n = emitGateBox(w, gx, y, gz, id, data, A0,   0.0f, 0.0f, A1,   WALL_H, P0,   out, n);
+    if (cs) n = emitGateBox(w, gx, y, gz, id, data, A0,   0.0f, P1,   A1,   WALL_H, 1.0f, out, n);
+    return n;
+}
+
 int emitFenceGate(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n) {
     bool open = (data & 4) != 0;
     int dir = data & 3;

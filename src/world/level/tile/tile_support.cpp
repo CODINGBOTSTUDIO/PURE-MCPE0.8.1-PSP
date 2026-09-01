@@ -49,7 +49,8 @@ bool supportCanSurvive(World* w, unsigned char id, int x, int y, int z, int data
             unsigned char d = (data == -1) ? worldData(w, x, y, z) : data;
 
             if (d == 5) { unsigned char below = worldBlock(w, x, y - 1, z);
-                          return isOpaque(below) || isFence(below) || below == BLOCK_GLASS; }
+                          return isOpaque(below) || isFence(below) || isWall(below) ||
+                                 below == BLOCK_GLASS; }
             if (d == 1) return isOpaque(worldBlock(w, x - 1, y, z));
             if (d == 2) return isOpaque(worldBlock(w, x + 1, y, z));
             if (d == 3) return isOpaque(worldBlock(w, x, y, z - 1));

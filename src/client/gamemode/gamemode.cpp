@@ -80,7 +80,7 @@ MiningState g_mining = { false, 0, 0, 0, 0.0f };
 int g_useItemDelay = 0;
 
 void playerDropSelected(bool all) {
-    if (g_level.player->inventory->isCreative() || !g_level.player) return;
+    if (!g_level.player || g_level.player->inventory->isCreative()) return;
     ItemInstance* held = g_level.player->inventory->getSelected();
     if (!held || held->isNull()) return;
 
@@ -428,6 +428,8 @@ static unsigned int autoRepeatClicks(unsigned int pressed, unsigned int held) {
 }
 
 void GameMode::handleInput(unsigned int pressed, unsigned int held) {
+
+    if (!g_level.player) return;
 
     if (g_worldBuilt) pressed |= autoRepeatClicks(pressed, held);
 

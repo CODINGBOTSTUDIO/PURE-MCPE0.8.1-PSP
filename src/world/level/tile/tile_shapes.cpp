@@ -248,6 +248,30 @@ int tileShapeBoxes(const World* w, int x, int y, int z, unsigned char id,
 
         SET(out[0], fx0, (float)y, fz0, fx1, y + 1.0f, fz1);
         return 1;
+    } else if (isWall(id)) {
+
+        const float POST_W = 4.0f/16.0f;
+        const float WALL_W = 3.0f/16.0f;
+        const float WALL_H = 13.0f/16.0f;
+        bool wn = connectsWall(worldBlock(w, x, y, z - 1));
+        bool ws = connectsWall(worldBlock(w, x, y, z + 1));
+        bool ww = connectsWall(worldBlock(w, x - 1, y, z));
+        bool we = connectsWall(worldBlock(w, x + 1, y, z));
+        float minX = 0.5f - POST_W, maxX = 0.5f + POST_W;
+        float minZ = 0.5f - POST_W, maxZ = 0.5f + POST_W;
+        float maxY = 1.0f;
+        if (wn) minZ = 0.0f;
+        if (ws) maxZ = 1.0f;
+        if (ww) minX = 0.0f;
+        if (we) maxX = 1.0f;
+
+        if (wn && ws && !ww && !we) {
+            maxY = WALL_H; minX = 0.5f - WALL_W; maxX = 0.5f + WALL_W;
+        } else if (!wn && !ws && ww && we) {
+            maxY = WALL_H; minZ = 0.5f - WALL_W; maxZ = 0.5f + WALL_W;
+        }
+        SET(out[0], x + minX, (float)y, z + minZ, x + maxX, y + maxY, z + maxZ);
+        return 1;
     } else if (isDoor(id)) {
         bool isUpper = (data & 8) != 0;
         int lowerData = isUpper ? worldData(w, x, y - 1, z) : data;

@@ -18,6 +18,8 @@ static const unsigned char kFaceUV[6][4][2] = {
 
 #define FENCE_GATE_VERTS 288
 
+#define WALL_VERTS (5 * 36)
+
 static const float SEAM_INFLATE = 0.0f;
 
 static inline float seamOff(int corner) { return corner ? SEAM_INFLATE : -SEAM_INFLATE; }
@@ -450,6 +452,12 @@ int meshPass(const World* w, int ox, int oz, int y0, int y1, ChunkVertex* out, i
             continue;
         }
 
+        if (layer == 0 && isWall(id)) {
+            if (out && n + WALL_VERTS > cap) return -1;
+            n = emitWall(w, gx, y, gz, id, worldData(w, gx, y, gz), out, n);
+            continue;
+        }
+
         if (layer == 3 && isDoor(id)) {
             if (out && n + 36 > cap) return -1;
             n = emitDoor(w, gx, y, gz, id, worldData(w, gx, y, gz), out, n);
@@ -734,6 +742,12 @@ int meshSectionSink(const World* w, int ox, int oz, int y0, int y1,
         if (isFence(id)) {
             if (!sinkReserve(&sk, 0, 324)) return -1;
             no = emitFence(w, gx, y, gz, id, worldData(w, gx, y, gz), sk.buf[0], no);
+            continue;
+        }
+
+        if (isWall(id)) {
+            if (!sinkReserve(&sk, 0, WALL_VERTS)) return -1;
+            no = emitWall(w, gx, y, gz, id, worldData(w, gx, y, gz), sk.buf[0], no);
             continue;
         }
 
