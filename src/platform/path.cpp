@@ -25,8 +25,8 @@ const char* assetPath(const char* rel) {
     return buf;
 }
 
-static const char* const kSaveDir  = "MCPSP0001";
-static const char* const kSaveRoot = "ms0:/PSP/SAVEDATA/MCPSP0001/";
+static const char* const kSaveDir  = "Minecraft";
+static const char* const kSaveRoot = "ms0:/PSP/SAVEDATA/Minecraft/";
 
 const char* savePath(const char* rel) {
     static char buf[320];
