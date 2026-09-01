@@ -36,7 +36,8 @@ The gameplay and world logic were re-interpreted line by line from the original 
 and fully re-written for the PSP™ where the code needed it the most.  
 
 The biggest difference is how the map is kept in memory.  
-Originally MCPE holds the world data as a cache of separate chunk objects, each carrying its own block, data and light arrays.  
+Originally MCPE holds the world data as a cache of separate chunk objects,  
+each carrying its own block, data and light arrays.  
 
 Instead, here the whole world[^3] is present at once,  
 so all three of the bellow had to get much smaller than a byte per block.  
@@ -47,8 +48,10 @@ so all three of the bellow had to get much smaller than a byte per block.
   **4 bits per block** indexing a 16-entry palette, if there are more than 16 block types per chunk
   a full byte is used, resulting in a practically limitless palette per chunk where
   you are actively building. TLDR, 8 MB of World Data become roughly 3 MB.
-- `data` — metadata is stored separately in **4 bits per block**: one 64-byte page per column, allocated on the first non-zero write.  
-  Real world test prove that ~95% of columns never hold any metadata at all, so 4 MB is compressed to about 0.6 MB.
+- `data` — metadata is stored separately in **4 bits per block**:  
+  one 64-byte page per column, allocated on the first non-zero write.  
+  Real world test prove that ~95% of columns never hold any metadata at all,
+  so 4 MB is compressed to about 0.6 MB.
 - `light` — sky and block light is stored in **16×16 horizontal planes** with a sentinel index,  
   also from the console editions. About 95% of sky planes and 80% of block-light planes are uniform,  
   and cost one index entry instead of a page, so 8 MB of lighting data becomes 1 MB.
@@ -57,7 +60,8 @@ Together that is roughly 20 MB of world data compressed down to about 4 MB,
 which is what makes the whole map fit on a 32 MB PSP™ alongside the meshes.  
 
 The world is generated once at load around the spawn point, and the rest builds lazily as you walk toward it.  
-Only the mesh columns near the camera are drawn. So it is the same *fixed* MCPE world, just held and streamed differently.
+Only the mesh columns near the camera are drawn.  
+So it is the same *fixed* MCPE world, just held and streamed differently.
 
 ## Building
 
@@ -91,12 +95,11 @@ next to the EBOOT.
 
 ## DualShock 3/Sixaxis
 
-Options > Controls > Control Scheme > **Layout 4** puts the camera on the right analogue stick
-and gives every action its own button
+Options > Controls > Control Scheme > **Layout 4** makes use of all the available buttons.
 * place and break on L2/R2,
 * the hotbar on L1/R1,
 * crafting and inventory on Square/Triangle,
-* third person and sneak on L3 and R3 respectivley.  
+* sneak and third person on L3 and R3 respectively.  
 >[!IMPORTANT]
 >A Dualshock 3/Sixaxis controller needs to be paired to the console,  
 >and the required plugin below needs to be installed:
@@ -116,7 +119,7 @@ The port does not require the plugin and never refuses to run without one:
 with no Dualshock/Sixaxis in sight,  
 Layout 4 is greyed out in the Controls page, and is quietly reported as Layout 1,  
 however it is automatically enabled the moment the pad turns up.  
-A saved Layout 4 survives a boot on a plain PSP.  
+A saved Layout 4 survives a boot on a plain PSP™.  
 
 ## Hardware
 
@@ -221,7 +224,7 @@ that is worth more than a warning nobody reads.
 ### other PSP™ projects this port has build of off
 
 - [**DaedalusX64**](https://github.com/DaedalusX64/daedalus) — the N64 emulator
-  for PSP™, and the sharpest PSP™ renderer to read. `src/util/fast_memcpy.cpp` is
+  for PSP™, and the sharpest PSP™ renderer to date. `src/util/fast_memcpy.cpp` is
   it's `memcpy_vfpu` (`Source/SysPSP/Utility/FastMemcpyPSP.cpp`, © 2009 Raphael,
   modified by Corn) copied essentially verbatim; Daedalus is
   GPL-2.0-**or-later**, so it is carried here under GPLv3. Two of its practices
@@ -244,17 +247,19 @@ project, including the earlier ones** — there is no MIT branch of it still on
 offer. (Copies someone already received under the old MIT terms keep those
 rights; that part is not up to anyone.)
 
-**What the GPL does not cover:** the gameplay and world logic in this project is
-ported from the Minecraft Pocket Edition 0.6.1 sources, and Minecraft is the
-intellectual property of Mojang / Microsoft. That copyright, and the
-"Minecraft" trademark, are theirs — the GPL grant applies only to the original
-PSP™ engine work, not to anything derived from Mojang's code.
+**What the GPL does not cover:**  
+the gameplay and world logic in this project are based on the
+Minecraft Pocket Edition 0.6.1 source code, and Minecraft is the
+intellectual property of Mojang AB / Microsoft Corporation.  
+That copyright, and the "Minecraft" trademark, are theirs.  
+The GPL grant applies only to the original PSP™ engine work,  
+not to anything derived from Mojang's code.
 
 This is a non-commercial, educational project and is not affiliated with,
-endorsed by, or associated with Mojang or Microsoft. The game assets bundled
-under `data/` (textures such as `terrain.png`, sounds, the font, mob and GUI
-art) are the property of Mojang / Microsoft and are not covered by the GPL
-above; they are included only to make this educational port runnable.
+endorsed by, or associated with Mojang AB or Microsoft Corporation.  
+The game assets bundled under `data/`[^6] are the property of  
+Mojang AB / Microsoft Corporation and are not covered by the GPL above;  
+they are included only to make this educational port runnable.
 If you are a rights holder and want anything removed, open an issue.
 
 [^1]: If your phones still hoists the same .APK/.IPA from circa 2013 :P
@@ -262,3 +267,4 @@ If you are a rights holder and want anything removed, open an issue.
 [^3]: [Each world is 256x128x256 blocks deep, tall and wide.](https://minecraft.wiki/w/World_boundary#Bedrock_Edition_2)
 [^4]: https://consolemods.org/wiki/PSP:Model_Differences
 [^5]: 11 kHz instead of the usual 22 kHz
+[^6]: textures such as `terrain.png`, sounds, the font, mob and GUI art
