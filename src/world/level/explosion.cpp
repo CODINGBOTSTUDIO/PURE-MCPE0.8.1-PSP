@@ -88,33 +88,6 @@ void worldExplode(World* w, float x, float y, float z, float r) {
         }
     }
 
-    int bx0 = cx + R, by0 = cy + R, bz0 = cz + R;
-    int bx1 = cx - R, by1 = cy - R, bz1 = cz - R;
-    for (int lx = 0; lx < W; lx++)
-    for (int ly = 0; ly < W; ly++)
-    for (int lz = 0; lz < W; lz++) {
-        if (!VIS(lx, ly, lz)) continue;
-        int bx = cx - R + lx, by = cy - R + ly, bz = cz - R + lz;
-        unsigned char id = worldBlock(w, bx, by, bz);
-        if (id == BLOCK_AIR) continue;
-
-        if (frand() < 0.3f)
-            worldSpawnResources(w, bx, by, bz, id, worldData(w, bx, by, bz));
-        if (id == BLOCK_TNT) {
-
-            worldPrimeTnt(w, bx, by, bz, rand() % 20 + 10, false);
-        } else {
-            worldSetBlockAndData(w, bx, by, bz, BLOCK_AIR, 0);
-            worldNotifyNeighborsChanged(w, bx, by, bz);
-            if (bx < bx0) bx0 = bx;  if (bx > bx1) bx1 = bx;
-            if (by < by0) by0 = by;  if (by > by1) by1 = by;
-            if (bz < bz0) bz0 = bz;  if (bz > bz1) bz1 = bz;
-        }
-    }
-    worldUpdateLights(w);
-
-    if (bx1 >= bx0) worldRebuildRegionNow(w, bx0, by0, bz0, bx1, by1, bz1);
-
     const float r2 = r * 2.0f;
 
     static EntityList caught;
@@ -152,6 +125,33 @@ void worldExplode(World* w, float x, float y, float z, float r) {
             g_level.player->xd += dx * inv * pw; g_level.player->yd += dy * inv * pw; g_level.player->zd += dz * inv * pw;
         }
     }
+
+    int bx0 = cx + R, by0 = cy + R, bz0 = cz + R;
+    int bx1 = cx - R, by1 = cy - R, bz1 = cz - R;
+    for (int lx = 0; lx < W; lx++)
+    for (int ly = 0; ly < W; ly++)
+    for (int lz = 0; lz < W; lz++) {
+        if (!VIS(lx, ly, lz)) continue;
+        int bx = cx - R + lx, by = cy - R + ly, bz = cz - R + lz;
+        unsigned char id = worldBlock(w, bx, by, bz);
+        if (id == BLOCK_AIR) continue;
+
+        if (frand() < 0.3f)
+            worldSpawnResources(w, bx, by, bz, id, worldData(w, bx, by, bz));
+        if (id == BLOCK_TNT) {
+
+            worldPrimeTnt(w, bx, by, bz, rand() % 20 + 10, false);
+        } else {
+            worldSetBlockAndData(w, bx, by, bz, BLOCK_AIR, 0);
+            worldNotifyNeighborsChanged(w, bx, by, bz);
+            if (bx < bx0) bx0 = bx;  if (bx > bx1) bx1 = bx;
+            if (by < by0) by0 = by;  if (by > by1) by1 = by;
+            if (bz < bz0) bz0 = bz;  if (bz > bz1) bz1 = bz;
+        }
+    }
+    worldUpdateLights(w);
+
+    if (bx1 >= bx0) worldRebuildRegionNow(w, bx0, by0, bz0, bx1, by1, bz1);
 
     particlesExplosion(w, x, y, z);
 

@@ -12,6 +12,7 @@
 #include "gpu/sprite.h"
 #include "platform/audio/sound.h"
 #include "world/item/crafting/recipes.h"
+#include "world/level/tile/material.h"
 #include "world/item/item.h"
 #include "world/item/bucket_item.h"
 #include "world/level/level.h"
@@ -56,23 +57,13 @@ static const int kCatBits[4] = { ItemCategory::Structures, ItemCategory::Tools,
                                  ItemCategory::FoodArmor,  ItemCategory::Decorations };
 
 static bool isStonecutterItem(const ItemInstance& ins) {
-    if (ins.id >= 256) return false;
-    switch (ins.id) {
-        case BLOCK_LAPIS_BLOCK: case BLOCK_FURNACE: case BLOCK_STONECUTTER:
-            return false;
-        case BLOCK_SLAB:
-            return ins.data != 2 ;
-        case BLOCK_STONE: case BLOCK_COBBLESTONE: case BLOCK_MOSSY_COBBLE:
-        case BLOCK_SAND: case BLOCK_GRAVEL: case BLOCK_SANDSTONE:
-        case BLOCK_BRICKS: case BLOCK_STONE_BRICKS: case BLOCK_NETHER_BRICK:
-        case BLOCK_QUARTZ_BLOCK: case BLOCK_DOUBLE_SLAB: case BLOCK_OBSIDIAN:
-        case BLOCK_STAIRS_COBBLESTONE: case BLOCK_STAIRS_BRICK:
-        case BLOCK_STAIRS_STONE_BRICK: case BLOCK_STAIRS_NETHER_BRICK:
-        case BLOCK_STAIRS_SANDSTONE: case BLOCK_STAIRS_QUARTZ:
-            return true;
-        default:
-            return false;
-    }
+    if (ins.id <= 0 || ins.id >= 256) return false;
+
+    if (ins.id == BLOCK_LAPIS_BLOCK || ins.id == BLOCK_FURNACE ||
+        ins.id == BLOCK_STONECUTTER) return false;
+    if (ins.id == BLOCK_SLAB && ins.data == 2 ) return false;
+    const Material& m = materialOf((unsigned char)ins.id);
+    return &m == &Material::stone || &m == &Material::sand;
 }
 
 static const char* stonecutterGroup(const ItemInstance& r) {
@@ -81,7 +72,9 @@ static const char* stonecutterGroup(const ItemInstance& r) {
     switch (r.id) {
         case BLOCK_STONE: case BLOCK_STONE_BRICKS: case BLOCK_STAIRS_STONE_BRICK:
             return "1 ";
+
         case BLOCK_COBBLESTONE: case BLOCK_MOSSY_COBBLE: case BLOCK_STAIRS_COBBLESTONE:
+        case BLOCK_COBBLE_WALL:
             return "2 ";
         case BLOCK_SANDSTONE: case BLOCK_STAIRS_SANDSTONE:
             return "3 ";

@@ -4,7 +4,7 @@ const GenFeatureDef kGenFeatures[GEN_FEATURE_COUNT] = {
 
     { "Generate Caves", false },
 
-    { "Tall Grass", false },
+    { "Extra Vegetation", false },
 };
 
 int genFeaturesDefaultMask() {

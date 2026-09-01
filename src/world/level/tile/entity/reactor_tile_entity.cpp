@@ -195,18 +195,22 @@ ItemInstance ReactorTileEntity::getSpawnItem() {
         case 4: return ItemInstance(ITEM_REEDS, 1, 0);
         case 5: return ItemInstance(BLOCK_CACTUS, 1, 0);
         case 6: return ItemInstance(ITEM_NETHER_QUARTZ, 4, 0);
-        case 7: return ItemInstance(ITEM_CLAY, 1, 0);
+        case 7: return ItemInstance(ITEM_CLAY, 3, 0);
         default: return GetLowOddsSpawnItem();
     }
 }
 
 ItemInstance ReactorTileEntity::GetLowOddsSpawnItem() {
-    static const short items[] = {
-        ITEM_ARROW, ITEM_BED_ITEM, ITEM_BONE, ITEM_BOW,
-        ITEM_BOWL, ITEM_FEATHER, ITEM_PAINTING, ITEM_DOOR_WOOD_ITEM
+    struct Row { short id; short aux; };
+    static const Row items[] = {
+        { ITEM_ARROW, 0 }, { ITEM_BONE, 0 }, { ITEM_BOWL, 0 },
+        { BLOCK_SAPLING, LEAF_JUNGLE }, { BLOCK_SAPLING, LEAF_SPRUCE },
+        { ITEM_SEEDS_PUMPKIN, 0 }, { ITEM_SEEDS_BEETROOT, 0 },
+        { ITEM_BONEMEAL, 0  },
     };
     int n = (int)(sizeof(items) / sizeof(items[0]));
-    return ItemInstance(items[rng().nextInt(n)], 1, 0);
+    const Row& r = items[rng().nextInt(n)];
+    return ItemInstance(r.id, 1, r.aux);
 }
 
 bool ReactorTileEntity::checkLevelChange(int progress) {
