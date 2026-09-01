@@ -202,6 +202,8 @@ void Item::initItems() {
             { BLOCK_STONE, 1 }, { BLOCK_PLANKS, 1 }, { BLOCK_COBBLESTONE, 1 },
             { BLOCK_SAND, 1 }, { BLOCK_SANDSTONE, 1 }, { BLOCK_WOOL, 1 }, { BLOCK_SLAB, 1 }, { BLOCK_WOOD_SLAB, 1 },
             { BLOCK_SPONGE, 1 },
+
+            { BLOCK_PUMPKIN, 1 }, { BLOCK_PUMPKIN_LIT, 1 },
             { BLOCK_BRICKS, 1 }, { BLOCK_GLASS_PANE, 1 }, { BLOCK_FENCE, 1 },
             { BLOCK_COBBLE_WALL, 1 },
             { BLOCK_FENCE_GATE, 1 }, { BLOCK_SNOW_BLOCK, 1 }, { BLOCK_CLAY, 1 },
