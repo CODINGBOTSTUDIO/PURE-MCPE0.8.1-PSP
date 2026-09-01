@@ -93,7 +93,7 @@ const CreativeEntry kItems[] = {
     { BLOCK_TRAPDOOR,           1, 0 },
     { BLOCK_FENCE,              1, 0 },
     { BLOCK_FENCE_GATE,         1, 0 },
-
+    { BLOCK_IRON_BARS,          1, 0 },
     { ITEM_BED_ITEM,            1, 0 },
     { BLOCK_BOOKSHELF,          1, 0 },
     { ITEM_PAINTING,            1, 0 },

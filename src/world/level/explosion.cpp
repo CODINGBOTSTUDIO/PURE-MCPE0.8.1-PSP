@@ -3,6 +3,7 @@
 #include "world/level/level.h"
 #include "world/entity/local_player.h"
 #include "world/level/chunk/chunk.h"
+#include "world/level/tile/tile.h"
 #include "world/level/level.h"
 #include "world/entity/primed_tnt.h"
 #include "world/phys/aabb.h"
@@ -17,13 +18,8 @@ extern Level g_level;
 
 static inline float frand() { return (float)rand() / (float)RAND_MAX; }
 
-static float explosionResistance(unsigned char id) {
-    if (id == BLOCK_AIR) return 0.0f;
-    if (id == BLOCK_BEDROCK) return 1e7f;
-    if (id == BLOCK_OBSIDIAN) return 6000.0f;
-    if (id == BLOCK_GLOWING_OBSIDIAN) return 2000.0f;
-    if (isLiquidId(id)) return 100.0f;
-    return 0.0f;
+static inline float explosionResistance(unsigned char id) {
+    return Tile::tiles[id]->explosionResistance;
 }
 
 static bool rayBlocked(World* w, float ax, float ay, float az, float bx, float by, float bz) {
@@ -99,12 +95,13 @@ void worldExplode(World* w, float x, float y, float z, float r) {
         int bx = cx - R + lx, by = cy - R + ly, bz = cz - R + lz;
         unsigned char id = worldBlock(w, bx, by, bz);
         if (id == BLOCK_AIR) continue;
+
+        if (frand() < 0.3f)
+            worldSpawnResources(w, bx, by, bz, id, worldData(w, bx, by, bz));
         if (id == BLOCK_TNT) {
+
             worldPrimeTnt(w, bx, by, bz, rand() % 20 + 10, false);
         } else {
-
-            if (frand() < 0.3f)
-                worldSpawnResources(w, bx, by, bz, id, worldData(w, bx, by, bz));
             worldSetBlockAndData(w, bx, by, bz, BLOCK_AIR, 0);
             worldNotifyNeighborsChanged(w, bx, by, bz);
         }
@@ -114,7 +111,9 @@ void worldExplode(World* w, float x, float y, float z, float r) {
     const float r2 = r * 2.0f;
 
     static EntityList caught;
-    g_level.getEntities(0, AABB(x - r2, y - r2, z - r2, x + r2, y + r2, z + r2), caught);
+
+    g_level.getEntities(0, AABB(x - r2 - 1.0f, y - r2 - 1.0f, z - r2 - 1.0f,
+                                x + r2 + 1.0f, y + r2 + 1.0f, z + r2 + 1.0f), caught);
     for (size_t i = 0; i < caught.size(); i++) {
         Entity* e = caught[i];
         if (e->removed) continue;
@@ -126,7 +125,8 @@ void worldExplode(World* w, float x, float y, float z, float r) {
         dx *= inv; dy *= inv; dz *= inv;
         float seen = seenPercent(w, x, y, z, e->bb);
         float pw = (1.0f - dist) * seen;
-        e->hurt(0, (int)((pw * pw + pw) / 2.0f * 8.0f * r + 1.0f));
+
+        e->hurt(0, (int)((pw * pw + pw) / 2.0f * 8.0f * r2 + 1.0f));
         e->xd += dx * pw; e->yd += dy * pw; e->zd += dz * pw;
     }
 
@@ -141,7 +141,7 @@ void worldExplode(World* w, float x, float y, float z, float r) {
             float seen = seenPercent(w, x, y, z, pbb);
             float inv = dd > 1e-4f ? 1.0f / dd : 0.0f;
             float pw = (1.0f - dist) * seen;
-            g_level.player->hurt(0, (int)((pw * pw + pw) / 2.0f * 8.0f * r + 1.0f));
+            g_level.player->hurt(0, (int)((pw * pw + pw) / 2.0f * 8.0f * r2 + 1.0f));
             g_level.player->xd += dx * inv * pw; g_level.player->yd += dy * inv * pw; g_level.player->zd += dz * inv * pw;
         }
     }

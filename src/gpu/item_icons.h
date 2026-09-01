@@ -19,6 +19,7 @@
 #define II_TILE_FLOWER         85
 #define II_TILE_GLASS_PANE    155
 #define II_TILE_GOLDEN_RAIL   157
+#define II_TILE_IRON_BARS     158
 #define II_TILE_MUSHROOM_BROWN  87
 #define II_TILE_MUSHROOM_RED   88
 #define II_TILE_RAIL          156

@@ -48,7 +48,7 @@ int emitPartialBox(const World* w, int gx, int y, int gz, unsigned char id, unsi
                 }
             }
 
-            if (isPane(id) && isPane(nb)) {
+            if (isPane(id) && nb == id) {
                 if (f != F_TOP && f != F_DOWN) hide = true;
             }
         }
@@ -60,7 +60,8 @@ int emitPartialBox(const World* w, int gx, int y, int gz, unsigned char id, unsi
             tileForBlock(id, data, f, &col, &row, &tint);
 
             const bool edgeFace = (edgeFaceMask & (1 << f)) != 0;
-            if (edgeFace) { col = PANE_EDGE_COL; row = PANE_EDGE_ROW; }
+
+            if (edgeFace && id == BLOCK_GLASS_PANE) { col = PANE_EDGE_COL; row = PANE_EDGE_ROW; }
             float u0 = col * TILE_UV, v0 = row * TILE_UV;
 
             int faceBr;
@@ -215,15 +216,11 @@ int emitStairs(const World* w, int gx, int y, int gz, unsigned char id, unsigned
     return n;
 }
 
-static inline bool paneAttachsTo(unsigned char nb) {
-    return isSolidPhys(nb) || isPane(nb);
-}
-
 int emitPane(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n) {
-    bool north = paneAttachsTo(worldBlock(w, gx,     y, gz - 1));
-    bool south = paneAttachsTo(worldBlock(w, gx,     y, gz + 1));
-    bool west  = paneAttachsTo(worldBlock(w, gx - 1, y, gz    ));
-    bool east  = paneAttachsTo(worldBlock(w, gx + 1, y, gz    ));
+    bool north = paneAttachsTo(id, worldBlock(w, gx,     y, gz - 1));
+    bool south = paneAttachsTo(id, worldBlock(w, gx,     y, gz + 1));
+    bool west  = paneAttachsTo(id, worldBlock(w, gx - 1, y, gz    ));
+    bool east  = paneAttachsTo(id, worldBlock(w, gx + 1, y, gz    ));
     bool isolated = !north && !south && !west && !east;
 
     const int edgeX = (1 << F_TOP) | (1 << F_DOWN) | (1 << F_LEFT) | (1 << F_RIGHT);

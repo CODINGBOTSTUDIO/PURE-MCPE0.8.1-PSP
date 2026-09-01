@@ -65,6 +65,8 @@ enum { BLOCK_AIR = 0,
        BLOCK_INVISIBLE_BEDROCK = 95,
        BLOCK_TRAPDOOR = 96,
        BLOCK_STONE_BRICKS = 98,
+
+       BLOCK_IRON_BARS = 101,
        BLOCK_GLASS_PANE = 102, BLOCK_MELON = 103, BLOCK_MELON_STEM = 105,
        BLOCK_FENCE_GATE = 107, BLOCK_STAIRS_BRICK = 108, BLOCK_STAIRS_STONE_BRICK = 109,
        BLOCK_NETHER_BRICK = 112, BLOCK_STAIRS_NETHER_BRICK = 114,
@@ -119,7 +121,8 @@ static inline bool isStairs(unsigned char id) {
     }
 }
 static inline bool isSlab(unsigned char id)   { return id == BLOCK_SLAB || id == BLOCK_WOOD_SLAB; }
-static inline bool isPane(unsigned char id)   { return id == BLOCK_GLASS_PANE; }
+
+static inline bool isPane(unsigned char id)   { return id == BLOCK_GLASS_PANE || id == BLOCK_IRON_BARS; }
 
 static inline bool isCarpet(unsigned char id) { return id == BLOCK_CARPET; }
 
@@ -228,6 +231,10 @@ enum { LEAF_TYPE_MASK = 3, LEAF_OAK = 0, LEAF_SPRUCE = 1, LEAF_BIRCH = 2,
 static inline bool isOpaque(unsigned char id) { return Tile::tiles[id]->opaque; }
 
 static inline bool connectsFence(unsigned char nb) { return isFence(nb) || isFenceGate(nb) || isOpaque(nb); }
+
+static inline bool paneAttachsTo(unsigned char id, unsigned char nb) {
+    return nb == id || isGlass(nb) || isOpaque(nb);
+}
 
 static inline unsigned int div255(unsigned int x) { return (x + 1 + (x >> 8)) >> 8; }
 

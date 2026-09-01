@@ -301,6 +301,7 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
                 case LOG_AXIS_X: rings = (f == F_LEFT || f == F_RIGHT);    break;
                 case LOG_AXIS_Z: rings = (f == F_BACK || f == F_FORWARD);  break;
 
+                case LOG_AXIS_MASK: rings = false;                         break;
                 default:         rings = (f == F_TOP  || f == F_DOWN);     break;
             }
             if (rings) { *col = 5; *row = 1; }
@@ -318,6 +319,7 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
             switch (data & LOG_AXIS_MASK) {
                 case LOG_AXIS_X: ends = (f == F_LEFT || f == F_RIGHT);    break;
                 case LOG_AXIS_Z: ends = (f == F_BACK || f == F_FORWARD);  break;
+                case LOG_AXIS_MASK: ends = false;                          break;
                 default:         ends = (f == F_TOP  || f == F_DOWN);     break;
             }
             if (ends) { *col = 13; *row = 15; }
@@ -447,6 +449,8 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
             break;
         case BLOCK_GLASS_PANE:
         case BLOCK_GLASS: tileGlass(data, f, col, row); break;
+
+        case BLOCK_IRON_BARS: *col = 5; *row = 5; break;
         case BLOCK_MELON:
             if (f == F_TOP || f == F_DOWN) { *col = 9; *row = 8; }
             else                           { *col = 8; *row = 8; }
@@ -614,10 +618,10 @@ struct StairTile : Tile { StairTile(unsigned char i) : Tile(i) {}
 struct PaneTile : Tile { PaneTile(unsigned char i) : Tile(i) {}
 
     int getAABB(const World* w, int x, int y, int z, BlockAABB out[3]) {
-        bool north = isSolidPhys(worldBlock(w, x, y, z - 1)) || isPane(worldBlock(w, x, y, z - 1));
-        bool south = isSolidPhys(worldBlock(w, x, y, z + 1)) || isPane(worldBlock(w, x, y, z + 1));
-        bool west  = isSolidPhys(worldBlock(w, x - 1, y, z)) || isPane(worldBlock(w, x - 1, y, z));
-        bool east  = isSolidPhys(worldBlock(w, x + 1, y, z)) || isPane(worldBlock(w, x + 1, y, z));
+        bool north = paneAttachsTo(id, worldBlock(w, x, y, z - 1));
+        bool south = paneAttachsTo(id, worldBlock(w, x, y, z + 1));
+        bool west  = paneAttachsTo(id, worldBlock(w, x - 1, y, z));
+        bool east  = paneAttachsTo(id, worldBlock(w, x + 1, y, z));
         bool isolated = !north && !south && !west && !east;
         int num = 0;
         bool hasX = isolated || west || east || (!north && !south);
@@ -1108,7 +1112,7 @@ static bool rawCube(unsigned char id) {
 }
 static bool rawOpaque(unsigned char id) {
     return id != BLOCK_AIR && !isLiquidId(id) && id != BLOCK_ICE &&
-           id != BLOCK_LEAVES && id != BLOCK_GLASS && id != BLOCK_SAPLING && id != BLOCK_GLASS_PANE &&
+           id != BLOCK_LEAVES && id != BLOCK_GLASS && id != BLOCK_SAPLING && !isPane(id) &&
            !isCrossShaped(id) && id != BLOCK_CACTUS && id != BLOCK_TOPSNOW && id != BLOCK_REEDS &&
            !isSlab(id) && !isStairs(id) && id != BLOCK_FENCE && id != BLOCK_LADDER && id != BLOCK_TORCH &&
            !isDoor(id) && !isTrapdoor(id) && !isFenceGate(id) && !isBed(id) && id != BLOCK_FARMLAND &&
@@ -1128,7 +1132,7 @@ static int rawLightOpacity(unsigned char id) {
     if (id == BLOCK_LEAVES || id == BLOCK_COBWEB) return 1;
     if (isCrossShaped(id) ||
         id == BLOCK_CACTUS || id == BLOCK_TOPSNOW ||
-        id == BLOCK_GLASS || id == BLOCK_GLASS_PANE ||
+        id == BLOCK_GLASS || isPane(id) ||
         isFence(id) || isStairs(id) || isSlab(id) || isDoor(id) ||
         isTrapdoor(id) || isFenceGate(id) || id == BLOCK_LADDER || id == BLOCK_TORCH || isBed(id) ||
         id == BLOCK_FARMLAND || isSign(id) || id == BLOCK_FIRE ||
@@ -1177,6 +1181,7 @@ static int rawSoundType(unsigned char id) {
         case BLOCK_GOLD_BLOCK: case BLOCK_IRON_BLOCK: case BLOCK_DIAMOND_BLOCK:
         case BLOCK_LAPIS_BLOCK: case BLOCK_DOOR_IRON:
         case BLOCK_RAIL: case BLOCK_GOLDEN_RAIL:
+        case BLOCK_IRON_BARS:
             return SOUND_METAL;
 
         case BLOCK_LOG:
@@ -1256,6 +1261,7 @@ static float rawDestroySpeed(int id) {
             return 3.0f;
         case BLOCK_IRON_BLOCK: case BLOCK_DIAMOND_BLOCK: case BLOCK_DOOR_IRON:
         case BLOCK_COAL_BLOCK:
+        case BLOCK_IRON_BARS:
             return 5.0f;
         case BLOCK_OBSIDIAN: case BLOCK_GLOWING_OBSIDIAN:
             return 10.0f;
@@ -1292,6 +1298,52 @@ static float rawDestroySpeed(int id) {
             return 0.0f;
         default:
             return 1.0f;
+    }
+}
+
+static float rawExplosionResistance(int id) {
+    switch (id) {
+
+        case BLOCK_COBBLESTONE: case BLOCK_MOSSY_COBBLE: case BLOCK_BRICKS:
+        case BLOCK_STONE_BRICKS: case BLOCK_NETHER_BRICK:
+        case BLOCK_GOLD_BLOCK: case BLOCK_IRON_BLOCK:
+        case BLOCK_DIAMOND_BLOCK:
+        case BLOCK_COAL_BLOCK:
+        case BLOCK_DOUBLE_SLAB: case BLOCK_SLAB:
+        case BLOCK_WOOD_SLAB_DOUBLE: case BLOCK_WOOD_SLAB:
+        case BLOCK_IRON_BARS:
+            return 6.0f;
+
+        case BLOCK_PLANKS:
+        case BLOCK_ORE_GOLD: case BLOCK_ORE_IRON: case BLOCK_ORE_COAL:
+        case BLOCK_ORE_LAPIS: case BLOCK_ORE_EMERALD:
+        case BLOCK_ORE_REDSTONE: case BLOCK_ORE_REDSTONE_LIT:
+        case BLOCK_LAPIS_BLOCK:
+        case BLOCK_FENCE: case BLOCK_FENCE_GATE:
+            return 3.0f;
+
+        case BLOCK_OBSIDIAN: case BLOCK_GLOWING_OBSIDIAN:
+            return 1200.0f;
+
+        case BLOCK_BEDROCK: case BLOCK_INVISIBLE_BEDROCK:
+            return 3600000.0f;
+
+        case BLOCK_STAIRS_PLANKS: case BLOCK_STAIRS_SPRUCE:
+        case BLOCK_STAIRS_BIRCH:  case BLOCK_STAIRS_JUNGLE:
+            return rawExplosionResistance(BLOCK_PLANKS);
+        case BLOCK_STAIRS_COBBLESTONE:
+            return rawExplosionResistance(BLOCK_COBBLESTONE);
+        case BLOCK_STAIRS_BRICK:        return rawExplosionResistance(BLOCK_BRICKS);
+        case BLOCK_STAIRS_STONE_BRICK:  return rawExplosionResistance(BLOCK_STONE_BRICKS);
+        case BLOCK_STAIRS_NETHER_BRICK: return rawExplosionResistance(BLOCK_NETHER_BRICK);
+        case BLOCK_STAIRS_SANDSTONE:    return rawExplosionResistance(BLOCK_SANDSTONE);
+        case BLOCK_STAIRS_QUARTZ:       return rawExplosionResistance(BLOCK_QUARTZ_BLOCK);
+
+        case BLOCK_WATER: case BLOCK_CALM_WATER: case BLOCK_CALM_LAVA: return 100.0f;
+        case BLOCK_LAVA:                                               return 0.0f;
+
+        default:
+            return rawDestroySpeed(id);
     }
 }
 
@@ -1395,6 +1447,7 @@ void Tile::initTiles() {
         t->soundType     = (unsigned char)rawSoundType((unsigned char)id);
         t->rotFaceMask   = (unsigned char)rawRotFaceMask((unsigned char)id);
         t->destroySpeed  = rawDestroySpeed((unsigned char)id);
+        t->explosionResistance = rawExplosionResistance((unsigned char)id);
         t->slipperiness  = rawSlipperiness((unsigned char)id);
         t->material      = &materialOf((unsigned char)id);
         t->blocksLight   = t->material->blocksLight();

@@ -201,6 +201,7 @@ static short guiBlockIcon(short id) {
         case BLOCK_STAIRS_JUNGLE: return 77;
 
         case BLOCK_GLASS_PANE: return 128 + II_TILE_GLASS_PANE;
+        case BLOCK_IRON_BARS:  return 128 + II_TILE_IRON_BARS;
 
         case BLOCK_RAIL:        return 128 + II_TILE_RAIL;
         case BLOCK_GOLDEN_RAIL: return 128 + II_TILE_GOLDEN_RAIL;
@@ -652,6 +653,7 @@ const char* getBlockName(short id, unsigned char data) {
         case BLOCK_SNOW_BLOCK: return "Snow";
         case BLOCK_GLASS: return "Glass";
         case BLOCK_GLASS_PANE: return "Glass Pane";
+        case BLOCK_IRON_BARS: return "Iron Bars";
         case BLOCK_FENCE: return "Oak Fence";
         case BLOCK_DOOR_WOOD: return "Wooden Door";
         case BLOCK_DOOR_IRON: return "Iron Door";
@@ -869,6 +871,8 @@ const char* getBlockDescription(short id, unsigned char data) {
         case BLOCK_ICE: return "Slippery. Melts into water near a light source, and cannot be collected without Silk Touch.";
         case BLOCK_GLASS: return "Created in a furnace by smelting sand. Will break if you try to mine it.";
         case BLOCK_GLASS_PANE: return "Will break if you try to mine it.";
+
+        case BLOCK_IRON_BARS: return "Used as a barrier, similar to fences.";
         case BLOCK_FENCE: case BLOCK_FENCE_GATE: return "Used as a barrier that cannot be jumped over.";
         case BLOCK_DOOR_WOOD: return "Wooden doors are activated by using, hitting them or with Redstone.";
         case BLOCK_DOOR_IRON: return "Iron doors can only be opened by Redstone, buttons or switches.";

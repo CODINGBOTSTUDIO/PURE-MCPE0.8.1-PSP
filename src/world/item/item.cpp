@@ -207,6 +207,7 @@ void Item::initItems() {
             { BLOCK_LAPIS_BLOCK, 8 }, { BLOCK_BOOKSHELF, 8 }, { BLOCK_COAL_BLOCK, 8 },
             { BLOCK_CARPET, 8 },
             { BLOCK_HAY_BLOCK, 8 },
+            { BLOCK_IRON_BARS, 8 },
 
             { ITEM_NETHER_QUARTZ, 16 },
         };
@@ -225,6 +226,7 @@ void Item::initItems() {
             { BLOCK_COAL_BLOCK, 2 },
             { BLOCK_CARPET, 2 },
             { BLOCK_HAY_BLOCK, 2 },
+            { BLOCK_IRON_BARS, 2 },
             { BLOCK_TALLGRASS, 2 }, { BLOCK_WOOL, 2 }, { BLOCK_FLOWER, 2 }, { BLOCK_ROSE, 2 },
             { BLOCK_SPONGE, 2 },
             { BLOCK_MUSHROOM_BROWN, 2 }, { BLOCK_MUSHROOM_RED, 2 }, { BLOCK_GOLD_BLOCK, 2 },

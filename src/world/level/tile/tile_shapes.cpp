@@ -222,8 +222,7 @@ int tileShapeBoxes(const World* w, int x, int y, int z, unsigned char id,
     } else if (isPane(id)) {
 
         auto att = [&](int bx, int by, int bz) -> bool {
-            unsigned char nb = worldBlock(w, bx, by, bz);
-            return isSolidPhys(nb) || isPane(nb) || isGlass(nb);
+            return paneAttachsTo(id, worldBlock(w, bx, by, bz));
         };
         bool north = att(x, y, z - 1), south = att(x, y, z + 1);
         bool west  = att(x - 1, y, z), east  = att(x + 1, y, z);

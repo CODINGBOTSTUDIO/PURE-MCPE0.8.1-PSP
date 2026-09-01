@@ -48,6 +48,7 @@ const Material& materialOf(unsigned char id) {
             return Material::wood;
         case BLOCK_GOLD_BLOCK: case BLOCK_IRON_BLOCK: case BLOCK_DIAMOND_BLOCK: case BLOCK_DOOR_IRON:
         case BLOCK_COAL_BLOCK:
+        case BLOCK_IRON_BARS:
         case BLOCK_NETHER_REACTOR:
             return Material::metal;
         case BLOCK_WATER: case BLOCK_CALM_WATER:
