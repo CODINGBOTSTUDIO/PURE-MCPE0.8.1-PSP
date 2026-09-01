@@ -19,7 +19,7 @@ public:
 
     ItemInstance  removeSelected(int n);
 
-    void          setSelectedIfEmpty(short id, unsigned char data);
+    bool          replaceSelected(short id, unsigned char data);
 
     bool          hurtSelected(int amount);
 

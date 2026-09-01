@@ -85,14 +85,24 @@ enum {
     ITEM_BED_ITEM       = 355,
     ITEM_SHEARS         = 359,
     ITEM_MELON          = 360,
+    ITEM_SEEDS_PUMPKIN  = 361,
     ITEM_SEEDS_MELON    = 362,
     ITEM_BEEF_RAW       = 363,
     ITEM_BEEF_COOKED    = 364,
     ITEM_CHICKEN_RAW    = 365,
     ITEM_CHICKEN_COOKED = 366,
+
+    ITEM_CARROT         = 391,
+    ITEM_POTATO         = 392,
+    ITEM_POTATO_BAKED   = 393,
+    ITEM_PUMPKIN_PIE    = 400,
     ITEM_NETHER_BRICK   = 405,
     ITEM_NETHER_QUARTZ  = 406,
-    ITEM_CAMERA         = 456
+    ITEM_CAMERA         = 456,
+
+    ITEM_BEETROOT       = 457,
+    ITEM_SEEDS_BEETROOT = 458,
+    ITEM_BEETROOT_SOUP  = 459
 };
 
 enum { DYE_WHITE = 15 };
@@ -150,6 +160,8 @@ public:
     virtual bool placesTile() const { return false; }
 
     virtual short placedTileId() const { return 0; }
+
+    virtual short plantedTileId() const { return 0; }
 
     virtual bool isHoe() const { return false; }
     virtual bool mineBlock(ItemInstance* item, World* world, int blockId, int x, int y, int z, Player* player) {

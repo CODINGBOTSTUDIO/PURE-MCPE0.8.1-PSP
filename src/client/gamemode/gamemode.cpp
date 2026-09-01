@@ -211,7 +211,10 @@ static bool interactEntityUnderCrosshair() {
 }
 
 static void spawnEatParticles(int iconCell, int count) {
-    particlesEat(g_level.player->x, g_level.player->y, g_level.player->z,
+
+    particlesEat(g_level.player->x,
+                 g_level.player->y + g_level.player->getHeadHeight(),
+                 g_level.player->z,
                  g_level.player->yRot, g_level.player->xRot, iconCell, count);
 
     float r1 = rand() / (float)RAND_MAX, r2 = rand() / (float)RAND_MAX;
@@ -373,6 +376,8 @@ static bool continueMining(const BlockHit& hit) {
 static bool sneakBlocksUse(ItemInstance* sel) {
     return g_level.player && g_level.player->isSneaking() && sel && !sel->isNull();
 }
+
+static bool placementWouldWork(const ItemInstance* sel, const BlockHit& hit);
 
 bool GameMode::useItemOn(ItemInstance* item, const BlockHit& hit, bool* usedItem) {
     if (usedItem) *usedItem = false;
@@ -538,6 +543,13 @@ void GameMode::handleInput(unsigned int pressed, unsigned int held) {
 
             bool canEat = g_gameMode->isCreative() ||
                           g_level.player->health < g_level.player->getMaxHealth();
+
+            if (canEat && sel->getItem()->plantedTileId()) {
+                BlockHit plantHit = worldPick(&g_world, g_level.player->x, g_level.player->y,
+                                              g_level.player->z, g_level.player->yRot,
+                                              g_level.player->xRot, 5.0f, false);
+                if (plantHit.hit && placementWouldWork(sel, plantHit)) canEat = false;
+            }
             if (lHeld && !s_eating && (pressed & PSP_CTRL_LTRIGGER) && canEat) {
                 s_eating = true; s_eatStart = sceKernelGetSystemTimeLow(); s_lastEmit = 0;
             }
@@ -563,8 +575,8 @@ void GameMode::handleInput(unsigned int pressed, unsigned int held) {
                                           (rand() / (float)RAND_MAX) * 0.1f + 0.9f);
 
                         short remainder = ((FoodItem*)sel->getItem())->getFoodRemainder();
-                        g_level.player->inventory->consumeSelected();
-                        if (remainder) g_level.player->inventory->setSelectedIfEmpty(remainder, 0);
+                        if (!remainder || !g_level.player->inventory->replaceSelected(remainder, 0))
+                            g_level.player->inventory->consumeSelected();
 
                         ItemInstance* next = g_level.player->inventory->getSelected();
                         bool moreFood = next && next->getItem() && next->getItem()->isFood();
@@ -702,7 +714,8 @@ static bool placementWouldWork(const ItemInstance* sel, const BlockHit& hit) {
     if (!sel) return false;
     Item* it = sel->getItem();
     if (!it) return false;
-    if (sel->id == ITEM_SEEDS_WHEAT || sel->id == ITEM_SEEDS_MELON)
+
+    if (it->plantedTileId())
         return hit.face == F_TOP &&
                worldBlock(&g_world, hit.x, hit.y, hit.z) == BLOCK_FARMLAND &&
                worldBlock(&g_world, hit.x, hit.y + 1, hit.z) == BLOCK_AIR;
@@ -836,7 +849,7 @@ CrosshairTarget gameModeCrosshairTarget() {
                          sel->id == BLOCK_ROSE || sel->id == BLOCK_MUSHROOM_BROWN ||
                          sel->id == BLOCK_MUSHROOM_RED || sel->id == BLOCK_TALLGRASS ||
                          sel->id == BLOCK_CACTUS || sel->id == ITEM_REEDS ||
-                         sel->id == ITEM_SEEDS_WHEAT || sel->id == ITEM_SEEDS_MELON) &&
+                         (sel->getItem() && sel->getItem()->plantedTileId())) &&
                  placementWouldWork(sel, hit))                         t.useLabel = "Plant";
 
         else if (sel && ((sel->getItem() && sel->getItem()->placesTile()) ||

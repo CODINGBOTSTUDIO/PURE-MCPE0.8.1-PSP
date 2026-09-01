@@ -68,6 +68,10 @@ enum { BLOCK_AIR = 0,
 
        BLOCK_IRON_BARS = 101,
        BLOCK_GLASS_PANE = 102, BLOCK_MELON = 103, BLOCK_MELON_STEM = 105,
+
+       BLOCK_PUMPKIN = 86, BLOCK_PUMPKIN_LIT = 91,
+
+       BLOCK_PUMPKIN_STEM = 104,
        BLOCK_FENCE_GATE = 107, BLOCK_STAIRS_BRICK = 108, BLOCK_STAIRS_STONE_BRICK = 109,
        BLOCK_NETHER_BRICK = 112, BLOCK_STAIRS_NETHER_BRICK = 114,
        BLOCK_STAIRS_SANDSTONE = 128,
@@ -78,7 +82,11 @@ enum { BLOCK_AIR = 0,
 
        BLOCK_COAL_BLOCK = 173,
 
+       BLOCK_BEETROOT = 244,
+
        BLOCK_STAIRS_SPRUCE = 134, BLOCK_STAIRS_BIRCH = 135, BLOCK_STAIRS_JUNGLE = 136,
+
+       BLOCK_CARROTS = 141, BLOCK_POTATOES = 142,
        BLOCK_QUARTZ_BLOCK = 155,
        BLOCK_STAIRS_QUARTZ = 156,
 
@@ -210,11 +218,24 @@ extern unsigned int g_brightColor[16];
 extern float g_brightRamp[16];
 void chunkInitBrightRamp(void);
 
+static inline bool isCropTile(unsigned char id) {
+    return id == BLOCK_WHEAT || id == BLOCK_CARROTS ||
+           id == BLOCK_POTATOES || id == BLOCK_BEETROOT;
+}
+
+static inline bool isStemTile(unsigned char id) {
+    return id == BLOCK_MELON_STEM || id == BLOCK_PUMPKIN_STEM;
+}
+
+static inline unsigned char stemFruit(unsigned char id) {
+    return id == BLOCK_PUMPKIN_STEM ? BLOCK_PUMPKIN : BLOCK_MELON;
+}
+
 static inline bool isCrossShaped(unsigned char id) {
     return id == BLOCK_FLOWER || id == BLOCK_ROSE ||
            id == BLOCK_MUSHROOM_BROWN || id == BLOCK_MUSHROOM_RED ||
            id == BLOCK_REEDS || id == BLOCK_SAPLING ||
-           id == BLOCK_WHEAT || id == BLOCK_MELON_STEM ||
+           isCropTile(id) || isStemTile(id) ||
            id == BLOCK_TALLGRASS ||
            id == BLOCK_COBWEB;
 }
@@ -299,7 +320,7 @@ int emitFenceGate(const World* w, int gx, int y, int gz, unsigned char id, unsig
 int emitCake(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
 int emitTorch(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
 int emitBed(const World* w, int gx, int y, int gz, unsigned char id, unsigned char data, ChunkVertex* out, int n);
-int emitMelonStem(const World* w, ChunkVertex* out, int n, int gx, int y, int gz, unsigned char data, unsigned int bright);
+int emitMelonStem(const World* w, ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id, unsigned char data, unsigned int bright);
 
 int emitCross(ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id, unsigned char data, unsigned int bright, bool jitter = true);
 int emitCropRows(ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id, unsigned char data, unsigned int bright);

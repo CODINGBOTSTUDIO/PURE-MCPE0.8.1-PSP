@@ -169,12 +169,12 @@ int tileShapeBoxes(const World* w, int x, int y, int z, unsigned char id,
 
         SET(out[0], x + 0.0f, y + 0.0f, z + 0.0f, x + 1.0f, y + 0.0625f, z + 1.0f);
         return 1;
-    } else if (id == BLOCK_WHEAT) {
+    } else if (isCropTile(id)) {
 
         float yy1 = (data + 1) / 8.0f;
         SET(out[0], x + 0.0f, y + 0.0f, z + 0.0f, x + 1.0f, y + yy1, z + 1.0f);
         return 1;
-    } else if (id == BLOCK_MELON_STEM) {
+    } else if (isStemTile(id)) {
 
         float yy1 = (data * 2 + 2) / 16.0f;
         SET(out[0], x + 0.375f, y + 0.0f, z + 0.375f, x + 0.625f, y + yy1, z + 0.625f);

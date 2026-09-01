@@ -27,4 +27,7 @@ int Zombie::getEntityTypeId() const { return EntityTypes::IdZombie; }
 
 void Zombie::dropDeathLoot() {
     if (sharedRandom.nextInt(4) == 0) spawnAtLocation(ITEM_FEATHER, 1);
+
+    if (sharedRandom.nextInt(40) == 0) spawnAtLocation(ITEM_CARROT, 1);
+    if (sharedRandom.nextInt(40) == 0) spawnAtLocation(ITEM_POTATO, 1);
 }

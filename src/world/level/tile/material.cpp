@@ -57,6 +57,9 @@ const Material& materialOf(unsigned char id) {
             return Material::lava;
         case BLOCK_SAPLING: case BLOCK_FLOWER: case BLOCK_ROSE: case BLOCK_MUSHROOM_BROWN:
         case BLOCK_MUSHROOM_RED: case BLOCK_WHEAT: case BLOCK_REEDS: case BLOCK_MELON_STEM:
+
+        case BLOCK_CARROTS: case BLOCK_POTATOES: case BLOCK_BEETROOT:
+        case BLOCK_PUMPKIN_STEM:
             return Material::plant;
         case BLOCK_TALLGRASS:
             return Material::replaceablePlant;
@@ -82,6 +85,8 @@ const Material& materialOf(unsigned char id) {
         case BLOCK_CLAY:
             return Material::clay;
         case BLOCK_MELON:
+
+        case BLOCK_PUMPKIN: case BLOCK_PUMPKIN_LIT:
             return Material::vegetable;
 
         case BLOCK_CAKE:

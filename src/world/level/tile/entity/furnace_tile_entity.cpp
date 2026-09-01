@@ -72,6 +72,8 @@ ItemInstance FurnaceTileEntity::furnaceResult(short ingredientId) {
         case ITEM_PORKCHOP_RAW:   return ItemInstance(ITEM_PORKCHOP_COOKED, 1, 0);
         case ITEM_BEEF_RAW:       return ItemInstance(ITEM_BEEF_COOKED, 1, 0);
         case ITEM_CHICKEN_RAW:    return ItemInstance(ITEM_CHICKEN_COOKED, 1, 0);
+
+        case ITEM_POTATO:         return ItemInstance(ITEM_POTATO_BAKED, 1, 0);
         case BLOCK_COBBLESTONE:   return ItemInstance(BLOCK_STONE, 1, 0);
         case ITEM_CLAY:           return ItemInstance(ITEM_BRICK, 1, 0);
         case BLOCK_CACTUS:        return ItemInstance(ITEM_BONEMEAL, 1, 2);

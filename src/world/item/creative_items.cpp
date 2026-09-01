@@ -108,7 +108,8 @@ const CreativeEntry kItems[] = {
     { BLOCK_MUSHROOM_RED,       1, 0 },
     { BLOCK_CACTUS,             1, 0 },
     { BLOCK_MELON,              1, 0 },
-
+    { BLOCK_PUMPKIN,            1, 0 },
+    { BLOCK_PUMPKIN_LIT,        1, 0 },
     { BLOCK_COBWEB,             1, 0 },
     { BLOCK_HAY_BLOCK,          1, 0 },
     { ITEM_REEDS,               1, 0 },
@@ -127,9 +128,12 @@ const CreativeEntry kItems[] = {
     { BLOCK_LEAVES,             1, LEAF_BIRCH },
     { BLOCK_LEAVES,             1, LEAF_JUNGLE },
     { ITEM_SEEDS_WHEAT,         1, 0 },
-
+    { ITEM_SEEDS_PUMPKIN,       1, 0 },
     { ITEM_SEEDS_MELON,         1, 0 },
 
+    { ITEM_CARROT,              1, 0 },
+    { ITEM_POTATO,              1, 0 },
+    { ITEM_SEEDS_BEETROOT,      1, 0 },
     { ITEM_HOE_IRON,            1, 0 },
     { ITEM_CAKE,                1, 0 },
     { ITEM_EGG,                 1, 0 },

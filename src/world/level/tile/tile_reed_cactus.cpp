@@ -30,3 +30,18 @@ void reedCactusGrow(World* w, int x, int y, int z, unsigned char id, int ageThre
         worldSetDataNoUpdate(w, x, y, z, (unsigned char)(age + 1));
     }
 }
+
+bool bonemealReed(World* w, int x, int y, int z) {
+    int below = y - 1;
+    while (below > 0 && worldBlock(w, x, below, z) == BLOCK_REEDS) below--;
+    int above = y + 1;
+    while (above <= WORLD_H - 1 && worldBlock(w, x, above, z) == BLOCK_REEDS) above++;
+
+    const int grow = below - (above - 1) + 3;
+    if (grow <= 0) return false;
+
+    const int top = above - 1 + grow;
+    for (int yy = above; yy <= top; yy++)
+        worldSetTileUpdate(w, x, yy, z, BLOCK_REEDS, 0);
+    return true;
+}

@@ -142,6 +142,18 @@ Recipes::Recipes() {
     addShapedRecipe(ItemInstance(ITEM_SEEDS_MELON, 1, 0),
                     "M", { ITEM('M', ITEM_MELON) });
 
+    addShapedRecipe(ItemInstance(ITEM_SEEDS_PUMPKIN, 4, 0),
+                    "M", { TILE('M', BLOCK_PUMPKIN) });
+
+    addShapelessRecipe(ItemInstance(ITEM_PUMPKIN_PIE, 1, 0),
+        { ItemInstance(BLOCK_PUMPKIN, 1, 0), ItemInstance(ITEM_SUGAR, 1, 0),
+          ItemInstance(ITEM_EGG, 1, 0) });
+
+    addShapedRecipe(ItemInstance(ITEM_BEETROOT_SOUP, 1, 0),
+                    "BB",
+                    "BB",
+                    "#", { ITEM('B', ITEM_BEETROOT), ITEM('#', ITEM_BOWL) });
+
     addShapedRecipe(ItemInstance(BLOCK_CHEST, 1, 0),
                     "###",
                     "# #",
@@ -235,6 +247,9 @@ Recipes::Recipes() {
 
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_RED),
         { ItemInstance(BLOCK_ROSE, 1, 0) });
+
+    addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_RED),
+        { ItemInstance(ITEM_BEETROOT, 1, 0) });
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 3, DYE_WHITE),
         { ItemInstance(ITEM_BONE, 1, 0) });
     addShapelessRecipe(ItemInstance(ITEM_BONEMEAL, 2, DYE_PINK),
@@ -378,6 +393,10 @@ Recipes::Recipes() {
     addShapedRecipe(ItemInstance(BLOCK_TORCH, 4, 0),
                     "X",
                     "#", { ITEM('X', ITEM_COAL), ITEM('#', ITEM_STICK) });
+
+    addShapedRecipe(ItemInstance(BLOCK_PUMPKIN_LIT, 1, 0),
+                    "A",
+                    "B", { TILE('A', BLOCK_PUMPKIN), TILE('B', BLOCK_TORCH) });
 
     addShapedRecipe(ItemInstance(BLOCK_TORCH, 4, 0),
                     "X",

@@ -52,12 +52,12 @@ ItemInstance Inventory::removeSelected(int n) {
     return piece;
 }
 
-void Inventory::setSelectedIfEmpty(short id, unsigned char data) {
-    if (_isCreative) return;
+bool Inventory::replaceSelected(short id, unsigned char data) {
+    if (_isCreative) return false;
     ItemInstance* held = getSelected();
-    if (held && !held->isNull()) return;
-    ItemInstance stack(id, 1, data);
-    add(stack);
+    if (!held || held->isNull()) return false;
+    *held = ItemInstance(id, 1, (short)data);
+    return true;
 }
 
 bool Inventory::hurtSelected(int amount) {

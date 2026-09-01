@@ -176,6 +176,9 @@ static short guiBlockIcon(short id) {
         case BLOCK_BOOKSHELF: return 60;
         case BLOCK_GLASS: return 53;
         case BLOCK_MELON: return 67;
+
+        case BLOCK_PUMPKIN: return 87;
+        case BLOCK_PUMPKIN_LIT: return 88;
         case BLOCK_STONECUTTER: return 62;
         case BLOCK_CRAFTING_TABLE: return 61;
         case BLOCK_FURNACE: case BLOCK_FURNACE_LIT: return 64;
@@ -479,6 +482,14 @@ const char* getBlockName(short id, unsigned char data) {
             case ITEM_BEEF_COOKED: return "Steak";
             case ITEM_CHICKEN_RAW: return "Raw Chicken";
             case ITEM_CHICKEN_COOKED: return "Cooked Chicken";
+            case ITEM_CARROT: return "Carrot";
+            case ITEM_POTATO: return "Potato";
+            case ITEM_POTATO_BAKED: return "Baked Potato";
+            case ITEM_PUMPKIN_PIE: return "Pumpkin Pie";
+            case ITEM_BEETROOT: return "Beetroot";
+            case ITEM_BEETROOT_SOUP: return "Beetroot Soup";
+            case ITEM_SEEDS_PUMPKIN: return "Pumpkin Seeds";
+            case ITEM_SEEDS_BEETROOT: return "Beetroot Seeds";
 
             case ITEM_COAL: return data == 1 ? "Charcoal" : "Coal";
             case ITEM_DIAMOND: return "Diamond";
@@ -704,6 +715,13 @@ const char* getBlockName(short id, unsigned char data) {
         case BLOCK_TNT: return "TNT";
         case BLOCK_CACTUS: return "Cactus";
         case BLOCK_MELON: return "Melon";
+        case BLOCK_PUMPKIN: return "Pumpkin";
+        case BLOCK_PUMPKIN_LIT: return "Jack o'Lantern";
+
+        case BLOCK_CARROTS: return "Carrots";
+        case BLOCK_POTATOES: return "Potatoes";
+        case BLOCK_BEETROOT: return "Beetroot";
+        case BLOCK_PUMPKIN_STEM: return "Pumpkin Stem";
         case BLOCK_LEAVES: {
             int t = data & LEAF_TYPE_MASK;
             if (t == LEAF_SPRUCE) return "Spruce Leaves";
@@ -781,6 +799,14 @@ const char* getBlockDescription(short id, unsigned char data) {
             case ITEM_BEEF_COOKED: return "Created by cooking a beef in a furnace. Restores health.";
             case ITEM_CHICKEN_RAW: return "Collected by killing a chicken, and can be cooked in a furnace. Restores health.";
             case ITEM_CHICKEN_COOKED: return "Created by cooking a chicken in a furnace. Restores health.";
+            case ITEM_CARROT: return "Can be eaten, or planted on farmland to grow more.";
+            case ITEM_POTATO: return "Can be planted on farmland. Bake it in a furnace before eating it.";
+            case ITEM_POTATO_BAKED: return "Created by cooking a potato in a furnace. Restores 3 hearts.";
+            case ITEM_PUMPKIN_PIE: return "Crafted from a pumpkin, sugar and an egg. Restores 4 hearts.";
+            case ITEM_BEETROOT: return "Can be eaten, crafted into a red dye, or made into soup.";
+            case ITEM_BEETROOT_SOUP: return "Restores 4 hearts. You keep the bowl when the soup has been eaten.";
+            case ITEM_SEEDS_PUMPKIN: return "Can be planted on farmland to grow a pumpkin.";
+            case ITEM_SEEDS_BEETROOT: return "Can be planted on farmland to grow beetroot.";
 
             case ITEM_COAL: return data == 1 ? "Used as a renewable fuel in a furnace, or crafted to make a torch."
                                              : "Used as a fuel in a furnace, or crafted to make a torch.";
@@ -893,6 +919,8 @@ const char* getBlockDescription(short id, unsigned char data) {
         case BLOCK_TNT: return "Used to cause explosions. Activated after placing by hitting, or with an electrical charge.";
         case BLOCK_CACTUS: return "Can be crafted to create a dye.";
         case BLOCK_MELON: return "Can be broken into melon slices.";
+        case BLOCK_PUMPKIN: return "Can be crafted with a torch to make a Jack o'Lantern, or with sugar and an egg to make a pie.";
+        case BLOCK_PUMPKIN_LIT: return "Gives off light, and faces whoever placed it.";
         case BLOCK_LEAVES: return "When broken sometimes drops a sapling which can then be replanted to grow into a tree.";
         case BLOCK_FLOWER: case BLOCK_ROSE: return "Can be crafted into a dye.";
         case BLOCK_MUSHROOM_BROWN: case BLOCK_MUSHROOM_RED: return "Can be crafted with a bowl to make stew.";
@@ -968,6 +996,8 @@ void hotbarDraw(MenuState& s) {
 
     const bool screenUp = g_invOpen || g_chestOpen || g_furnaceOpen ||
                           g_craftOpen || g_armorOpen || g_paused;
+
+    if (screenUp) s_lastSlotChange = gameSeconds();
 
     HudAlpha hudAlpha(screenUp ? (unsigned char)255 : hudAlpha255());
     const float barW = 20.0f * HUD_N * HB_S;

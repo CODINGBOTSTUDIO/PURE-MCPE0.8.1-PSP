@@ -182,16 +182,18 @@ int emitCropRows(ChunkVertex* out, int n, int gx, int y, int gz, unsigned char i
     return n;
 }
 
-int emitMelonStem(const World* w, ChunkVertex* out, int n, int gx, int y, int gz, unsigned char data, unsigned int bright) {
+int emitMelonStem(const World* w, ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id, unsigned char data, unsigned int bright) {
     int col, row; unsigned int tint;
-    tileForBlock(BLOCK_MELON_STEM, data, 0, &col, &row, &tint);
+
+    const unsigned char fruit = stemFruit(id);
+    tileForBlock(id, data, 0, &col, &row, &tint);
     unsigned int color = mulColor(bright, tint);
 
     int connectDir = -1;
     if (data >= 7) {
         static const signed char dir[4][2] = { {-1,0}, {1,0}, {0,-1}, {0,1} };
         for (int i = 0; i < 4; i++)
-            if (worldBlock(w, gx + dir[i][0], y, gz + dir[i][1]) == BLOCK_MELON) { connectDir = i; break; }
+            if (worldBlock(w, gx + dir[i][0], y, gz + dir[i][1]) == fruit) { connectDir = i; break; }
     }
 
     float yy1 = (data * 2 + 2) / 16.0f;
@@ -301,7 +303,8 @@ int emitRail(ChunkVertex* out, int n, int gx, int y, int gz, unsigned char id,
 }
 
 static inline bool isNoMipLayerId(unsigned char id) {
-    return isCrossShaped(id) || id == BLOCK_WHEAT || id == BLOCK_MELON_STEM
+
+    return isCrossShaped(id)
         || id == BLOCK_FIRE || isLadder(id) || isRail(id) || id == BLOCK_BED || isTorch(id)
         || isPane(id) || isDoor(id) || isTrapdoor(id)
         || id == BLOCK_CACTUS || isGlass(id) || id == BLOCK_CAKE;
@@ -365,14 +368,14 @@ int meshPass(const World* w, int ox, int oz, int y0, int y1, ChunkVertex* out, i
 
         if (layer == 0 && isNoMipLayerId(id)) continue;
 
-        if (layer == 3 && id == BLOCK_MELON_STEM) {
+        if (layer == 3 && isStemTile(id)) {
             if (out && n + 36 > cap) return -1;
-            if (out) n = emitMelonStem(w, out, n, gx, y, gz, worldData(w, gx, y, gz), g_brightColor[LLB(gx, y, gz)]);
+            if (out) n = emitMelonStem(w, out, n, gx, y, gz, id, worldData(w, gx, y, gz), g_brightColor[LLB(gx, y, gz)]);
             else n += 36;
             continue;
         }
 
-        if (layer == 3 && id == BLOCK_WHEAT) {
+        if (layer == 3 && isCropTile(id)) {
             if (out && n + 48 > cap) return -1;
             if (out) emitCropRows(out, n, gx, y, gz, id, worldData(w, gx, y, gz), g_brightColor[LLB(gx, y, gz)]);
             n += 48;
@@ -666,12 +669,12 @@ int meshSectionSink(const World* w, int ox, int oz, int y0, int y1,
             sawLava = true;
             continue;
         }
-        if (id == BLOCK_MELON_STEM) {
+        if (isStemTile(id)) {
             if (!sinkReserve(&sk, 3, 36)) return -1;
-            nn = emitMelonStem(w, sk.buf[3], nn, gx, y, gz, worldData(w, gx, y, gz), g_brightColor[lightLazy(w, llc, base, gx, y, gz)]);
+            nn = emitMelonStem(w, sk.buf[3], nn, gx, y, gz, id, worldData(w, gx, y, gz), g_brightColor[lightLazy(w, llc, base, gx, y, gz)]);
             continue;
         }
-        if (id == BLOCK_WHEAT) {
+        if (isCropTile(id)) {
             if (!sinkReserve(&sk, 3, 48)) return -1;
             nn = emitCropRows(sk.buf[3], nn, gx, y, gz, id, worldData(w, gx, y, gz), g_brightColor[lightLazy(w, llc, base, gx, y, gz)]);
             continue;

@@ -14,7 +14,7 @@ void tickFarmland(World* w, int x, int y, int z) {
         if (moisture < 7) worldSetData(w, x, y, z, 7);
     } else if (moisture > 0) {
         worldSetData(w, x, y, z, moisture - 1);
-    } else if (worldBlock(w, x, y + 1, z) != BLOCK_WHEAT) {
+    } else if (!isCropTile(worldBlock(w, x, y + 1, z))) {
 
         worldSetBlockAndData(w, x, y, z, BLOCK_DIRT, 0);
         worldNotifyNeighborsChanged(w, x, y, z);

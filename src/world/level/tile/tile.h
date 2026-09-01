@@ -103,6 +103,8 @@ public:
     virtual void fallOn(World* w, int x, int y, int z, Entity* e, float dist) {}
     virtual void randomTick(World* w, int x, int y, int z);
 
+    virtual bool onFertilized(World* w, int x, int y, int z) { return false; }
+
     virtual bool use(World* w, int x, int y, int z, Player* player) { return false; }
 
     virtual void attack(World* w, int x, int y, int z, Player* player) {}

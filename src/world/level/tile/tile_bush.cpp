@@ -20,7 +20,8 @@ bool bushMayPlaceOn(World* w, unsigned char id, int data, int x, int y, int z) {
         case BLOCK_FLOWER: case BLOCK_ROSE: case BLOCK_SAPLING:
 
             return below == BLOCK_GRASS || below == BLOCK_DIRT || below == BLOCK_FARMLAND;
-        case BLOCK_WHEAT: case BLOCK_MELON_STEM:
+        case BLOCK_WHEAT: case BLOCK_CARROTS: case BLOCK_POTATOES:
+        case BLOCK_BEETROOT: case BLOCK_MELON_STEM: case BLOCK_PUMPKIN_STEM:
 
             return below == BLOCK_FARMLAND;
         case BLOCK_MUSHROOM_BROWN: case BLOCK_MUSHROOM_RED:
@@ -97,6 +98,36 @@ void mushroomTick(World* w, int x, int y, int z) {
     }
 }
 
+static bool grassWalk(World* w, int& x, int& y, int& z, int steps) {
+    for (int i = 0; i < steps / 16; i++) {
+        x += rand() % 3 - 1;
+
+        y += (rand() % 3) * (rand() % 3 - 1) / 2;
+        z += rand() % 3 - 1;
+        if (worldBlock(w, x, y - 1, z) != BLOCK_GRASS || isOpaque(worldBlock(w, x, y, z)))
+            return false;
+    }
+    return steps > 15;
+}
+
+void bonemealGrass(World* w, int x, int y, int z) {
+    for (int i = 16; i != 64; ++i) {
+        int xx = x, yy = y + 1, zz = z;
+        if (!grassWalk(w, xx, yy, zz, i)) continue;
+        if (worldBlock(w, xx, yy, zz) != BLOCK_AIR) continue;
+
+        const int roll = rand() & 0xF;
+        unsigned char id, data;
+        if (roll == 0)      { id = BLOCK_FLOWER;    data = 0; }
+        else if (roll == 1) { id = BLOCK_ROSE;      data = 0; }
+        else if (roll == 2) { id = BLOCK_TALLGRASS; data = TG_FERN; }
+        else                { id = BLOCK_TALLGRASS; data = TG_TALL_GRASS; }
+
+        if (bushCanSurviveWith(w, id, data, xx, yy, zz))
+            worldSetTileUpdate(w, xx, yy, zz, id, data);
+    }
+}
+
 static float cropGrowthSpeed(World* w, unsigned char id, int x, int y, int z) {
     float speed = 1.0f;
     bool horizontal = worldBlock(w, x - 1, y, z) == id || worldBlock(w, x + 1, y, z) == id;
@@ -128,20 +159,22 @@ void cropTick(World* w, int x, int y, int z) {
     worldSetData(w, x, y, z, age + 1);
 }
 
-void stemTick(World* w, int x, int y, int z) {
+void stemTick(World* w, int x, int y, int z, unsigned char id) {
+
+    const unsigned char fruit = stemFruit(id);
     if (lightRawAt(w, x, y + 1, z) < 9) return;
-    if (rand() % cropGrowthOdds(w, BLOCK_MELON_STEM, x, y, z, 1) != 0) return;
+    if (rand() % cropGrowthOdds(w, id, x, y, z, 1) != 0) return;
     unsigned char age = worldData(w, x, y, z);
     if (age < 7) { worldSetData(w, x, y, z, age + 1); return; }
     static const signed char dir[4][2] = { {-1,0}, {1,0}, {0,-1}, {0,1} };
     for (int i = 0; i < 4; i++)
-        if (worldBlock(w, x + dir[i][0], y, z + dir[i][1]) == BLOCK_MELON) return;
+        if (worldBlock(w, x + dir[i][0], y, z + dir[i][1]) == fruit) return;
     for (int i = 0; i < 4; i++) {
         int nx = x + dir[i][0], nz = z + dir[i][1];
         if (worldBlock(w, nx, y, nz) != BLOCK_AIR) continue;
         unsigned char below = worldBlock(w, nx, y - 1, nz);
         if (below != BLOCK_FARMLAND && below != BLOCK_DIRT && below != BLOCK_GRASS) continue;
-        worldSetBlockAndData(w, nx, y, nz, BLOCK_MELON, 0);
+        worldSetBlockAndData(w, nx, y, nz, fruit, 0);
         worldNotifyNeighborsChanged(w, nx, y, nz);
         return;
     }

@@ -135,6 +135,12 @@ Drop Tile::getResource(int data) {
 
         case BLOCK_WHEAT:               return (data == 7) ? Drop{ ITEM_WHEAT, 1, 0 } : Drop{ 0, 0, 0 };
 
+        case BLOCK_CARROTS:             return (data == 7) ? Drop{ ITEM_CARROT, 1, 0 } : Drop{ 0, 0, 0 };
+        case BLOCK_POTATOES:            return (data == 7) ? Drop{ ITEM_POTATO, 1, 0 } : Drop{ 0, 0, 0 };
+
+        case BLOCK_PUMPKIN:             return { BLOCK_PUMPKIN, 1, 0 };
+        case BLOCK_PUMPKIN_LIT:         return { BLOCK_PUMPKIN_LIT, 1, 0 };
+
         case BLOCK_MELON:               return { ITEM_MELON, 1, 0 };
 
         case BLOCK_TOPSNOW:             return { ITEM_SNOWBALL, 1, 0 };
@@ -473,8 +479,22 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
             if (f == F_TOP) { *col = (data > 0) ? 6 : 7; *row = 5; }
             else { *col = 2; *row = 0; }
             break;
+
         case BLOCK_WHEAT:       *col = 8 + (data & 7); *row = 5; break;
-        case BLOCK_MELON_STEM: {
+
+        case BLOCK_CARROTS: case BLOCK_POTATOES: case BLOCK_BEETROOT: {
+            int d = data & 7, stage;
+            if (d > 6) stage = 3;
+            else { if (d == 6) d = 5; stage = d >> 1; }
+
+            if (stage < 3)                 { *col = 8 + stage;  *row = 12; }
+            else if (id == BLOCK_CARROTS)  { *col = 11;         *row = 12; }
+            else if (id == BLOCK_POTATOES) { *col = 12;         *row = 12; }
+            else                           { *col = 14;         *row = 0;  }
+            break;
+        }
+
+        case BLOCK_MELON_STEM: case BLOCK_PUMPKIN_STEM: {
             *col = 15; *row = 6;
             unsigned int r = data * 32u, g = 255u - data * 8u, b = data * 4u;
             *tint = 0xFF000000u | (b << 16) | (g << 8) | r;
@@ -947,7 +967,10 @@ struct GrassTile : Tile { GrassTile(unsigned char i) : Tile(i) { randomTicks = t
                 worldSetBlockAndData(w, xt, yt, zt, BLOCK_GRASS, 0);
                 worldNotifyNeighborsChanged(w, xt, yt, zt);
             }
-        } } };
+        } }
+
+    bool onFertilized(World* w, int x, int y, int z) {
+        bonemealGrass(w, x, y, z); return true; } };
 
 static bool shearsHeld(const ItemInstance* held) {
     return held && !held->isNull() && held->id == ITEM_SHEARS;
@@ -1001,26 +1024,80 @@ struct BushTile : GrowerTile { BushTile(unsigned char i) : GrowerTile(i) {}
         return bushMayPlaceOn(w, id, -1, x, y, z);
     }
     void grow(World* w, int x, int y, int z) {
-        if (id == BLOCK_WHEAT)              cropTick(w, x, y, z);
-        else if (id == BLOCK_MELON_STEM)    stemTick(w, x, y, z);
+        if (isCropTile(id))                 cropTick(w, x, y, z);
+        else if (isStemTile(id))            stemTick(w, x, y, z, id);
         else if (id == BLOCK_SAPLING)       saplingTick(w, x, y, z);
         else if (id == BLOCK_MUSHROOM_BROWN || id == BLOCK_MUSHROOM_RED) mushroomTick(w, x, y, z);
          }
 
+    bool onFertilized(World* w, int x, int y, int z) {
+        if (id == BLOCK_SAPLING) {
+            saplingGrow(w, x, y, z);
+            worldUpdateLights(w);
+
+            worldRebuildAroundNow(w, x, y, z);
+            return true;
+        }
+        if (isCropTile(id) || isStemTile(id)) {
+            int age = worldData(w, x, y, z) + 2 + rand() % 3;
+            if (age >= 7) age = 7;
+            worldSetData(w, x, y, z, (unsigned char)age);
+            return true;
+        }
+        return false; }
+
     void spawnResources(World* w, int x, int y, int z, int data, Random& rng) {
         Tile::spawnResources(w, x, y, z, data, rng);
-        short seed = (id == BLOCK_WHEAT)      ? ITEM_SEEDS_WHEAT
-                   : (id == BLOCK_MELON_STEM) ? ITEM_SEEDS_MELON : 0;
+        short seed = (id == BLOCK_WHEAT)        ? ITEM_SEEDS_WHEAT
+                   : (id == BLOCK_MELON_STEM)   ? ITEM_SEEDS_MELON
+                   : (id == BLOCK_PUMPKIN_STEM) ? ITEM_SEEDS_PUMPKIN
+                   : (id == BLOCK_CARROTS)      ? ITEM_CARROT
+                   : (id == BLOCK_POTATOES)     ? ITEM_POTATO : 0;
         if (seed)
             for (int i = 0; i < 3; i++)
                 if (rng.nextInt(5 * 3) <= data)
                     dropItem(x, y, z, seed, 0, rng);
     } };
 
+struct BeetrootTile : BushTile { BeetrootTile(unsigned char i) : BushTile(i) {}
+    void spawnResources(World* w, int x, int y, int z, int data, Random& rng) {
+        (void)w;
+        if (data <= 1) return;
+        if (data <= 6) { dropItem(x, y, z, ITEM_SEEDS_BEETROOT, 0, rng); return; }
+        int seeds = rng.nextInt(3);
+        for (int i = 0; i < seeds; i++)  dropItem(x, y, z, ITEM_SEEDS_BEETROOT, 0, rng);
+        int roots = 1 + rng.nextInt(2);
+        for (int i = 0; i < roots; i++)  dropItem(x, y, z, ITEM_BEETROOT, 0, rng);
+    } };
+
+struct PumpkinTile : Tile { PumpkinTile(unsigned char i) : Tile(i) {}
+
+    bool mayPlace(World* w, int x, int y, int z) {
+        return Tile::mayPlace(w, x, y, z) && railSupportOk(w, x, y - 1, z);
+    }
+
+    void setPlacedBy(World* w, int x, int y, int z, Player* p) {
+        if (!p) return;
+        worldSetData(w, x, y, z, (unsigned char)(((int)floorf(p->yRot * 4.0f / 360.0f + 2.5f)) & 3));
+    }
+
+    void getTexture(unsigned char data, int f, int* col, int* row, unsigned int* tint) {
+        *tint = 0xFFFFFFFFu;
+        if (f == F_TOP || f == F_DOWN) { *col = 6; *row = 6; return; }
+        static const int kMcpeFace[4] = { 3, 4, 2, 5 };
+        if (f == faceFromMcpe(kMcpeFace[data & 3])) {
+            *col = (id == BLOCK_PUMPKIN_LIT) ? 8 : 7; *row = 7;
+        } else {
+            *col = 6; *row = 7;
+        }
+    } };
+
 struct ReedTile : GrowerTile { ReedTile(unsigned char i) : GrowerTile(i) {}
     bool canSurvive(World* w, int x, int y, int z) { return reedCanSurvive(w, x, y, z); }
     bool mayPlace(World* w, int x, int y, int z) { return Tile::mayPlace(w, x, y, z) && canSurvive(w, x, y, z); }
-    void grow(World* w, int x, int y, int z) { reedCactusGrow(w, x, y, z, id, 15); } };
+    void grow(World* w, int x, int y, int z) { reedCactusGrow(w, x, y, z, id, 15); }
+
+    bool onFertilized(World* w, int x, int y, int z) { return bonemealReed(w, x, y, z); } };
 
 struct CactusTile : GrowerTile { CactusTile(unsigned char i) : GrowerTile(i) {}
 
@@ -1147,6 +1224,8 @@ static int rawLightEmit(unsigned char id) {
 
     if (id == BLOCK_ORE_REDSTONE_LIT) return 9;
     if (id == BLOCK_FURNACE_LIT) return 13;
+
+    if (id == BLOCK_PUMPKIN_LIT) return 15;
     if (id == BLOCK_MUSHROOM_BROWN) return 1;
     return 0;
 }
@@ -1160,6 +1239,8 @@ static int rawSoundType(unsigned char id) {
         case BLOCK_GRASS: case BLOCK_LEAVES: case BLOCK_FLOWER: case BLOCK_ROSE:
         case BLOCK_MUSHROOM_BROWN: case BLOCK_MUSHROOM_RED: case BLOCK_SAPLING:
         case BLOCK_REEDS: case BLOCK_WHEAT: case BLOCK_TNT: case BLOCK_TALLGRASS:
+
+        case BLOCK_CARROTS: case BLOCK_POTATOES: case BLOCK_BEETROOT:
         case BLOCK_SPONGE:
         case BLOCK_HAY_BLOCK:
             return SOUND_GRASS;
@@ -1190,6 +1271,8 @@ static int rawSoundType(unsigned char id) {
         case BLOCK_DOOR_WOOD: case BLOCK_TRAPDOOR: case BLOCK_LADDER:
         case BLOCK_TORCH: case BLOCK_SIGN: case BLOCK_WALL_SIGN:
         case BLOCK_MELON: case BLOCK_MELON_STEM:
+
+        case BLOCK_PUMPKIN: case BLOCK_PUMPKIN_LIT: case BLOCK_PUMPKIN_STEM:
         case BLOCK_FIRE:
 
         case BLOCK_STAIRS_PLANKS:
@@ -1288,6 +1371,8 @@ static float rawDestroySpeed(int id) {
         case BLOCK_FURNACE: case BLOCK_FURNACE_LIT:
             return 3.5f;
         case BLOCK_SIGN: case BLOCK_WALL_SIGN: case BLOCK_MELON:
+
+        case BLOCK_PUMPKIN: case BLOCK_PUMPKIN_LIT:
             return 1.0f;
         case BLOCK_BEDROCK: case BLOCK_INVISIBLE_BEDROCK:
             return -1.0f;
@@ -1295,6 +1380,9 @@ static float rawDestroySpeed(int id) {
         case BLOCK_SAPLING: case BLOCK_TALLGRASS: case BLOCK_FLOWER: case BLOCK_ROSE:
         case BLOCK_MUSHROOM_BROWN: case BLOCK_MUSHROOM_RED: case BLOCK_TNT:
         case BLOCK_TORCH: case BLOCK_WHEAT: case BLOCK_REEDS: case BLOCK_MELON_STEM:
+
+        case BLOCK_PUMPKIN_STEM:
+        case BLOCK_CARROTS: case BLOCK_POTATOES: case BLOCK_BEETROOT:
             return 0.0f;
         default:
             return 1.0f;
@@ -1369,8 +1457,9 @@ static int shapeOf(unsigned char id) {
     if (id == BLOCK_TOPSNOW)    return SHAPE_TOPSNOW;
     if (isCarpet(id))           return SHAPE_CARPET;
     if (id == BLOCK_REEDS)      return SHAPE_REEDS;
-    if (id == BLOCK_WHEAT)      return SHAPE_WHEAT;
-    if (id == BLOCK_MELON_STEM) return SHAPE_MELON_STEM;
+
+    if (isCropTile(id))         return SHAPE_WHEAT;
+    if (isStemTile(id))         return SHAPE_MELON_STEM;
     if (isCrossShaped(id))            return SHAPE_CROSS;
     return SHAPE_CUBE;
 }
@@ -1391,9 +1480,15 @@ static Tile* makeTile(unsigned char id) {
         case BLOCK_CACTUS:   return new CactusTile(id);
         case BLOCK_REEDS:    return new ReedTile(id);
         case BLOCK_FLOWER: case BLOCK_ROSE: case BLOCK_SAPLING:
-        case BLOCK_WHEAT: case BLOCK_MELON_STEM: case BLOCK_TALLGRASS:
+        case BLOCK_WHEAT: case BLOCK_CARROTS: case BLOCK_POTATOES:
+        case BLOCK_MELON_STEM: case BLOCK_PUMPKIN_STEM: case BLOCK_TALLGRASS:
         case BLOCK_MUSHROOM_BROWN: case BLOCK_MUSHROOM_RED:
             return new BushTile(id);
+        case BLOCK_BEETROOT:
+
+            return new BeetrootTile(id);
+        case BLOCK_PUMPKIN: case BLOCK_PUMPKIN_LIT:
+            return new PumpkinTile(id);
         case BLOCK_TOPSNOW:
             return new SnowLayerTile(id);
         case BLOCK_CARPET:

@@ -14,11 +14,16 @@ void saplingTick(World* w, int x, int y, int z);
 void saplingGrow(World* w, int x, int y, int z);
 void mushroomTick(World* w, int x, int y, int z);
 void cropTick(World* w, int x, int y, int z);
-void stemTick(World* w, int x, int y, int z);
+
+void stemTick(World* w, int x, int y, int z, unsigned char id);
+
+void bonemealGrass(World* w, int x, int y, int z);
 
 bool reedCanSurvive(World* w, int x, int y, int z);
 bool cactusCanSurvive(World* w, int x, int y, int z);
 void reedCactusGrow(World* w, int x, int y, int z, unsigned char id, int ageThreshold);
+
+bool bonemealReed(World* w, int x, int y, int z);
 
 void tickFarmland(World* w, int x, int y, int z);
 

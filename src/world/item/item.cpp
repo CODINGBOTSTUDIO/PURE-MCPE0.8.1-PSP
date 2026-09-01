@@ -96,6 +96,14 @@ void Item::initItems() {
     new FoodItem(ITEM_CHICKEN_RAW,     2, true,  ic(9,  7));
     new FoodItem(ITEM_CHICKEN_COOKED,  6, true,  ic(10, 7));
 
+    new SeedFoodItem(ITEM_CARROT,      4, BLOCK_CARROTS,  ic(8, 7));
+    new SeedFoodItem(ITEM_POTATO,      1, BLOCK_POTATOES, ic(7, 7));
+    new FoodItem(ITEM_POTATO_BAKED,    6, false, ic(6, 7));
+    new FoodItem(ITEM_PUMPKIN_PIE,     8, false, ic(8, 9));
+    new FoodItem(ITEM_BEETROOT,        1, false, ic(1, 12));
+
+    new BowlFoodItem(ITEM_BEETROOT_SOUP, 8,   ic(3, 12));
+
     new SimpleItem(ITEM_ARROW,          ic(5, 2));
     new SimpleItem(ITEM_COAL,           ic(7, 0));
     new SimpleItem(ITEM_DIAMOND,        ic(7, 3));
@@ -144,6 +152,9 @@ void Item::initItems() {
 
     new SeedItem(ITEM_SEEDS_WHEAT, BLOCK_WHEAT, ic(9, 0));
     new SeedItem(ITEM_SEEDS_MELON, BLOCK_MELON_STEM, ic(14, 3));
+
+    new SeedItem(ITEM_SEEDS_PUMPKIN,   BLOCK_PUMPKIN_STEM, ic(13, 3));
+    new SeedItem(ITEM_SEEDS_BEETROOT,  BLOCK_BEETROOT,     ic(2, 12));
     new HangingEntityItem(ITEM_PAINTING, EntityTypes::IdPainting, ic(10, 1));
     new SignItem(ITEM_SIGN, ic(10, 2));
     new BonemealItem(ITEM_BONEMEAL);
@@ -174,6 +185,10 @@ void Item::initItems() {
             { ITEM_WHEAT, 4 }, { ITEM_BREAD, 4 }, { ITEM_SUGAR, 4 }, { ITEM_REEDS, 4 },
             { ITEM_CAKE, 4 },
             { ITEM_SEEDS_WHEAT, 4 }, { ITEM_SEEDS_MELON, 4 }, { ITEM_MELON, 4 },
+
+            { ITEM_SEEDS_PUMPKIN, 4 }, { ITEM_CARROT, 4 }, { ITEM_POTATO, 4 },
+            { ITEM_POTATO_BAKED, 4 }, { ITEM_PUMPKIN_PIE, 4 },
+            { ITEM_BEETROOT, 4 }, { ITEM_SEEDS_BEETROOT, 4 }, { ITEM_BEETROOT_SOUP, 4 },
             { ITEM_PORKCHOP_RAW, 4 }, { ITEM_PORKCHOP_COOKED, 4 },
             { ITEM_HELMET_CLOTH, 4 }, { ITEM_CHESTPLATE_CLOTH, 4 }, { ITEM_LEGGINGS_CLOTH, 4 }, { ITEM_BOOTS_CLOTH, 4 },
             { ITEM_HELMET_CHAIN, 4 }, { ITEM_CHESTPLATE_CHAIN, 4 }, { ITEM_LEGGINGS_CHAIN, 4 }, { ITEM_BOOTS_CHAIN, 4 },
@@ -236,6 +251,9 @@ void Item::initItems() {
             { BLOCK_STAIRS_SPRUCE, 1 }, { BLOCK_STAIRS_BIRCH, 1 }, { BLOCK_STAIRS_JUNGLE, 1 },
             { BLOCK_ORE_EMERALD, 1 }, { BLOCK_DIAMOND_BLOCK, 2 }, { BLOCK_CRAFTING_TABLE, 2 },
             { BLOCK_WHEAT, 4 }, { BLOCK_FARMLAND, 1 }, { BLOCK_FURNACE, 2 }, { BLOCK_FURNACE_LIT, 2 },
+
+            { BLOCK_CARROTS, 4 }, { BLOCK_POTATOES, 4 }, { BLOCK_BEETROOT, 4 },
+            { BLOCK_PUMPKIN_STEM, 4 }, { BLOCK_PUMPKIN, 1 }, { BLOCK_PUMPKIN_LIT, 1 },
             { BLOCK_SIGN, 2 }, { BLOCK_DOOR_WOOD, 2 }, { BLOCK_LADDER, 2 },
             { BLOCK_STAIRS_COBBLESTONE, 1 }, { BLOCK_WALL_SIGN, 2 }, { BLOCK_DOOR_IRON, 2 },
             { BLOCK_ORE_REDSTONE, 1 }, { BLOCK_ORE_REDSTONE_LIT, 2 }, { BLOCK_TOPSNOW, 2 },
@@ -280,6 +298,13 @@ void Item::initItems() {
             { ITEM_SEEDS_MELON, 4 }, { ITEM_BEEF_RAW, 4 }, { ITEM_BEEF_COOKED, 4 },
             { ITEM_CHICKEN_RAW, 4 }, { ITEM_CHICKEN_COOKED, 4 }, { ITEM_SPAWN_EGG, 3 },
             { ITEM_NETHER_BRICK, 4 }, { ITEM_NETHER_QUARTZ, 4 }, { ITEM_CAMERA, 3 },
+
+            { ITEM_SEEDS_PUMPKIN, 4 }, { ITEM_CARROT, 4 }, { ITEM_POTATO, 4 },
+            { ITEM_POTATO_BAKED, 4 }, { ITEM_PUMPKIN_PIE, 4 },
+            { ITEM_BEETROOT, 4 }, { ITEM_SEEDS_BEETROOT, 4 }, { ITEM_BEETROOT_SOUP, 4 },
+
+            { BLOCK_PUMPKIN, 2 }, { BLOCK_PUMPKIN_LIT, 2 }, { BLOCK_PUMPKIN_STEM, 2 },
+            { BLOCK_CARROTS, 2 }, { BLOCK_POTATOES, 2 }, { BLOCK_BEETROOT, 2 },
         };
         for (unsigned int i = 0; i < sizeof(kTab) / sizeof(kTab[0]); i++)
             if (items[kTab[i].id]) items[kTab[i].id]->creativeTab = kTab[i].tab;
