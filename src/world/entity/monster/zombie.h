@@ -10,6 +10,8 @@ public:
 
     virtual int  getMaxHealth() { return 12; }
     virtual void aiStep();
+
+    virtual bool useNewAi() { return true; }
     virtual int  getEntityTypeId() const;
     virtual void dropDeathLoot();
 
@@ -19,6 +21,7 @@ public:
 
 protected:
     Zombie(Level* level, int rendererId);
+    void addZombieGoals();
 };
 
 #endif

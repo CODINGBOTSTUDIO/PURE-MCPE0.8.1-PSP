@@ -178,6 +178,8 @@ public:
     virtual int   getMineDurabilityCost() const { return 1; }
     virtual int   getHurtEnemyDurabilityCost() const { return 2; }
     virtual bool  isFood() const { return false; }
+
+    virtual bool  isSeed() const { return false; }
     virtual bool  isArmor() const { return false; }
 
     virtual int getIcon(short data) const { return -1; }

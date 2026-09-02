@@ -4,6 +4,8 @@
 
 #include "world/entity/entity.h"
 
+class Mob;
+
 class Throwable : public Entity {
     typedef Entity super;
 public:
@@ -11,18 +13,22 @@ public:
     Throwable(Level* level, float x, float y, float z,
               float yaw, float pitch, int type);
 
+    Throwable(Level* level, Mob* owner, int type);
+
     virtual void tick();
     virtual int  getEntityTypeId() const { return type; }
     virtual void addAdditonalSaveData(CompoundTag* ) {}
     virtual void readAdditionalSaveData(CompoundTag* ) {}
 
+    int   ownerId;
     int   type;
     short itemId;
     int   life;
 
+    void shoot(float dx, float dy, float dz, float power, float inaccuracy = 1.0f);
+
 private:
     void configure(int type);
-    void shoot(float dx, float dy, float dz, float power);
     void onHit();
 };
 

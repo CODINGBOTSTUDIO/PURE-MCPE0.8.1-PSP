@@ -210,17 +210,28 @@ bool Level::isUnobstructed(const AABB& box) const {
     return true;
 }
 
+bool Level::isDay() const { return g_skyDarken < 4; }
+
+LocalPlayer* Level::getNearestPlayer(Entity* from, float maxDist) const {
+    if (!player || !player->isAlive()) return 0;
+    if (maxDist >= 0.0f && from->distanceToSqr((Entity*)player) > maxDist * maxDist)
+        return 0;
+    return player;
+}
+
 static PathFinder s_pathFinder;
 
-void Level::findPath(Path* path, Entity* from, Entity* to, float maxDist, bool , bool avoidWater) {
+bool Level::findPath(Path* path, Entity* from, Entity* to, float maxDist, bool openDoors, bool avoidWater) {
     s_pathFinder.setLevel(this);
     s_pathFinder.avoidWater = avoidWater;
-    s_pathFinder.findPath(path, from, to, maxDist);
+    s_pathFinder.passDoors = openDoors;
+    return s_pathFinder.findPath(path, from, to, maxDist);
 }
-void Level::findPath(Path* path, Entity* from, int x, int y, int z, float maxDist, bool , bool avoidWater) {
+bool Level::findPath(Path* path, Entity* from, int x, int y, int z, float maxDist, bool openDoors, bool avoidWater) {
     s_pathFinder.setLevel(this);
     s_pathFinder.avoidWater = avoidWater;
-    s_pathFinder.findPath(path, from, x, y, z, maxDist);
+    s_pathFinder.passDoors = openDoors;
+    return s_pathFinder.findPath(path, from, x, y, z, maxDist);
 }
 
 bool Level::isLoadedAt(float x, float z) const {

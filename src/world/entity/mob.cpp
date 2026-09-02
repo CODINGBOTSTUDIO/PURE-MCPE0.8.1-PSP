@@ -5,6 +5,12 @@
 #include "world/level/chunk/chunk.h"
 #include "world/level/level.h"
 #include "world/entity/local_player.h"
+#include "world/entity/ai/look_control.h"
+#include "world/entity/ai/move_control.h"
+#include "world/entity/ai/jump_control.h"
+#include "world/entity/ai/body_control.h"
+#include "world/entity/ai/sensing.h"
+#include "world/level/pathfinder/path_navigation.h"
 #include "client/player/physics.h"
 
 float mobAiRange() {
@@ -30,15 +36,62 @@ Mob::Mob(Level* level)
     health(10), lastHealth(0), lastHurt(0),
     hurtTime(0), hurtDuration(0), deathTime(0), attackTime(0),
     invulnerableDuration(20), dmgSpill(0), hurtDir(0), noActionTime(0),
-    yBodyRot(0), yBodyRotO(0), walkAnimSpeed(0), walkAnimSpeedO(0),
+    yHeadRot(0), yHeadRotO(0), yBodyRot(0), yBodyRotO(0),
+    walkAnimSpeed(0), walkAnimSpeedO(0),
     walkAnimPos(0), walkAnimPosO(0),
     run(0), oRun(0), animStep(0), animStepO(0), lookTime(0),
     attackAnim(0), oAttackAnim(0), swingTime(-1), swinging(false),
-    ambientSoundTime(0)
+    lastHurtByMobId(0), lastHurtByMobTime(0), attackTargetId(0),
+    speed(0.7f), ambientSoundTime(0)
 {
     blocksBuilding = true;
     footSize = 0.5f;
     health = getMaxHealth();
+
+    lookControl = new LookControl(this);
+    moveControl = new MoveControl(this);
+    jumpControl = new JumpControl(this);
+    bodyControl = new BodyControl(this);
+    navigation  = new PathNavigation(this, level, 16.0f);
+    sensing     = new Sensing(this);
+}
+
+Mob::~Mob() {
+    delete lookControl; delete moveControl; delete jumpControl;
+    delete bodyControl; delete navigation;  delete sensing;
+}
+
+void Mob::setLastHurtByMob(Mob* m) {
+    lastHurtByMobId   = m ? m->entityId : 0;
+    lastHurtByMobTime = m ? 60 : 0;
+}
+
+Entity* Mob::getTarget() {
+    if (!attackTargetId) return 0;
+    Entity* e = level->getEntity(attackTargetId);
+    if (!e || !e->isAlive()) { attackTargetId = 0; return 0; }
+    return e;
+}
+
+Mob* Mob::getLastHurtByMob() {
+    if (!lastHurtByMobId) return 0;
+    Entity* e = level->getEntity(lastHurtByMobId);
+    if (!e || !e->isAlive() || !e->isMob()) { setLastHurtByMob(0); return 0; }
+    return (Mob*)e;
+}
+
+void Mob::newServerAiStep() {
+    noActionTime++;
+    checkDespawn();
+    if (removed) return;
+    jumping = false;
+    goalSelector2.tick();
+    goalSelector.tick();
+    navigation->tick();
+    serverAiMobStep();
+    moveControl->tick();
+    lookControl->tick();
+    jumpControl->tick();
 }
 
 bool Mob::isFreeM(float dx, float dy, float dz) {
@@ -182,6 +235,14 @@ void Mob::baseTick() {
     }
     animStepO = animStep;
     yBodyRotO = yBodyRot;
+    yHeadRotO = yHeadRot;
+
+    sensing->clear();
+
+    if (lastHurtByMobId > 0) {
+        if (lastHurtByMobTime <= 0) setLastHurtByMob(0);
+        else                        lastHurtByMobTime--;
+    }
 }
 
 void Mob::updateWalkAnim() {
@@ -288,10 +349,14 @@ void Mob::aiStep() {
         if (farAway) { checkDespawn(); if (removed) return; }
         jumping = false; xxa = 0; yya = 0; yRotA = 0;
 
-        applySwimUrge();
+        if (farAway) applySwimUrge();
     } else if (!level->isClientSide) {
-        updateAi();
+
+        if (useNewAi()) newServerAiStep();
+        else            updateAi();
     }
+
+    if (!useNewAi()) yHeadRot = yRot;
 
     bool inWater = isInWater(), inLava = inWater ? false : isInLava();
     if (jumping) {
@@ -363,21 +428,27 @@ void Mob::tick() {
     if (!onGround) tRun = 0.0f;
     run += (tRun - run) * 0.3f;
 
-    float yBodyRotD = yBodyRotT - yBodyRot;
-    while (yBodyRotD < -180.0f) yBodyRotD += 360.0f;
-    while (yBodyRotD >= 180.0f) yBodyRotD -= 360.0f;
-    yBodyRot += yBodyRotD * 0.3f;
+    if (useNewAi()) {
+        bodyControl->clientTick();
+    } else {
+        float yBodyRotD = yBodyRotT - yBodyRot;
+        while (yBodyRotD < -180.0f) yBodyRotD += 360.0f;
+        while (yBodyRotD >= 180.0f) yBodyRotD -= 360.0f;
+        yBodyRot += yBodyRotD * 0.3f;
 
-    float headDiff = yRot - yBodyRot;
-    while (headDiff < -180.0f) headDiff += 360.0f;
-    while (headDiff >= 180.0f) headDiff -= 360.0f;
-    bool behind = headDiff < -90.0f || headDiff >= 90.0f;
-    if (headDiff < -75.0f) headDiff = -75.0f;
-    if (headDiff >= 75.0f) headDiff = 75.0f;
-    yBodyRot = yRot - headDiff;
-    if (headDiff * headDiff > 50.0f * 50.0f) yBodyRot += headDiff * 0.2f;
-    if (behind) walkSpeed *= -1.0f;
+        float headDiff = yRot - yBodyRot;
+        while (headDiff < -180.0f) headDiff += 360.0f;
+        while (headDiff >= 180.0f) headDiff -= 360.0f;
+        bool behind = headDiff < -90.0f || headDiff >= 90.0f;
+        if (headDiff < -75.0f) headDiff = -75.0f;
+        if (headDiff >= 75.0f) headDiff = 75.0f;
+        yBodyRot = yRot - headDiff;
+        if (headDiff * headDiff > 50.0f * 50.0f) yBodyRot += headDiff * 0.2f;
+        if (behind) walkSpeed *= -1.0f;
+    }
 
+    while (yHeadRot - yHeadRotO < -180.0f) yHeadRotO -= 360.0f;
+    while (yHeadRot - yHeadRotO >= 180.0f) yHeadRotO += 360.0f;
     while (yRot - yRotO < -180.0f) yRotO -= 360.0f;
     while (yRot - yRotO >= 180.0f) yRotO += 360.0f;
     while (yBodyRot - yBodyRotO < -180.0f) yBodyRotO -= 360.0f;
@@ -392,6 +463,8 @@ bool Mob::hurt(Entity* source, int dmg) {
     noActionTime = 0;
     if (health <= 0) return false;
     walkAnimSpeed = 1.5f;
+
+    if (source && source != this && source->isMob()) setLastHurtByMob((Mob*)source);
 
     bool sound = true;
     if (invulnerableTime > invulnerableDuration / 2) {

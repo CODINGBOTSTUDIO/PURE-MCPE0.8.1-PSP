@@ -12,6 +12,10 @@ public:
     virtual int  getMaxHealth() { return 10; }
     virtual int  getDeathLoot();
 
+    virtual bool  useNewAi() { return true; }
+    virtual bool  isFood(ItemInstance* item);
+    virtual Animal* getBreedOffspring(Animal* partner);
+
     virtual const char* getAmbientSound() { return "mob.pig"; }
     virtual const char* getHurtSound()    { return "mob.pig"; }
     virtual const char* getDeathSound()   { return "mob.pigdeath"; }

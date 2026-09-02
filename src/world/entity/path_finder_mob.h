@@ -11,6 +11,8 @@ public:
 
     virtual void  updateAi();
     virtual float getWalkingSpeedModifier();
+
+    virtual float getBaseSpeed() { return runSpeed; }
     virtual float getWalkTargetValue(int x, int y, int z) { return 0.0f; }
     virtual Entity* findAttackTarget() { return 0; }
 
@@ -21,8 +23,6 @@ protected:
     void findRandomStrollLocation();
     bool isPathFinding();
 
-    Path  path;
-    int   attackTargetId;
     int   fleeTime;
     float runSpeed;
 

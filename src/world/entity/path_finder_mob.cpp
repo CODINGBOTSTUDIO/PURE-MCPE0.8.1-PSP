@@ -2,18 +2,20 @@
 #include "world/level/level.h"
 #include "world/level/pathfinder/vec3.h"
 #include "util/mth.h"
+#include "util/random_pos.h"
 #include <cmath>
 
 static const float PF_PI = 3.14159265f;
 
 PathfinderMob::PathfinderMob(Level* level)
-:   Mob(level), attackTargetId(0), fleeTime(0), runSpeed(0.7f), holdGround(false) {}
+:   Mob(level), fleeTime(0), runSpeed(0.7f), holdGround(false) {}
 
 bool PathfinderMob::isPathFinding() { return !path.isEmpty(); }
 
 float PathfinderMob::getWalkingSpeedModifier() {
     float speed = Mob::getWalkingSpeedModifier();
-    if (fleeTime > 0) speed *= 2.0f;
+
+    if (fleeTime > 0 && !useNewAi()) speed *= 2.0f;
     return speed;
 }
 
@@ -122,15 +124,9 @@ void PathfinderMob::checkCantSeeTarget(Entity* target, float d) {
 }
 
 void PathfinderMob::findRandomStrollLocation() {
-    bool hasBest = false;
-    int xBest = 0, yBest = 0, zBest = 0;
-    float best = -99999.0f;
-    for (int i = 0; i < 10; i++) {
-        int xt = Mth::floor(x + sharedRandom.nextInt(13) - 6);
-        int yt = Mth::floor(y + sharedRandom.nextInt(7) - 3);
-        int zt = Mth::floor(z + sharedRandom.nextInt(13) - 6);
-        float value = getWalkTargetValue(xt, yt, zt);
-        if (value > best) { best = value; xBest = xt; yBest = yt; zBest = zt; hasBest = true; }
-    }
-    if (hasBest) level->findPath(&path, this, xBest, yBest, zBest, 10.0f, false, false);
+
+    Vec3 target;
+    if (RandomPos::generateRandomPos(target, this, 6, 3, 0))
+        level->findPath(&path, this, (int)target.x, (int)target.y, (int)target.z,
+                        10.0f, false, false);
 }

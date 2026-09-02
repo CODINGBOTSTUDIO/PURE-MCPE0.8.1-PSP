@@ -9,6 +9,10 @@ public:
     Creeper(Level* level);
 
     virtual int  getMaxHealth() { return 16; }
+    virtual bool useNewAi() { return true; }
+
+    int  getSwellDir() const { return swellDir; }
+    void setSwellDir(int d) { swellDir = d; }
     virtual void tick();
     virtual int  getEntityTypeId() const;
 
@@ -24,6 +28,8 @@ protected:
     virtual int  getDeathLoot();
     virtual void checkHurtTarget(Entity* target, float d);
     virtual void checkCantSeeTarget(Entity* target, float d);
+
+    virtual bool doHurtTarget(Entity*) { return false; }
 
 private:
     int swell, oldSwell, swellDir;

@@ -22,6 +22,20 @@ namespace Mth {
         float bb = b < 0 ? -b : b;
         return aa > bb ? aa : bb;
     }
+
+    static inline float wrapDegrees(float f) {
+        float v = fmodf(f, 360.0f);
+        if (v >= 180.0f)  v -= 360.0f;
+        if (v <  -180.0f) v += 360.0f;
+        return v;
+    }
+
+    static inline float clampRotate(float from, float to, float maxDelta) {
+        float d = wrapDegrees(to - from);
+        if (d >  maxDelta) d =  maxDelta;
+        if (d < -maxDelta) d = -maxDelta;
+        return from + d;
+    }
 }
 
 #endif

@@ -284,10 +284,9 @@ float Entity::getBrightness(float ) {
     float hh = (bb.y1 - bb.y0) * 0.66f;
     int yTile = Mth::floor(y - heightOffset + hh);
     int zTile = Mth::floor(z);
-    if (level->hasChunksAt(Mth::floor(bb.x0), Mth::floor(bb.y0), Mth::floor(bb.z0),
-                           Mth::floor(bb.x1), Mth::floor(bb.y1), Mth::floor(bb.z1))) {
+
+    if (level->isLoadedAt((float)xTile, (float)zTile))
         return level->getBrightness(xTile, yTile, zTile);
-    }
     return 0;
 }
 

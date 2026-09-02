@@ -2,6 +2,9 @@
 #include "world/entity/entity_types.h"
 #include "world/entity/entity_renderer_id.h"
 #include "world/entity/animal/chicken.h"
+#include "world/entity/mob.h"
+#include "world/entity/local_player.h"
+#include "client/player/player_state.h"
 #include "world/item/item.h"
 #include "world/level/level.h"
 #include "world/level/world.h"
@@ -24,12 +27,25 @@ void Throwable::configure(int t) {
     }
 }
 
-Throwable::Throwable(Level* level, int t) : super(level), life(0) {
+Throwable::Throwable(Level* level, int t) : super(level), ownerId(0), life(0) {
     configure(t);
 }
 
+Throwable::Throwable(Level* level, Mob* owner, int t) : super(level), ownerId(0), life(0) {
+    configure(t);
+    ownerId = owner->entityId;
+
+    float yaw = owner->yRot;
+    float px = owner->x - cosf(yaw * DEG) * 0.16f;
+    float py = owner->y + owner->getHeadHeight() - 0.1f;
+    float pz = owner->z - sinf(yaw * DEG) * 0.16f;
+    setPos(px, py, pz);
+    xOld = x; yOld = y; zOld = z;
+    setRot(yaw, owner->xRot);
+}
+
 Throwable::Throwable(Level* level, float px, float py, float pz,
-                     float yaw, float pitch, int t) : super(level), life(0) {
+                     float yaw, float pitch, int t) : super(level), ownerId(0), life(0) {
     configure(t);
 
     float cy = cosf(yaw * DEG),   sy = sinf(yaw * DEG);
@@ -44,14 +60,14 @@ Throwable::Throwable(Level* level, float px, float py, float pz,
     shoot(-cp * sy, sp, cp * cy, 1.5f);
 }
 
-void Throwable::shoot(float dx, float dy, float dz, float power) {
+void Throwable::shoot(float dx, float dy, float dz, float power, float inaccuracy) {
     float dist = Mth::sqrt(dx * dx + dy * dy + dz * dz);
     if (dist >= 0.001f) { dx /= dist; dy /= dist; dz /= dist; }
     else { dx = dy = dz = 0.0f; }
 
-    dx += sharedRandom.nextGaussian() * 0.0075f;
-    dy += sharedRandom.nextGaussian() * 0.0075f;
-    dz += sharedRandom.nextGaussian() * 0.0075f;
+    dx += sharedRandom.nextGaussian() * 0.0075f * inaccuracy;
+    dy += sharedRandom.nextGaussian() * 0.0075f * inaccuracy;
+    dz += sharedRandom.nextGaussian() * 0.0075f * inaccuracy;
 
     xd = dx * power; yd = dy * power; zd = dz * power;
     float sd = Mth::sqrt(xd * xd + zd * zd);
@@ -95,12 +111,25 @@ void Throwable::tick() {
         for (size_t ei = 0; ei < candidates.size(); ei++) {
             Entity* e = candidates[ei];
             if (e->removed || e == (Entity*)level->player || !e->isPickable()) continue;
+
+            if (e->entityId == ownerId && life < 5) continue;
             if (e->bb.grow(0.3f, 0.3f, 0.3f).clip(x, y, z, ux, uy, uz, dist, t) &&
                 (!hitEntity || t < nearest)) { hitEntity = e; nearest = t; }
         }
+
+        bool hitPlayer = false;
+        if (ownerId != 0 && level->player && level->player->isAlive()) {
+            LocalPlayer* p = level->player;
+            float pf = p->y - PLAYER_EYE;
+            AABB pbb(p->x - PLAYER_W * 0.5f, pf, p->z - PLAYER_W * 0.5f,
+                     p->x + PLAYER_W * 0.5f, pf + PLAYER_H, p->z + PLAYER_W * 0.5f);
+            if (pbb.grow(0.3f, 0.3f, 0.3f).clip(x, y, z, ux, uy, uz, dist, t) &&
+                (!hitEntity || t < nearest)) { hitEntity = (Entity*)p; hitPlayer = true; }
+        }
         if (hitEntity) {
 
-            hitEntity->hurt(this, 0);
+            if (hitPlayer) level->player->hurt(this, 0);
+            else           hitEntity->hurt(this, 0);
             onHit();
             return;
         }

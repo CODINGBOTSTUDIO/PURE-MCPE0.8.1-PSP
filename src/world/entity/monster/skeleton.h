@@ -9,6 +9,7 @@ public:
     Skeleton(Level* level);
 
     virtual int  getMaxHealth() { return 10; }
+    virtual bool useNewAi() { return true; }
     virtual void aiStep();
     virtual int  getEntityTypeId() const;
     virtual void dropDeathLoot();
@@ -19,6 +20,8 @@ public:
 
 protected:
     virtual void checkHurtTarget(Entity* target, float d);
+    void aimAt(Entity* target);
+    virtual void performRangedAttack(Entity* target, float uncertainty);
 };
 
 #endif

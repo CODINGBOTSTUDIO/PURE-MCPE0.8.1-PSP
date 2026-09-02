@@ -7,12 +7,17 @@
 class Sheep : public Animal {
 public:
     Sheep(Level* level);
+    virtual ~Sheep();
 
     virtual int  getEntityTypeId() const;
     virtual int  getMaxHealth() { return 8; }
     virtual void dropDeathLoot();
     virtual bool playerInteract();
-    virtual void aiStep();
+    virtual bool  useNewAi() { return true; }
+    virtual bool  isFood(ItemInstance* item);
+    virtual Animal* getBreedOffspring(Animal* partner);
+    virtual void  serverAiMobStep();
+    virtual void  ate();
 
     virtual const char* getAmbientSound() { return "mob.sheep"; }
     virtual const char* getHurtSound()    { return "mob.sheep"; }
@@ -35,6 +40,7 @@ protected:
     virtual void readAdditionalSaveData(CompoundTag* tag);
 
 private:
+    class EatTileGoal* eatTileGoal;
     int  woolColor;
     bool sheared;
     int  eatAnimationTick = 0;

@@ -63,6 +63,34 @@ OBJS = \
 	src/util/data_io.o \
 	src/util/prof.o \
 	src/util/fast_memcpy.o \
+	src/util/random_pos.o \
+	src/world/entity/ai/goal.o \
+	src/world/entity/ai/goal_selector.o \
+	src/world/entity/ai/move_control.o \
+	src/world/entity/ai/look_control.o \
+	src/world/entity/ai/jump_control.o \
+	src/world/entity/ai/body_control.o \
+	src/world/entity/ai/sensing.o \
+	src/world/entity/ai/goals/float_goal.o \
+	src/world/entity/ai/goals/panic_goal.o \
+	src/world/entity/ai/goals/breed_goal.o \
+	src/world/entity/ai/goals/tempt_goal.o \
+	src/world/entity/ai/goals/follow_parent_goal.o \
+	src/world/entity/ai/goals/eat_tile_goal.o \
+	src/world/entity/ai/goals/random_stroll_goal.o \
+	src/world/entity/ai/goals/look_at_player_goal.o \
+	src/world/entity/ai/goals/random_look_around_goal.o \
+	src/world/entity/ai/goals/target_goal.o \
+	src/world/entity/ai/goals/hurt_by_target_goal.o \
+	src/world/entity/ai/goals/nearest_attackable_target_goal.o \
+	src/world/entity/ai/goals/melee_attack_goal.o \
+	src/world/entity/ai/goals/arrow_attack_goal.o \
+	src/world/entity/ai/goals/swell_goal.o \
+	src/world/entity/ai/goals/restrict_sun_goal.o \
+	src/world/entity/ai/goals/flee_sun_goal.o \
+	src/world/entity/ai/goals/door_interact_goal.o \
+	src/world/entity/ai/goals/break_door_goal.o \
+	src/world/level/pathfinder/path_navigation.o \
 	src/nbt/tag.o \
 	src/world/level/chunk/chunk.o \
 	src/world/level/chunk/chunk_build.o \

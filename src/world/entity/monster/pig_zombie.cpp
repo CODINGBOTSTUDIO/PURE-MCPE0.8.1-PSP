@@ -22,6 +22,8 @@ int PigZombie::getEntityTypeId() const { return EntityTypes::IdPigZombie; }
 
 void PigZombie::tick() {
     if (stunedTime > 0) stunedTime--;
+
+    if (angerTime > 0 && --angerTime == 0) attackTargetId = 0;
     if (playAngrySoundIn > 0) {
         if (--playAngrySoundIn == 0)
 

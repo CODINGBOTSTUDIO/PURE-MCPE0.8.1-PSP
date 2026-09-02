@@ -5,6 +5,7 @@
 #include "world/entity/path_finder_mob.h"
 
 class CompoundTag;
+class ItemInstance;
 
 class Animal : public PathfinderMob {
 public:
@@ -27,6 +28,17 @@ public:
     int  getAge() const { return age; }
     void setAge(int a) { age = a; }
 
+    bool isInLove() const { return inLove > 0; }
+    void resetLove() { inLove = 0; }
+
+    bool canMate(Animal* other);
+
+    virtual bool isFood(ItemInstance* item);
+
+    virtual Animal* getBreedOffspring(Animal* partner) = 0;
+
+    virtual bool playerInteract();
+
 protected:
     virtual void addAdditonalSaveData(CompoundTag* tag);
     virtual void readAdditionalSaveData(CompoundTag* tag);
@@ -36,6 +48,7 @@ protected:
     static const int MAX_WANDER_DISTANCE = 20;
 
     int age = 0;
+    int inLove = 0;
     bool despawnProtected = true;
     int  minWanderX = 0, maxWanderX = 0, minWanderZ = 0, maxWanderZ = 0;
 };

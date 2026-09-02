@@ -11,6 +11,10 @@ public:
     virtual int  getMaxHealth() { return 4; }
     virtual void aiStep();
     virtual void causeFallDamage(float) {}
+
+    virtual bool  useNewAi() { return true; }
+    virtual bool  isFood(ItemInstance* item);
+    virtual Animal* getBreedOffspring(Animal* partner);
     virtual void dropDeathLoot();
 
     virtual const char* getAmbientSound() { return "mob.chicken"; }

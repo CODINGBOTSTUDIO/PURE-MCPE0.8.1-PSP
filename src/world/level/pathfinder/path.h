@@ -12,6 +12,8 @@ public:
     Path();
     ~Path();
 
+    Path& operator=(const Path& o);
+
     void  copyNodes(Node** nodes, int length);
     void  destroy();
     void  next();
@@ -24,6 +26,9 @@ public:
     Node* get(int i) const;
     int   getIndex() const;
     void  setIndex(int index);
+
+    void  setSize(int size);
+    bool  sameAs(const Path& other) const;
 
     Vec3  currentPos(Entity* e) const;
     Node* currentPos();

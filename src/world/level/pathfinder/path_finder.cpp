@@ -6,7 +6,7 @@
 #include "util/mth.h"
 #include <cstring>
 
-PathFinder::PathFinder() : avoidWater(false), level(0), _nodeIndex(0) {}
+PathFinder::PathFinder() : avoidWater(false), passDoors(false), level(0), _nodeIndex(0) {}
 
 bool PathFinder::findPath(Path* path, Entity* from, Entity* to, float maxDist) {
     if (!path || !from || !to) { if (path) path->destroy(); return false; }
@@ -94,7 +94,7 @@ bool PathFinder::findPathNodes(Path& path, Entity* e, Node* from, Node* to, cons
         }
     }
 
-    if (closest == from) return false;
+    if (closest == from) { path.destroy(); return false; }
     reconstruct(path, from, closest);
     return true;
 }
@@ -119,6 +119,7 @@ int PathFinder::getNeighbors(Entity* e, Node* pos, const Node* size, Node* targe
 Node* PathFinder::getNodeFor(Entity* e, int x, int y, int z, const Node* size, int jumpSize) {
     Node* best = 0;
     int pathType = isFree(e, x, y, z, size);
+
     if (pathType == TYPE_WALKABLE) return getNode(x, y, z);
     if (pathType == TYPE_OPEN) best = getNode(x, y, z);
     if (!best && jumpSize > 0 && pathType != TYPE_FENCE && isFree(e, x, y + jumpSize, z, size) == TYPE_OPEN) {
@@ -154,6 +155,8 @@ Node* PathFinder::getNode(int x, int y, int z) {
 }
 
 int PathFinder::isFree(Entity* , int x, int y, int z, const Node* size) {
+
+    bool sawWater = false;
     for (int xx = x; xx < x + size->x; xx++)
         for (int yy = y; yy < y + size->y; yy++)
             for (int zz = z; zz < z + size->z; zz++) {
@@ -162,18 +165,20 @@ int PathFinder::isFree(Entity* , int x, int y, int z, const Node* size) {
                 unsigned char b = (unsigned char)id;
                 if (isDoor(b)) {
 
-                    if (!(level->getData(xx, yy, zz) & 4)) return TYPE_BLOCKED;
+                    if (!(level->getData(xx, yy, zz) & 4) &&
+                        !(passDoors && b == BLOCK_DOOR_WOOD)) return TYPE_BLOCKED;
                     continue;
                 } else if (isWaterId(b)) {
                     if (avoidWater) return TYPE_WATER;
-
+                    sawWater = true;
+                    continue;
                 } else if (isFence(b) || isFenceGate(b)) {
                     return TYPE_FENCE;
                 }
                 if (isSolidPhys(b)) return TYPE_BLOCKED;
                 if (isLavaId(b)) return TYPE_LAVA;
             }
-    return TYPE_OPEN;
+    return sawWater ? TYPE_WALKABLE : TYPE_OPEN;
 }
 
 void PathFinder::reconstruct(Path& path, Node* , Node* to) {

@@ -61,7 +61,11 @@ MobAnim mobAnimSetup(Mob* mob, float rot, float a) {
     while (dBody > 180.0f) dBody -= 360.0f;
     while (dBody < -180.0f) dBody += 360.0f;
     m.bodyRot = mob->yBodyRotO + dBody * a;
-    m.headYaw = rot - m.bodyRot;
+
+    float dHead = mob->yHeadRot - mob->yHeadRotO;
+    while (dHead > 180.0f) dHead -= 360.0f;
+    while (dHead < -180.0f) dHead += 360.0f;
+    m.headYaw = (mob->yHeadRotO + dHead * a) - m.bodyRot;
     while (m.headYaw > 180.0f) m.headYaw -= 360.0f;
     while (m.headYaw < -180.0f) m.headYaw += 360.0f;
     m.pitch = mob->xRotO + (mob->xRot - mob->xRotO) * a;

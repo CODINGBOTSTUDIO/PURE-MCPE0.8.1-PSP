@@ -52,7 +52,7 @@ static float seenPercent(World* w, float cx, float cy, float cz, const AABB& bb)
     return count ? hits / (float)count : 1.0f;
 }
 
-void worldExplode(World* w, float x, float y, float z, float r) {
+void worldExplode(World* w, float x, float y, float z, float r, bool inWater) {
     const int cx = (int)floorf(x), cy = (int)floorf(y), cz = (int)floorf(z);
 
     const int R = 10, W = 2 * R + 1;
@@ -125,6 +125,8 @@ void worldExplode(World* w, float x, float y, float z, float r) {
             g_level.player->xd += dx * inv * pw; g_level.player->yd += dy * inv * pw; g_level.player->zd += dz * inv * pw;
         }
     }
+
+    if (inWater) memset(visited, 0, sizeof(visited));
 
     int bx0 = cx + R, by0 = cy + R, bz0 = cz + R;
     int bx1 = cx - R, by1 = cy - R, bz1 = cz - R;

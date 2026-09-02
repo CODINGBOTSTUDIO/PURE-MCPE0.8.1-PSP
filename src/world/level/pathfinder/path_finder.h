@@ -20,6 +20,8 @@ public:
 
     bool avoidWater;
 
+    bool passDoors;
+
 private:
     bool  findPathTo(Path& path, Entity* e, float xt, float yt, float zt, float maxDist);
     bool  findPathNodes(Path& path, Entity* e, Node* from, Node* to, const Node* size, float maxDist);

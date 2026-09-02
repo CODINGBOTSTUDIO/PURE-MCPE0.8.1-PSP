@@ -17,6 +17,7 @@
 #include "world/entity/monster/creeper.h"
 #include "world/entity/monster/spider.h"
 #include "world/entity/monster/pig_zombie.h"
+#include "world/entity/local_player.h"
 #include "nbt/compound_tag.h"
 
 namespace EntityFactory {
@@ -55,3 +56,10 @@ Entity* loadEntity(CompoundTag* tag, Level* level) {
 }
 
 }
+
+#define FITS(T) static_assert(sizeof(T) <= Entity::ENTITY_SLOT, #T " outgrew ENTITY_SLOT")
+FITS(LocalPlayer); FITS(Chicken); FITS(Cow); FITS(Pig); FITS(Sheep);
+FITS(Zombie); FITS(Skeleton); FITS(Creeper); FITS(Spider); FITS(PigZombie);
+FITS(ItemEntity); FITS(Arrow); FITS(Minecart); FITS(PrimedTnt);
+FITS(Painting); FITS(FallingTile);
+#undef FITS

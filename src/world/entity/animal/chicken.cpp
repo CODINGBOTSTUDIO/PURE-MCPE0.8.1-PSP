@@ -2,6 +2,17 @@
 #include "world/entity/entity_types.h"
 #include "world/level/level.h"
 #include "world/item/item.h"
+#include "world/item/item_instance.h"
+#include "world/entity/ai/goals/float_goal.h"
+#include "world/entity/ai/goals/panic_goal.h"
+#include "world/entity/ai/goals/breed_goal.h"
+#include "world/entity/ai/goals/tempt_goal.h"
+#include "world/entity/ai/goals/follow_parent_goal.h"
+#include "world/entity/ai/goals/random_stroll_goal.h"
+#include "world/entity/ai/goals/look_at_player_goal.h"
+#include "world/entity/ai/goals/random_look_around_goal.h"
+
+static const int CHICKEN_FOODS[] = { ITEM_SEEDS_WHEAT };
 
 Chicken::Chicken(Level* level) : Animal(level) {
     setSize(0.4f, 0.7f);
@@ -13,12 +24,29 @@ Chicken::Chicken(Level* level) : Animal(level) {
 
     flap = oFlap = flapSpeed = oFlapSpeed = 0.0f;
     flapping = 1.0f;
+
+    goalSelector.addGoal(0, new FloatGoal(this));
+    goalSelector.addGoal(1, new PanicGoal(this, 1.5f));
+    goalSelector.addGoal(2, new BreedGoal(this, 1.0f));
+    goalSelector.addGoal(3, new TemptGoal(this, 1.0f, CHICKEN_FOODS, 1));
+    goalSelector.addGoal(4, new FollowParentGoal(this, 1.1f));
+    goalSelector.addGoal(5, new RandomStrollGoal(this, 1.0f));
+    goalSelector.addGoal(6, new LookAtPlayerGoal(this, 6.0f));
+    goalSelector.addGoal(7, new RandomLookAroundGoal(this));
 }
+
+bool Chicken::isFood(ItemInstance* item) {
+    if (!item || item->id <= 0 || item->id >= 4096) return false;
+    Item* it = Item::items[item->id];
+    return it && it->isSeed();
+}
+
+Animal* Chicken::getBreedOffspring(Animal*) { return new Chicken(level); }
 
 int Chicken::getEntityTypeId() const { return EntityTypes::IdChicken; }
 
 void Chicken::aiStep() {
-    PathfinderMob::aiStep();
+    Animal::aiStep();
 
     oFlap      = flap;
     oFlapSpeed = flapSpeed;

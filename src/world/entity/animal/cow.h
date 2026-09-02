@@ -12,6 +12,10 @@ public:
     virtual void dropDeathLoot();
 
     virtual void aiStep();
+
+    virtual bool  useNewAi() { return true; }
+    virtual bool  isFood(ItemInstance* item);
+    virtual Animal* getBreedOffspring(Animal* partner);
     virtual bool playerInteract();
 
     bool canBeMilked() const { return milkedTicks > 20; }

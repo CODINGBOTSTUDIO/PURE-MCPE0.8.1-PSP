@@ -17,6 +17,7 @@
 #include "world/entity/animal/cow.h"
 #include "world/item/bucket_item.h"
 #include "world/entity/entity_types.h"
+#include "world/entity/animal/animal.h"
 #include "world/item/item.h"
 #include "world/item/tile_item.h"
 #include "world/item/food_item.h"
@@ -551,6 +552,12 @@ void GameMode::handleInput(unsigned int pressed, unsigned int held) {
                                               g_level.player->z, g_level.player->yRot,
                                               g_level.player->xRot, 5.0f, false);
                 if (plantHit.hit && placementWouldWork(sel, plantHit)) canEat = false;
+            }
+
+            if (canEat) {
+                Entity* fed = pickEntityOnViewRay(3.0f, 3.0f, true);
+                if (fed && fed->getCreatureBaseType() == EntityTypes::BaseCreature &&
+                    ((Animal*)fed)->isFood(sel)) canEat = false;
             }
             if (lHeld && !s_eating && (pressed & PSP_CTRL_LTRIGGER) && canEat) {
                 s_eating = true; s_eatStart = sceKernelGetSystemTimeLow(); s_lastEmit = 0;

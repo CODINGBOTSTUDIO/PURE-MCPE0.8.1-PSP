@@ -22,7 +22,8 @@ public:
     virtual ~Entity();
 
     static const int ENTITY_POOL = 96;
-    static const unsigned ENTITY_SLOT = 2560;
+
+    static const unsigned ENTITY_SLOT = 2688;
     static bool  hasFreeSlot();
     static int   freeSlots();
     static void* operator new(unsigned n);
@@ -198,8 +199,9 @@ public:
     bool reallyRemoveIfPlayer;
     bool sneaking;
 
-protected:
     static Random sharedRandom;
+
+protected:
     int airCapacity;
     bool makeStepSound;
     bool wasInWater;

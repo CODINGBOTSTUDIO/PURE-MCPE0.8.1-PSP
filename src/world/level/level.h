@@ -55,14 +55,18 @@ public:
     int getEntitiesOfType(int entityType, const AABB& box, EntityList& out) const;
     int getEntitiesOfClass(int baseType, const AABB& box, EntityList& out) const;
 
+    LocalPlayer* getNearestPlayer(Entity* from, float maxDist) const;
+
+    bool isDay() const;
+
     void linkEntity(Entity* e);
     void unlinkEntity(Entity* e);
     void relinkIfMoved(Entity* e);
 
     bool isUnobstructed(const AABB& box) const;
 
-    void findPath(Path* path, Entity* from, Entity* to, float maxDist, bool openDoors, bool avoidWater);
-    void findPath(Path* path, Entity* from, int x, int y, int z, float maxDist, bool openDoors, bool avoidWater);
+    bool findPath(Path* path, Entity* from, Entity* to, float maxDist, bool openDoors, bool avoidWater);
+    bool findPath(Path* path, Entity* from, int x, int y, int z, float maxDist, bool openDoors, bool avoidWater);
 
     void addEntity(Entity* e);
     void tickEntities();

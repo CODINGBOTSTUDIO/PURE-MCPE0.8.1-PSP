@@ -15,6 +15,7 @@ public:
     virtual bool useOn(ItemInstance* item, Player* player, World* world, int x, int y, int z, int face, float, float, float);
     virtual int  getIcon(short data) const { return icon; }
     virtual bool placesTile() const { return true; }
+    virtual bool isSeed() const { return true; }
     virtual short plantedTileId() const { return resultTile; }
 };
 

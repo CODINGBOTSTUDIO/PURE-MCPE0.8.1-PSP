@@ -3,6 +3,15 @@
 #include "world/entity/arrow.h"
 #include "world/level/level.h"
 #include "world/item/item.h"
+#include "world/entity/ai/goals/float_goal.h"
+#include "world/entity/ai/goals/restrict_sun_goal.h"
+#include "world/entity/ai/goals/flee_sun_goal.h"
+#include "world/entity/ai/goals/arrow_attack_goal.h"
+#include "world/entity/ai/goals/random_stroll_goal.h"
+#include "world/entity/ai/goals/look_at_player_goal.h"
+#include "world/entity/ai/goals/random_look_around_goal.h"
+#include "world/entity/ai/goals/hurt_by_target_goal.h"
+#include "world/entity/ai/goals/nearest_attackable_target_goal.h"
 #include <cmath>
 
 static const float SK_RADDEG = 180.0f / 3.14159265f;
@@ -10,8 +19,19 @@ static const float SK_RADDEG = 180.0f / 3.14159265f;
 Skeleton::Skeleton(Level* level) : Monster(level) {
     setSize(0.6f, 1.8f);
     entityRendererId = ER_SKELETON_RENDERER;
+    runSpeed = 0.54f;
     attackDamage = 2;
     health = getMaxHealth();
+
+    goalSelector.addGoal(1, new FloatGoal(this));
+    goalSelector.addGoal(2, new RestrictSunGoal(this));
+    goalSelector.addGoal(3, new FleeSunGoal(this, 1.0f));
+    goalSelector.addGoal(4, new ArrowAttackGoal(this, 1.0f, ArrowAttackGoal::ATTACK_ARROW, 60));
+    goalSelector.addGoal(5, new RandomStrollGoal(this, 1.0f));
+    goalSelector.addGoal(6, new LookAtPlayerGoal(this, 8.0f));
+    goalSelector.addGoal(6, new RandomLookAroundGoal(this));
+    goalSelector2.addGoal(1, new HurtByTargetGoal(this, 16.0f));
+    goalSelector2.addGoal(2, new NearestAttackableTargetGoal(this, 16.0f));
 }
 
 void Skeleton::aiStep() {
@@ -24,6 +44,13 @@ int Skeleton::getEntityTypeId() const { return EntityTypes::IdSkeleton; }
 void Skeleton::checkHurtTarget(Entity* target, float d) {
     if (d >= 10.0f) return;
 
+    if (attackTime == 0) performRangedAttack(target, 32.0f);
+    else                 aimAt(target);
+    holdGround = true;
+}
+
+void Skeleton::aimAt(Entity* target) {
+
     float myEyeY = y + getHeadHeight();
     float ex = target->x;
     float ey = target->y + target->getHeadHeight() - 0.7f;
@@ -35,17 +62,21 @@ void Skeleton::checkHurtTarget(Entity* target, float d) {
     float yaw   = atan2f(dz, dx) * SK_RADDEG - 90.0f;
     float pitch = atan2f(dy, horiz) * SK_RADDEG;
 
+    yRot = yaw;
     xRot = pitch;
 
-    if (attackTime == 0) {
+}
 
-        Arrow* a = new Arrow(level, x, myEyeY, z, yaw, pitch, 1.6f / 1.5f, false,
-                              false,  32.0f);
-        a->ownerId = entityId;
-        level->addEntity(a);
-        attackTime = TicksPerSecond * 3;
-    }
-    holdGround = true;
+void Skeleton::performRangedAttack(Entity* target, float uncertainty) {
+    aimAt(target);
+    float myEyeY = y + getHeadHeight();
+
+    Arrow* a = new Arrow(level, x, myEyeY, z, yRot, xRot, 1.6f / 1.5f, false,
+                          false, uncertainty);
+    a->ownerId = entityId;
+    level->addEntity(a);
+    level->playSound(this, "random.bow", 1.0f, 1.0f);
+    attackTime = TicksPerSecond * 3;
 }
 
 void Skeleton::dropDeathLoot() {

@@ -6,6 +6,16 @@
 #include "world/entity/player.h"
 #include "world/inventory/inventory.h"
 #include "world/level/level.h"
+#include "world/entity/ai/goals/float_goal.h"
+#include "world/entity/ai/goals/panic_goal.h"
+#include "world/entity/ai/goals/breed_goal.h"
+#include "world/entity/ai/goals/tempt_goal.h"
+#include "world/entity/ai/goals/follow_parent_goal.h"
+#include "world/entity/ai/goals/random_stroll_goal.h"
+#include "world/entity/ai/goals/look_at_player_goal.h"
+#include "world/entity/ai/goals/random_look_around_goal.h"
+
+static const int COW_FOODS[] = { ITEM_WHEAT };
 
 Cow::Cow(Level* level) : Animal(level) {
     setSize(0.9f, 1.3f);
@@ -14,9 +24,22 @@ Cow::Cow(Level* level) : Animal(level) {
     entityRendererId = ER_COW_RENDERER;
     health = getMaxHealth();
     milkedTicks = 0;
+
+    goalSelector.addGoal(0, new FloatGoal(this));
+    goalSelector.addGoal(1, new PanicGoal(this, 1.5f));
+    goalSelector.addGoal(2, new BreedGoal(this, 1.0f));
+    goalSelector.addGoal(3, new TemptGoal(this, 1.0f, COW_FOODS, 1));
+    goalSelector.addGoal(4, new FollowParentGoal(this, 1.1f));
+    goalSelector.addGoal(5, new RandomStrollGoal(this, 0.8f));
+    goalSelector.addGoal(6, new LookAtPlayerGoal(this, 6.0f));
+    goalSelector.addGoal(7, new RandomLookAroundGoal(this));
 }
 
 int Cow::getEntityTypeId() const { return EntityTypes::IdCow; }
+
+bool Cow::isFood(ItemInstance* item) { return item && item->id == ITEM_WHEAT; }
+
+Animal* Cow::getBreedOffspring(Animal*) { return new Cow(level); }
 
 void Cow::dropDeathLoot() {
     int beef = 1 + sharedRandom.nextInt(3);

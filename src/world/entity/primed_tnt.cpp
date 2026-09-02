@@ -52,7 +52,7 @@ void PrimedTnt::tick() {
 
     if (--life <= 0) {
         remove();
-        worldExplode(level->w, x, y, z, 3.1f);
+        worldExplode(level->w, x, y, z, 3.1f, isInWater());
     } else {
         particlesSmoke(x, y + 0.5f, z);
     }

@@ -8,12 +8,31 @@
 #include "world/entity/local_player.h"
 #include "world/inventory/inventory.h"
 #include "client/renderer/particle.h"
+#include "world/entity/ai/goals/float_goal.h"
+#include "world/entity/ai/goals/swell_goal.h"
+#include "world/entity/ai/goals/melee_attack_goal.h"
+#include "world/entity/ai/goals/random_stroll_goal.h"
+#include "world/entity/ai/goals/look_at_player_goal.h"
+#include "world/entity/ai/goals/random_look_around_goal.h"
+#include "world/entity/ai/goals/hurt_by_target_goal.h"
+#include "world/entity/ai/goals/nearest_attackable_target_goal.h"
 
 Creeper::Creeper(Level* level)
 :   Monster(level), swell(0), oldSwell(0), swellDir(-1) {
     setSize(0.6f, 1.8f);
     entityRendererId = ER_CREEPER_RENDERER;
+
+    runSpeed = 0.54f;
     health = getMaxHealth();
+
+    goalSelector.addGoal(1, new FloatGoal(this));
+    goalSelector.addGoal(2, new SwellGoal(this));
+    goalSelector.addGoal(4, new MeleeAttackGoal(this, 1.25f, false));
+    goalSelector.addGoal(5, new RandomStrollGoal(this, 1.0f));
+    goalSelector.addGoal(6, new LookAtPlayerGoal(this, 8.0f));
+    goalSelector.addGoal(6, new RandomLookAroundGoal(this));
+    goalSelector2.addGoal(2, new NearestAttackableTargetGoal(this, 16.0f));
+    goalSelector2.addGoal(2, new HurtByTargetGoal(this, 16.0f));
 }
 
 int Creeper::getEntityTypeId() const { return EntityTypes::IdCreeper; }
@@ -22,22 +41,25 @@ int Creeper::getDeathLoot()          { return ITEM_GUNPOWDER; }
 void Creeper::tick() {
     oldSwell = swell;
     Monster::tick();
+    if (removed) return;
 
-    if (swellDir == 2) {
+    if (!useNewAi() && attackTargetId == 0 && swellDir == 1) swellDir = -1;
+
+    if (swellDir > 0) {
 
         if (swell == 0) level->playSound(this, "random.fuse", 1.0f, 0.5f);
         if (++swell >= MAX_SWELL) {
+
+            swell = MAX_SWELL;
+            if (!isAlive()) return;
+
             remove();
-            worldExplode(level->w, x, y + bbHeight * 0.5f, z, 2.4f);
+
+            worldExplode(level->w, x, y, z, 2.4f, isInWater());
         }
         return;
     }
-
-    if (attackTargetId == 0 && swell > 0) {
-        swellDir = -1;
-        if (--swell < 0) swell = 0;
-    }
-
+    if (swell > 0 && --swell < 0) swell = 0;
 }
 
 float Creeper::getSwelling(float a) const {
@@ -49,25 +71,16 @@ void Creeper::checkHurtTarget(Entity* target, float d) {
     if (swellDir == 2) return;
 
     if ((swellDir <= 0 && d < 3.0f) || (swellDir > 0 && d < 7.0f)) {
-
-        if (swell == 0) level->playSound(this, "random.fuse", 1.0f, 0.5f);
         swellDir = 1;
-        if (++swell >= MAX_SWELL) {
-
-            remove();
-            worldExplode(level->w, x, y + bbHeight * 0.5f, z, 2.4f);
-            return;
-        }
         holdGround = true;
     } else {
         swellDir = -1;
-        if (--swell < 0) swell = 0;
     }
 }
 
 void Creeper::checkCantSeeTarget(Entity* target, float d) {
 
-    if (swell > 0 && swellDir != 2) { swellDir = -1; if (--swell < 0) swell = 0; }
+    if (swellDir != 2) swellDir = -1;
     Monster::checkCantSeeTarget(target, d);
 }
 
