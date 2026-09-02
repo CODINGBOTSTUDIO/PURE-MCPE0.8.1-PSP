@@ -48,41 +48,6 @@ void tallGrassFeature(World* w, Random& random, int x, int y, int z, unsigned ch
     }
 }
 
-void deadBushFeature(World* w, Random& random, int x, int y, int z) {
-    unsigned char t;
-    while (y > 0 && ((t = worldBlock(w, x, y, z)) == BLOCK_AIR || t == BLOCK_LEAVES))
-        y--;
-
-    for (int i = 0; i < 4; i++) {
-        int x2 = x + random.nextInt(8) - random.nextInt(8);
-        int y2 = y + random.nextInt(4) - random.nextInt(4);
-        int z2 = z + random.nextInt(8) - random.nextInt(8);
-        if (worldBlock(w, x2, y2, z2) != BLOCK_AIR) continue;
-        if (worldBlock(w, x2, y2 - 1, z2) != BLOCK_SAND) continue;
-        PendingFlower pf = { x2, y2, z2, BLOCK_TALLGRASS, TG_DEAD_SHRUB };
-        if (g_pendingFlowers.size() >= PENDING_MAX) { g_pendingFlowerDrops++; continue; }
-        g_pendingFlowers.push_back(pf);
-    }
-}
-
-void pumpkinFeature(World* w, Random& random, int x, int y, int z) {
-
-    unsigned char t;
-    while (y > 0 && ((t = worldBlock(w, x, y, z)) == BLOCK_AIR || t == BLOCK_LEAVES))
-        y--;
-
-    for (int i = 0; i < 64; i++) {
-        int x2 = x + random.nextInt(8) - random.nextInt(8);
-        int y2 = y + random.nextInt(4) - random.nextInt(4);
-        int z2 = z + random.nextInt(8) - random.nextInt(8);
-        int face = random.nextInt(4);
-        if (worldBlock(w, x2, y2, z2) != BLOCK_AIR) continue;
-        if (worldBlock(w, x2, y2 - 1, z2) != BLOCK_GRASS) continue;
-
-        setBlock(w, x2, y2, z2, BLOCK_PUMPKIN, (unsigned char)face);
-    }
-}
-
 void worldPlaceFlowers(World* w) {
     for (size_t i = 0; i < g_pendingFlowers.size(); i++) {
         const PendingFlower& f = g_pendingFlowers[i];

@@ -328,16 +328,10 @@ bool McpeGen::postProcessPhase(World* w, int chunkX, int chunkZ, int phase) {
     int grasses = extraVeg ? ((biome == B_PLAINS) ? 10 : (biome == B_FOREST) ? 2 : 1) : 0;
     for (int i = 0; i < grasses; i++) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; tallGrassFeature(w, random, x, y, z, TG_TALL_GRASS); }
 
-    int deadBushes = extraVeg ? ((biome == B_DESERT) ? 2 : (biome == B_SWAMP) ? 1 : 0) : 0;
-    for (int i = 0; i < deadBushes; i++) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; deadBushFeature(w, random, x, y, z); }
-
     if (random.nextInt(4) == 0) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; mushroomFeature(w, random, x, y, z, BLOCK_MUSHROOM_BROWN); }
     if (random.nextInt(8) == 0) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; mushroomFeature(w, random, x, y, z, BLOCK_MUSHROOM_RED); }
 
     for (int i = 0; i < 10; i++) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; reedsFeature(w, random, x, y, z); }
-
-    #define PUMPKIN_PATCH_ODDS 96
-    if (extraVeg && random.nextInt(PUMPKIN_PATCH_ODDS) == 0) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; pumpkinFeature(w, random, x, y, z); }
 
     int cacti = (biome == B_DESERT) ? 5 : 0;
     for (int i = 0; i < cacti; i++) { int x = xo + random.nextInt(16) + 8, y = random.nextInt(128), z = zo + random.nextInt(16) + 8; cactusFeature(w, random, x, y, z); }
