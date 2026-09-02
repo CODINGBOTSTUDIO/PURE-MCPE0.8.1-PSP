@@ -485,7 +485,7 @@ int meshPass(const World* w, int ox, int oz, int y0, int y1, ChunkVertex* out, i
         if (layer == 3 && id == BLOCK_GRASS && LCB(gx, y + 1, gz) != BLOCK_TOPSNOW) {
             if (out && n + 24 > cap) return -1;
             static const int gtri[6] = { 0, 1, 2, 2, 3, 0 };
-            const unsigned int GRASS_TINT = 0xFF6BBD7Cu;
+            const unsigned int GRASS_TINT = 0xFF49CD87u;
             const float ou0 = 6 * TILE_UV, ov0 = 2 * TILE_UV;
 
             const float TE = TILE_UV / 128.0f, TILE_INNER = TILE_UV - 2.0f * TE;
@@ -860,7 +860,7 @@ int meshSectionSink(const World* w, int ox, int oz, int y0, int y1,
             }
 
             if (grassSide && f != F_TOP && f != F_DOWN) {
-                const unsigned int GRASS_TINT = 0xFF6BBD7Cu;
+                const unsigned int GRASS_TINT = 0xFF49CD87u;
                 float ou0 = 6 * TILE_UV, ov0 = 2 * TILE_UV;
                 for (int t = 0; t < 6; t++) {
                     int k = tri[t];
