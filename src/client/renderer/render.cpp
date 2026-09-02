@@ -120,7 +120,7 @@ struct ColorVertex {
 };
 }
 
-#define SKY_DOME_COLOR 0xFFBF5424u
+#define SKY_DOME_COLOR 0xFFFFA777u
 
 #define SKY_DOME_OFFSET 32.0f
 
