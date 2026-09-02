@@ -218,7 +218,7 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
     switch (id) {
 
         case BLOCK_GRASS:
-            if (f == F_TOP)       { *col = 0; *row = 0; *tint = 0xFF6BBD7Cu; }
+            if (f == F_TOP)       { *col = 0; *row = 0; *tint = 0xFF49CD87u; }
             else if (f == F_DOWN) { *col = 2; *row = 0; }
             else                  { *col = 3; *row = 0; }
             break;
@@ -350,8 +350,8 @@ void Tile::getTexture(unsigned char data, int f, int* col, int* row, unsigned in
             switch (data) {
 
                 case TG_DEAD_SHRUB: *col = 7; *row = 3; break;
-                case TG_TALL_GRASS: *col = 7; *row = 2; *tint = 0xFF6BBD7Cu; break;
-                default:            *col = 8; *row = 3; *tint = 0xFF6BBD7Cu; break;
+                case TG_TALL_GRASS: *col = 7; *row = 2; *tint = 0xFF49CD87u; break;
+                default:            *col = 8; *row = 3; *tint = 0xFF49CD87u; break;
             }
             break;
         case BLOCK_FIRE:           *col = 15; *row = 1; break;
